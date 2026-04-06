@@ -1,0 +1,63 @@
+# GitHub Actions Workflow for BlazeNeuro Deployment
+# Add this file to your repository at .github/workflows/deploy.yml
+
+name: Deploy to BlazeNeuro
+
+on:
+  workflow_dispatch:
+    inputs:
+      deployment_id:
+        description: 'Deployment ID'
+        required: true
+      subdomain:
+        description: 'Subdomain'
+        required: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build Next.js app
+        run: npm run build
+        env:
+          NODE_ENV: production
+      
+      - name: Create deployment package
+        run: |
+          tar -czf deployment.tar.gz .next public package.json package-lock.json next.config.js
+      
+      - name: Upload to BlazeNeuro
+        env:
+          BLAZENEURO_API_KEY: ${{ secrets.BLAZENEURO_API_KEY }}
+          DEPLOYMENT_ID: ${{ github.event.inputs.deployment_id }}
+          SUBDOMAIN: ${{ github.event.inputs.subdomain }}
+        run: |
+          curl -X POST https://blazeneuro.com/api/deployments/$DEPLOYMENT_ID/upload \
+            -H "Authorization: Bearer $BLAZENEURO_API_KEY" \
+            -F "file=@deployment.tar.gz" \
+            -F "subdomain=$SUBDOMAIN"
+      
+      - name: Notify deployment status
+        if: always()
+        env:
+          BLAZENEURO_API_KEY: ${{ secrets.BLAZENEURO_API_KEY }}
+          DEPLOYMENT_ID: ${{ github.event.inputs.deployment_id }}
+        run: |
+          STATUS="${{ job.status }}"
+          curl -X PATCH https://blazeneuro.com/api/deployments/$DEPLOYMENT_ID \
+            -H "Authorization: Bearer $BLAZENEURO_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{\"status\":\"$STATUS\",\"githubRunId\":\"${{ github.run_id }}\"}"

@@ -1,0 +1,1 @@
+ALTER TABLE "databaseBranch" ADD COLUMN "connectionString" text NOT NULL;
