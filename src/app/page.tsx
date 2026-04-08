@@ -191,7 +191,9 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
-              <Button size="lg" className="shadow-lg w-full sm:w-auto">Get Started</Button>
+              <a href="https://auth.blazeneuro.com/login">
+                <Button size="lg" className="shadow-lg w-full sm:w-auto">Get Started</Button>
+              </a>
               <Button size="lg" variant="outline" className="backdrop-blur-md bg-white/10 border-white/30 text-white hover:bg-white/20 w-full sm:w-auto">Learn More</Button>
             </div>
           </div>

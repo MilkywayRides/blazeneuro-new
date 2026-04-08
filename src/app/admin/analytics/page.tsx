@@ -139,10 +139,10 @@ export default async function AnalyticsPage() {
           </div>
 
           <AnalyticsCharts
-            userGrowth={userGrowthResult.rows || []}
-            blogStats={blogStatsResult.rows || []}
-            userRoles={userRolesResult.rows || []}
-            oauthUsage={oauthUsageResult.rows || []}
+            userGrowth={(userGrowthResult as any).rows || []}
+            blogStats={(blogStatsResult as any).rows || []}
+            userRoles={(userRolesResult as any).rows || []}
+            oauthUsage={(oauthUsageResult as any).rows || []}
           />
         </div>
       </SidebarInset>
