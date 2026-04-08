@@ -76,12 +76,10 @@ export default async function ProjectPage(props: { params: Promise<{ id: string 
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Repository</p>
-                  <Button variant="link" className="h-auto p-0" asChild>
-                    <Link href={currentProject.repoUrl || "#"} target="_blank">
-                      {currentProject.repoFullName}
-                      <ExternalLink className="h-3 w-3 ml-1" />
-                    </Link>
-                  </Button>
+                  <Link href={currentProject.repoUrl || "#"} target="_blank" className="text-sm text-primary hover:underline inline-flex items-center">
+                    {currentProject.repoFullName}
+                    <ExternalLink className="h-3 w-3 ml-1" />
+                  </Link>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Framework</p>
