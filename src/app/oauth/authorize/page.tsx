@@ -80,9 +80,9 @@ export default async function AuthorizePage({
             <Button type="submit" className="w-full" size="lg">
               Authorize {app[0].name}
             </Button>
-            <Button type="button" variant="outline" className="w-full" asChild>
-              <a href={app[0].homepageUrl}>Cancel</a>
-            </Button>
+            <a href={app[0].homepageUrl} className="inline-flex items-center justify-center w-full h-10 px-4 py-2 text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md">
+              Cancel
+            </a>
           </form>
 
           <p className="text-xs text-center text-muted-foreground">

@@ -49,8 +49,8 @@ export function OAuthAppActions({ appId, archived }: { appId: string; archived: 
           <MoreHorizontal className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem asChild>
-            <Link href={`/admin/oauth/${appId}`} className="flex items-center cursor-pointer">
+          <DropdownMenuItem>
+            <Link href={`/admin/oauth/${appId}`} className="flex items-center cursor-pointer w-full">
               <Eye className="h-4 w-4 mr-2" />
               View Details
             </Link>
