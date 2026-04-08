@@ -1,3 +1,9 @@
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy",
+};
+
 "use client";
 
 import { useState, useEffect } from "react";

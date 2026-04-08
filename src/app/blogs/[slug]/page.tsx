@@ -9,8 +9,23 @@ import { ChevronLeft } from "lucide-react";
 import { BlogContent } from "@/components/blog-content";
 import { BlogFeedback } from "@/components/blog-feedback";
 import { Footer } from "@/components/footer";
+import { Metadata } from "next";
 
-export const revalidate = 3600; // Revalidate every hour
+export const revalidate = 3600;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const result = await db.select().from(blog).where(eq(blog.slug, slug)).limit(1);
+  const post = result[0];
+  
+  return {
+    title: post ? `${post.title} - BlazeNeuro` : "Blog - BlazeNeuro",
+  };
+}
 
 export default async function BlogPostPage({
   params,

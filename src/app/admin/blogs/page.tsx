@@ -1,3 +1,9 @@
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Blogs - Admin",
+};
+
 import { requireAdmin } from "@/lib/auth-check";
 import { db } from "@/lib/db";
 import { blog } from "@/lib/schema";

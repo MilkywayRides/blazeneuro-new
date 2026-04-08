@@ -2,8 +2,13 @@ import { db } from "@/lib/db";
 import { blog, user } from "@/lib/schema";
 import { eq, desc, sql } from "drizzle-orm";
 import BlogsPageClient from "./blogs-client";
+import { Metadata } from "next";
 
-export const revalidate = 300; // Revalidate every 5 minutes
+export const metadata: Metadata = {
+  title: "Blogs - BlazeNeuro",
+};
+
+export const revalidate = 300;
 
 export default async function BlogsPage() {
   let blogs: any[] = [];

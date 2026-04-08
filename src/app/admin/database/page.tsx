@@ -1,3 +1,9 @@
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Database - Admin",
+};
+
 import { requireAdmin } from "@/lib/auth-check";
 import { db } from "@/lib/db";
 import { database } from "@/lib/schema";
