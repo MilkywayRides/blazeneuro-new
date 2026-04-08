@@ -138,16 +138,15 @@ export default function BlogsPageClient({ blogs: initialBlogs }: { blogs: any[] 
                 <NavigationMenuList className="flex-nowrap overflow-x-auto gap-4 pb-4">
                   {otherBlogs.slice(0, 5).map(({ blog: post, author }) => (
                     <NavigationMenuItem key={post.id} className="flex-shrink-0">
-                      <NavigationMenuLink asChild>
-                        <Link href={`/blogs/${post.slug}`} className="block">
-                          <Card className="w-[320px] hover:shadow-xl transition-all overflow-hidden group cursor-pointer border">
-                            {post.coverImage ? (
-                              <div className="relative h-44 overflow-hidden">
-                                <Image
-                                  src={post.coverImage}
-                                  alt={post.title}
-                                  fill
-                                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      <Link href={`/blogs/${post.slug}`} className="block">
+                        <Card className="w-[320px] hover:shadow-xl transition-all overflow-hidden group cursor-pointer border">
+                          {post.coverImage ? (
+                            <div className="relative h-44 overflow-hidden">
+                              <Image
+                                src={post.coverImage}
+                                alt={post.title}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-300"
                                   unoptimized
                                 />
                               </div>
@@ -173,7 +172,6 @@ export default function BlogsPageClient({ blogs: initialBlogs }: { blogs: any[] 
                             )}
                           </Card>
                         </Link>
-                      </NavigationMenuLink>
                     </NavigationMenuItem>
                   ))}
                 </NavigationMenuList>
