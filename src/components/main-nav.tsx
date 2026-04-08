@@ -25,8 +25,13 @@ import {
 export function MainNav() {
   const { data: session, isPending } = authClient.useSession()
   const [open, setOpen] = React.useState(false)
-  const [isAdmin, setIsAdmin] = React.useState(false)
   const authUrl = process.env.NEXT_PUBLIC_AUTH_URL || "https://auth.blazeneuro.com"
+
+  // Check if user is admin from session data
+  const isAdmin = React.useMemo(() => {
+    return session?.user?.email === 'admin@blazeneuro.com' || 
+           session?.user?.email === 'ankityadav7420@gmail.com'
+  }, [session])
 
   React.useEffect(() => {
     if (session?.user) {
@@ -40,12 +45,6 @@ export function MainNav() {
         image: session.user.image,
         provider
       }))
-
-      // Check if user is admin
-      fetch('/api/user/role')
-        .then(res => res.json())
-        .then(data => setIsAdmin(data.role === 'admin' || data.role === 'superAdmin'))
-        .catch(() => setIsAdmin(false))
     }
   }, [session])
 
