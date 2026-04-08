@@ -25,6 +25,7 @@ import {
 export function MainNav() {
   const { data: session, isPending } = authClient.useSession()
   const [open, setOpen] = React.useState(false)
+  const [isAdmin, setIsAdmin] = React.useState(false)
   const authUrl = process.env.NEXT_PUBLIC_AUTH_URL || "https://auth.blazeneuro.com"
 
   React.useEffect(() => {
@@ -39,25 +40,37 @@ export function MainNav() {
         image: session.user.image,
         provider
       }))
+
+      // Check if user is admin
+      fetch('/api/user/role')
+        .then(res => res.json())
+        .then(data => setIsAdmin(data.role === 'admin' || data.role === 'superAdmin'))
+        .catch(() => setIsAdmin(false))
     }
   }, [session])
 
   const handleLogout = async () => {
     const accountInfo = localStorage.getItem("lastAccount")
-    await authClient.signOut()
     
-    if (accountInfo) {
-      const account = JSON.parse(accountInfo)
-      const params = new URLSearchParams({
-        email: account.email,
-        name: account.name || '',
-        image: account.image || '',
-        provider: account.provider || 'email'
-      })
-      window.location.href = `${authUrl}?${params.toString()}`
-    } else {
-      window.location.href = authUrl
-    }
+    // Sign out and redirect to auth domain
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          if (accountInfo) {
+            const account = JSON.parse(accountInfo)
+            const params = new URLSearchParams({
+              email: account.email,
+              name: account.name || '',
+              image: account.image || '',
+              provider: account.provider || 'email'
+            })
+            window.location.href = `${authUrl}?${params.toString()}`
+          } else {
+            window.location.href = authUrl
+          }
+        }
+      }
+    })
   }
 
   return (
@@ -80,6 +93,13 @@ export function MainNav() {
               Dashboard
             </NavigationMenuLink>
           </NavigationMenuItem>
+          {isAdmin && (
+            <NavigationMenuItem>
+              <NavigationMenuLink href="/admin" className={navigationMenuTriggerStyle()}>
+                Admin
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+          )}
         </NavigationMenuList>
       </NavigationMenu>
 
@@ -99,6 +119,11 @@ export function MainNav() {
             <Link href="/dashboard" onClick={() => setOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
               Dashboard
             </Link>
+            {isAdmin && (
+              <Link href="/admin" onClick={() => setOpen(false)} className="text-lg font-medium hover:text-primary transition-colors">
+                Admin
+              </Link>
+            )}
             {session?.user ? (
               <Button onClick={handleLogout} variant="outline" className="mt-4">
                 <LogOut className="mr-2 h-4 w-4" />
