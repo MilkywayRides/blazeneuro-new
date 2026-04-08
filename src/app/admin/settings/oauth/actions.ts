@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db";
 import { oauthToken, oauthApp } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/auth-check";
 
@@ -26,8 +26,7 @@ export async function authorizeOAuthApp(clientId: string, clientSecret: string) 
   const existingToken = await db
     .select()
     .from(oauthToken)
-    .where(eq(oauthToken.appId, app[0].id))
-    .where(eq(oauthToken.userId, session.user.id))
+    .where(and(eq(oauthToken.appId, app[0].id), eq(oauthToken.userId, session.user.id)))
     .limit(1);
 
   if (existingToken[0]) {

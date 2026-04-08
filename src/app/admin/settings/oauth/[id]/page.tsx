@@ -1,7 +1,7 @@
 import { requireAuth } from "@/lib/auth-check";
 import { db } from "@/lib/db";
 import { oauthToken, oauthApp } from "@/lib/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
@@ -26,8 +26,7 @@ export default async function OAuthAppDetailsPage({
     })
     .from(oauthToken)
     .innerJoin(oauthApp, eq(oauthToken.appId, oauthApp.id))
-    .where(eq(oauthToken.id, id))
-    .where(eq(oauthToken.userId, session.user.id))
+    .where(and(eq(oauthToken.id, id), eq(oauthToken.userId, session.user.id)))
     .limit(1);
 
   if (!result[0]) {
