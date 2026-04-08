@@ -153,7 +153,24 @@ export function MainNav() {
               </div>
             )}
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-56">
+            <div className="flex items-center gap-2 p-2">
+              {session.user.image ? (
+                <img 
+                  src={session.user.image} 
+                  alt={session.user.name || "User"} 
+                  className="h-10 w-10 rounded-full"
+                />
+              ) : (
+                <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
+                  <User className="h-5 w-5" />
+                </div>
+              )}
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium">{session.user.name}</p>
+                <p className="text-xs text-muted-foreground">{session.user.email}</p>
+              </div>
+            </div>
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               Logout

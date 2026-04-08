@@ -29,7 +29,18 @@ export async function requireAdmin() {
   // Fetch user from database to get role
   const dbUser = await db.select().from(user).where(eq(user.id, session.user.id)).limit(1);
   
-  if (!dbUser[0] || (dbUser[0].role !== "admin" && dbUser[0].role !== "superAdmin")) {
+  // Allow specific admin emails even if role not set in DB
+  const adminEmails = ['admin@blazeneuro.com', 'ankityadav7420@gmail.com'];
+  const isAdminEmail = adminEmails.includes(session.user.email || '');
+  
+  if (!dbUser[0]) {
+    if (!isAdminEmail) {
+      redirect("/");
+    }
+    return session;
+  }
+  
+  if (dbUser[0].role !== "admin" && dbUser[0].role !== "superAdmin" && !isAdminEmail) {
     redirect("/");
   }
 
