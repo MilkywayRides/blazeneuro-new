@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="@color/background">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Welcome to BlazeNeuro"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:textColor="@color/foreground"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sign in to your account"
+        android:textSize="14sp"
+        android:textColor="@color/muted_foreground"
+        android:layout_marginBottom="32dp" />
+
+    <Button
+        android:id="@+id/btnLogin"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Login"
+        android:textColor="@color/primary_foreground"
+        android:textSize="14sp"
+        android:textAllCaps="false"
+        android:background="@drawable/button_primary"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/btnSignup"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Sign Up"
+        android:textColor="@color/foreground"
+        android:textSize="14sp"
+        android:textAllCaps="false"
+        android:background="@drawable/input_background"
+        android:layout_marginBottom="12dp" />
+
+</LinearLayout>

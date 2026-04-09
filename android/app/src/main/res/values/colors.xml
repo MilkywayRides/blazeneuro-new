@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#FFFFFF</color>
+    <color name="foreground">#0A0A0A</color>
+    <color name="card">#FFFFFF</color>
+    <color name="card_foreground">#0A0A0A</color>
+    <color name="primary">#0A0A0A</color>
+    <color name="primary_foreground">#FAFAFA</color>
+    <color name="muted">#F4F4F5</color>
+    <color name="muted_foreground">#71717A</color>
+    <color name="border">#E4E4E7</color>
+    <color name="input">#E4E4E7</color>
+    <color name="ring">#0A0A0A</color>
+</resources>
