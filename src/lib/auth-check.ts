@@ -5,6 +5,8 @@ import { db } from "@/lib/db";
 import { user } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 
+const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_URL || "https://auth.blazeneuro.com";
+
 export async function requireAuth() {
   const session = await auth.api.getSession({
     headers: await headers()
@@ -14,8 +16,8 @@ export async function requireAuth() {
     const headersList = await headers()
     const pathname = headersList.get("x-pathname")
     const loginUrl = pathname 
-      ? `/oauth/login?redirectTo=${encodeURIComponent(pathname)}`
-      : "/oauth/login";
+      ? `${AUTH_URL}/login?redirectTo=${encodeURIComponent(pathname)}`
+      : `${AUTH_URL}/login`;
     redirect(loginUrl);
   }
 
@@ -31,8 +33,8 @@ export async function requireAdmin() {
     const headersList = await headers()
     const pathname = headersList.get("x-pathname")
     const loginUrl = pathname 
-      ? `/oauth/login?redirectTo=${encodeURIComponent(pathname)}`
-      : "/oauth/login";
+      ? `${AUTH_URL}/login?redirectTo=${encodeURIComponent(pathname)}`
+      : `${AUTH_URL}/login`;
     redirect(loginUrl);
   }
 
