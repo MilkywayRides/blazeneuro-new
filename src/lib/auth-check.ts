@@ -11,7 +11,12 @@ export async function requireAuth() {
   });
 
   if (!session?.user) {
-    redirect("/oauth/sign-in");
+    const headersList = await headers()
+    const pathname = headersList.get("x-pathname")
+    const loginUrl = pathname 
+      ? `/oauth/login?redirectTo=${encodeURIComponent(pathname)}`
+      : "/oauth/login";
+    redirect(loginUrl);
   }
 
   return session;
@@ -22,16 +27,19 @@ export async function requireAdmin() {
     headers: await headers()
   });
 
-  if (!session?.user) {
-    redirect("/oauth/sign-in");
+  if (!session?.user?.id) {
+    const headersList = await headers()
+    const pathname = headersList.get("x-pathname")
+    const loginUrl = pathname 
+      ? `/oauth/login?redirectTo=${encodeURIComponent(pathname)}`
+      : "/oauth/login";
+    redirect(loginUrl);
   }
 
-  // Fetch user from database to get role
-  const dbUser = await db.select().from(user).where(eq(user.id, session.user.id)).limit(1);
-  
-  // Allow specific admin emails even if role not set in DB
   const adminEmails = ['admin@blazeneuro.com', 'ankityadav7420@gmail.com'];
   const isAdminEmail = adminEmails.includes(session.user.email || '');
+  
+  const dbUser = await db.select().from(user).where(eq(user.id, session.user.id)).limit(1);
   
   if (!dbUser[0]) {
     if (!isAdminEmail) {
