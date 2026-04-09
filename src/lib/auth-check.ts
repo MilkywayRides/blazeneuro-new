@@ -5,6 +5,7 @@ import { user } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 
 const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_URL || "https://auth.blazeneuro.com";
+const ADMIN_EMAILS = ['admin@blazeneuro.com', 'ankityadav7420@gmail.com'];
 
 async function getSession() {
   const headersList = await headers();
@@ -26,10 +27,17 @@ async function getSession() {
     
     console.log("[Auth] Session response status:", response.status);
     
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.log("[Auth] Session response not OK");
+      return null;
+    }
     
     const data = await response.json();
-    console.log("[Auth] Session data:", data);
+    console.log("[Auth] Session data received:", { 
+      hasUser: !!data?.user, 
+      userId: data?.user?.id,
+      email: data?.user?.email 
+    });
     
     return data.session || data.user ? data : null;
   } catch (error) {
@@ -54,39 +62,52 @@ export async function requireAuth() {
 }
 
 export async function requireAdmin() {
+  console.log("[Auth] requireAdmin called");
   const session = await getSession();
 
+  // Check if user is logged in
   if (!session?.user?.id) {
+    console.log("[Auth] No session found, redirecting to login");
     const headersList = await headers();
-    const pathname = headersList.get("x-pathname") || "/";
+    const pathname = headersList.get("x-pathname") || "/admin";
     const redirectUrl = `https://blazeneuro.com${pathname}`;
     const loginUrl = `${AUTH_URL}/login?redirectTo=${encodeURIComponent(redirectUrl)}`;
-    console.log("[Auth] No session, redirecting to login:", loginUrl);
     redirect(loginUrl);
   }
 
-  console.log("[Auth] User found:", session.user.email);
+  const userEmail = session.user.email || '';
+  console.log("[Auth] User logged in:", userEmail);
 
-  const adminEmails = ['admin@blazeneuro.com', 'ankityadav7420@gmail.com'];
-  const isAdminEmail = adminEmails.includes(session.user.email || '');
+  // Check if user has admin email
+  const isAdminEmail = ADMIN_EMAILS.includes(userEmail);
+  console.log("[Auth] Is admin email:", isAdminEmail);
   
-  const dbUser = await db.select().from(user).where(eq(user.id, session.user.id)).limit(1);
+  if (isAdminEmail) {
+    console.log("[Auth] Admin email detected, granting access");
+    return { ...session, user: { ...session.user, role: 'admin' } };
+  }
   
-  if (!dbUser[0]) {
-    console.log("[Auth] User not in DB, checking admin email");
-    if (!isAdminEmail) {
-      console.log("[Auth] Not admin email, redirecting home");
-      redirect("/");
+  // Check database for user role
+  try {
+    const dbUser = await db.select().from(user).where(eq(user.id, session.user.id)).limit(1);
+    
+    if (!dbUser || dbUser.length === 0) {
+      console.log("[Auth] User not found in database");
+      throw new Error("Unauthorized: Admin access required");
     }
-    return session;
-  }
-  
-  console.log("[Auth] User role:", dbUser[0].role);
-  
-  if (dbUser[0].role !== "admin" && dbUser[0].role !== "superAdmin" && !isAdminEmail) {
-    console.log("[Auth] Not admin, redirecting home");
-    redirect("/");
-  }
+    
+    const userRole = dbUser[0].role;
+    console.log("[Auth] User role from DB:", userRole);
+    
+    if (userRole !== "admin" && userRole !== "superAdmin") {
+      console.log("[Auth] User does not have admin role");
+      throw new Error("Unauthorized: Admin access required");
+    }
 
-  return { ...session, user: { ...session.user, role: dbUser[0].role } };
+    console.log("[Auth] Admin access granted");
+    return { ...session, user: { ...session.user, role: userRole } };
+  } catch (error) {
+    console.error("[Auth] Database check error:", error);
+    throw error;
+  }
 }
