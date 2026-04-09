@@ -1,127 +1,148 @@
-import customtkinter as ctk
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QFrame
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QFont
 from auth_service import AuthService
 
-class LoginScreen(ctk.CTkFrame):
-    def __init__(self, parent, on_login_success):
-        super().__init__(parent, fg_color="#09090b")
-        self.on_login_success = on_login_success
-        self.auth_service = AuthService()
-        
-        self.pack(fill="both", expand=True)
-        self.create_widgets()
+class LoginScreen(QWidget):
+    login_success = pyqtSignal(object)
     
-    def create_widgets(self):
-        # Center container
-        container = ctk.CTkFrame(self, fg_color="#09090b")
-        container.place(relx=0.5, rely=0.5, anchor="center")
+    def __init__(self):
+        super().__init__()
+        self.auth_service = AuthService()
+        self.setup_ui()
+    
+    def setup_ui(self):
+        self.setStyleSheet("background-color: #09090b;")
         
-        # Logo/Title
-        title = ctk.CTkLabel(
-            container,
-            text="BlazeNeuro Admin",
-            font=("Arial", 32, "bold"),
-            text_color="#fafafa"
-        )
-        title.pack(pady=(0, 40))
+        layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        # Title
+        title = QLabel("BlazeNeuro Admin")
+        title.setFont(QFont("Arial", 32, QFont.Weight.Bold))
+        title.setStyleSheet("color: #fafafa;")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(title)
+        layout.addSpacing(40)
         
         # Card
-        card = ctk.CTkFrame(container, fg_color="#18181b", corner_radius=12, width=400)
-        card.pack(padx=20, pady=20)
+        card = QFrame()
+        card.setStyleSheet("""
+            QFrame {
+                background-color: #18181b;
+                border-radius: 12px;
+            }
+        """)
+        card.setFixedWidth(400)
+        card_layout = QVBoxLayout(card)
+        card_layout.setContentsMargins(30, 30, 30, 30)
         
-        # Card Header
-        card_title = ctk.CTkLabel(
-            card,
-            text="Welcome back",
-            font=("Arial", 24, "bold"),
-            text_color="#fafafa"
-        )
-        card_title.pack(pady=(30, 5))
+        # Card title
+        card_title = QLabel("Welcome back")
+        card_title.setFont(QFont("Arial", 24, QFont.Weight.Bold))
+        card_title.setStyleSheet("color: #fafafa;")
+        card_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(card_title)
         
-        card_desc = ctk.CTkLabel(
-            card,
-            text="Enter your credentials to access admin panel",
-            font=("Arial", 14),
-            text_color="#a1a1aa"
-        )
-        card_desc.pack(pady=(0, 30))
+        card_desc = QLabel("Enter your credentials to access admin panel")
+        card_desc.setFont(QFont("Arial", 14))
+        card_desc.setStyleSheet("color: #a1a1aa;")
+        card_desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(card_desc)
+        card_layout.addSpacing(30)
         
-        # Email field
-        email_label = ctk.CTkLabel(
-            card,
-            text="Email",
-            font=("Arial", 14),
-            text_color="#fafafa",
-            anchor="w"
-        )
-        email_label.pack(padx=30, pady=(0, 5), fill="x")
+        # Email
+        email_label = QLabel("Email")
+        email_label.setFont(QFont("Arial", 14))
+        email_label.setStyleSheet("color: #fafafa;")
+        card_layout.addWidget(email_label)
         
-        self.email_entry = ctk.CTkEntry(
-            card,
-            placeholder_text="admin@blazeneuro.com",
-            height=40,
-            fg_color="#27272a",
-            border_color="#3f3f46",
-            text_color="#fafafa",
-            placeholder_text_color="#71717a"
-        )
-        self.email_entry.pack(padx=30, pady=(0, 20), fill="x")
+        self.email_input = QLineEdit()
+        self.email_input.setPlaceholderText("admin@blazeneuro.com")
+        self.email_input.setStyleSheet("""
+            QLineEdit {
+                background-color: #27272a;
+                border: 1px solid #3f3f46;
+                border-radius: 6px;
+                padding: 10px;
+                color: #fafafa;
+                font-size: 14px;
+            }
+            QLineEdit::placeholder {
+                color: #71717a;
+            }
+        """)
+        self.email_input.setFixedHeight(40)
+        card_layout.addWidget(self.email_input)
+        card_layout.addSpacing(20)
         
-        # Password field
-        password_label = ctk.CTkLabel(
-            card,
-            text="Password",
-            font=("Arial", 14),
-            text_color="#fafafa",
-            anchor="w"
-        )
-        password_label.pack(padx=30, pady=(0, 5), fill="x")
+        # Password
+        password_label = QLabel("Password")
+        password_label.setFont(QFont("Arial", 14))
+        password_label.setStyleSheet("color: #fafafa;")
+        card_layout.addWidget(password_label)
         
-        self.password_entry = ctk.CTkEntry(
-            card,
-            placeholder_text="••••••••",
-            show="•",
-            height=40,
-            fg_color="#27272a",
-            border_color="#3f3f46",
-            text_color="#fafafa",
-            placeholder_text_color="#71717a"
-        )
-        self.password_entry.pack(padx=30, pady=(0, 5), fill="x")
-        self.password_entry.bind("<Return>", lambda e: self.login())
+        self.password_input = QLineEdit()
+        self.password_input.setPlaceholderText("••••••••")
+        self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
+        self.password_input.setStyleSheet("""
+            QLineEdit {
+                background-color: #27272a;
+                border: 1px solid #3f3f46;
+                border-radius: 6px;
+                padding: 10px;
+                color: #fafafa;
+                font-size: 14px;
+            }
+            QLineEdit::placeholder {
+                color: #71717a;
+            }
+        """)
+        self.password_input.setFixedHeight(40)
+        self.password_input.returnPressed.connect(self.login)
+        card_layout.addWidget(self.password_input)
         
         # Error label
-        self.error_label = ctk.CTkLabel(
-            card,
-            text="",
-            font=("Arial", 12),
-            text_color="#ef4444"
-        )
-        self.error_label.pack(pady=(5, 0))
+        self.error_label = QLabel("")
+        self.error_label.setFont(QFont("Arial", 12))
+        self.error_label.setStyleSheet("color: #ef4444;")
+        self.error_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        card_layout.addWidget(self.error_label)
+        card_layout.addSpacing(20)
         
         # Login button
-        login_btn = ctk.CTkButton(
-            card,
-            text="Login",
-            height=40,
-            fg_color="#fafafa",
-            text_color="#09090b",
-            hover_color="#e4e4e7",
-            font=("Arial", 14, "bold"),
-            command=self.login
-        )
-        login_btn.pack(padx=30, pady=(20, 30), fill="x")
+        login_btn = QPushButton("Login")
+        login_btn.setFont(QFont("Arial", 14, QFont.Weight.Bold))
+        login_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #fafafa;
+                color: #09090b;
+                border: none;
+                border-radius: 6px;
+                padding: 10px;
+            }
+            QPushButton:hover {
+                background-color: #e4e4e7;
+            }
+        """)
+        login_btn.setFixedHeight(40)
+        login_btn.clicked.connect(self.login)
+        card_layout.addWidget(login_btn)
+        
+        layout.addWidget(card)
+        self.setLayout(layout)
     
     def login(self):
-        email = self.email_entry.get()
-        password = self.password_entry.get()
+        email = self.email_input.text()
+        password = self.password_input.text()
         
         if not email or not password:
-            self.error_label.configure(text="Please fill in all fields")
+            self.error_label.setText("Please fill in all fields")
             return
         
         success, result = self.auth_service.login(email, password)
         
         if success:
-            self.on_login_success(self.auth_service)
+            self.login_success.emit(self.auth_service)
         else:
-            self.error_label.configure(text=f"Login failed: {result}")
+            self.error_label.setText(f"Login failed: {result}")

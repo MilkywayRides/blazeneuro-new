@@ -1,6 +1,6 @@
 # BlazeNeuro Admin - Python Desktop Application
 
-A desktop admin panel for BlazeNeuro built with Python and CustomTkinter, featuring a shadcn-inspired UI.
+A desktop admin panel for BlazeNeuro built with Python and PyQt6, featuring a shadcn-inspired UI.
 
 ## Features
 
@@ -55,7 +55,12 @@ The application uses a dark theme inspired by shadcn/ui with the following color
 ## Requirements
 
 - Python 3.8+
-- customtkinter
+- PyQt6
 - requests
 - python-dotenv
-- Pillow
+
+## Technology Stack
+
+- **UI Framework**: PyQt6
+- **HTTP Client**: requests
+- **Configuration**: python-dotenv

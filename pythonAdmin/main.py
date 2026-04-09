@@ -1,41 +1,37 @@
-import customtkinter as ctk
+import sys
+from PyQt6.QtWidgets import QApplication, QMainWindow, QStackedWidget
+from PyQt6.QtCore import Qt
 from login_screen import LoginScreen
 from admin_dashboard import AdminDashboard
 
-class AdminApp(ctk.CTk):
+class AdminApp(QMainWindow):
     def __init__(self):
         super().__init__()
         
-        # Configure window
-        self.title("BlazeNeuro Admin")
-        self.geometry("1400x800")
+        self.setWindowTitle("BlazeNeuro Admin")
+        self.setGeometry(100, 100, 1400, 800)
         
-        # Set theme
-        ctk.set_appearance_mode("dark")
-        ctk.set_default_color_theme("blue")
+        self.stacked_widget = QStackedWidget()
+        self.setCentralWidget(self.stacked_widget)
         
-        # Configure colors to match shadcn
-        self.configure(fg_color="#09090b")
-        
-        # Show login screen
         self.show_login()
     
     def show_login(self):
-        # Clear window
-        for widget in self.winfo_children():
-            widget.destroy()
-        
-        # Show login screen
-        LoginScreen(self, self.on_login_success)
+        login_screen = LoginScreen()
+        login_screen.login_success.connect(self.on_login_success)
+        self.stacked_widget.addWidget(login_screen)
+        self.stacked_widget.setCurrentWidget(login_screen)
     
     def on_login_success(self, auth_service):
-        # Clear window
-        for widget in self.winfo_children():
-            widget.destroy()
-        
-        # Show dashboard
-        AdminDashboard(self, auth_service)
+        dashboard = AdminDashboard(auth_service)
+        self.stacked_widget.addWidget(dashboard)
+        self.stacked_widget.setCurrentWidget(dashboard)
 
 if __name__ == "__main__":
-    app = AdminApp()
-    app.mainloop()
+    app = QApplication(sys.argv)
+    app.setStyle("Fusion")
+    
+    window = AdminApp()
+    window.show()
+    
+    sys.exit(app.exec())
