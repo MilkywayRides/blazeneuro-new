@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<android.widget.Button>(R.id.btnSignup).setOnClickListener {
-            // TODO: Implement signup
+            startActivity(Intent(this, SignupActivity::class.java))
         }
     }
 }
