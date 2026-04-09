@@ -3,6 +3,7 @@ package com.blazeneuro
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -17,9 +18,13 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
+import java.util.concurrent.TimeUnit
 
 class SignupActivity : AppCompatActivity() {
-    private val client = OkHttpClient()
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .build()
     private val authUrl = "https://auth.blazeneuro.com"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,35 +90,55 @@ class SignupActivity : AppCompatActivity() {
     }
 
     private suspend fun signup(name: String, email: String, password: String): SignupResult = withContext(Dispatchers.IO) {
-        val json = JSONObject().apply {
-            put("name", name)
-            put("email", email)
-            put("password", password)
-        }
-
-        val body = json.toString().toRequestBody("application/json".toMediaType())
-        val request = Request.Builder()
-            .url("$authUrl/api/auth/sign-up/email")
-            .post(body)
-            .build()
-
-        val response = client.newCall(request).execute()
-        val responseBody = response.body?.string() ?: ""
-
-        if (response.isSuccessful) {
-            val jsonResponse = JSONObject(responseBody)
-            val user = jsonResponse.optJSONObject("user")
-            val token = jsonResponse.optJSONObject("session")?.optString("token") ?: ""
-            val userName = user?.optString("name") ?: name
-            
-            SignupResult(true, token, userName, null)
-        } else {
-            val error = try {
-                JSONObject(responseBody).optString("message", "Signup failed")
-            } catch (e: Exception) {
-                "Signup failed"
+        try {
+            val json = JSONObject().apply {
+                put("name", name)
+                put("email", email)
+                put("password", password)
             }
-            SignupResult(false, null, null, error)
+
+            val body = json.toString().toRequestBody("application/json".toMediaType())
+            val request = Request.Builder()
+                .url("$authUrl/api/auth/sign-up/email")
+                .post(body)
+                .addHeader("Content-Type", "application/json")
+                .build()
+
+            android.util.Log.d("SignupActivity", "Sending request to: $authUrl/api/auth/sign-up/email")
+            android.util.Log.d("SignupActivity", "Request body: ${json.toString()}")
+            
+            val response = client.newCall(request).execute()
+            val responseBody = response.body?.string() ?: ""
+            
+            android.util.Log.d("SignupActivity", "Response code: ${response.code}")
+            android.util.Log.d("SignupActivity", "Response body: $responseBody")
+
+            if (response.isSuccessful) {
+                val jsonResponse = JSONObject(responseBody)
+                val user = jsonResponse.optJSONObject("user")
+                val token = jsonResponse.optJSONObject("session")?.optString("token") ?: ""
+                val userName = user?.optString("name") ?: name
+                
+                SignupResult(true, token, userName, null)
+            } else {
+                val error = if (responseBody.isEmpty()) {
+                    when (response.code) {
+                        500 -> "Email already exists or server error"
+                        400 -> "Invalid input"
+                        else -> "Signup failed: ${response.code}"
+                    }
+                } else {
+                    try {
+                        JSONObject(responseBody).optString("message", "Signup failed")
+                    } catch (e: Exception) {
+                        "Signup failed: ${response.code}"
+                    }
+                }
+                SignupResult(false, null, null, error)
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("SignupActivity", "Network error", e)
+            SignupResult(false, null, null, "Network error: ${e.message}")
         }
     }
 
