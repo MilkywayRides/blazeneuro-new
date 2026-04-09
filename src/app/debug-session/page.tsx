@@ -23,8 +23,8 @@ async function getSessionDebug() {
     
     const localData = await localResponse.json();
     
-    // Try direct auth URL
-    const authResponse = await fetch(`${AUTH_URL}/api/auth/session`, {
+    // Try direct auth URL with correct endpoint
+    const authResponse = await fetch(`${AUTH_URL}/api/auth/get-session`, {
       headers: { 
         cookie,
         "Content-Type": "application/json"
@@ -32,7 +32,13 @@ async function getSessionDebug() {
       cache: "no-store",
     });
     
-    const authData = await authResponse.json();
+    const authText = await authResponse.text();
+    let authData;
+    try {
+      authData = authText ? JSON.parse(authText) : null;
+    } catch {
+      authData = { error: "Invalid JSON", text: authText.substring(0, 100) };
+    }
     
     return {
       cookie: cookie.substring(0, 100) + "...",

@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const response = await fetch(`${AUTH_URL}/api/auth/session`, {
+    const response = await fetch(`${AUTH_URL}/api/auth/get-session`, {
       headers: {
         cookie,
         "Content-Type": "application/json",
