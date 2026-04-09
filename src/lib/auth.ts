@@ -9,7 +9,9 @@ export const auth = betterAuth({
     schema
   }),
   emailAndPassword: {
-    enabled: true
+    enabled: true,
+    requireEmailVerification: false,
+    minPasswordLength: 8,
   },
   socialProviders: {
     google: {
@@ -27,7 +29,8 @@ export const auth = betterAuth({
     "http://localhost:3000",
     "http://localhost:3001",
     "https://blazeneuro.com",
-    "https://auth.blazeneuro.com"
+    "https://auth.blazeneuro.com",
+    "https://www.blazeneuro.com"
   ],
   secret: process.env.BETTER_AUTH_SECRET!,
   baseURL: process.env.NEXT_PUBLIC_AUTH_URL || "https://auth.blazeneuro.com",
@@ -35,12 +38,17 @@ export const auth = betterAuth({
     cookieCache: {
       enabled: true,
       maxAge: 5 * 60
-    }
+    },
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24, // 1 day
   },
   advanced: {
     crossSubDomainCookies: {
       enabled: true
-    }
+    },
+    useSecureCookies: process.env.NODE_ENV === "production",
+    cookieSameSite: "lax",
+    generateId: () => crypto.randomUUID(),
   },
   user: {
     additionalFields: {
@@ -50,5 +58,10 @@ export const auth = betterAuth({
         required: true
       }
     }
-  }
+  },
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 100,
+  },
 })
