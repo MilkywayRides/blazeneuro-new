@@ -17,7 +17,9 @@ async function getSession() {
   }
   
   try {
-    const response = await fetch(`${AUTH_URL}/api/auth/session`, {
+    // Use local API endpoint to avoid CORS issues
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://blazeneuro.com";
+    const response = await fetch(`${baseUrl}/api/session`, {
       headers: { 
         cookie,
         "Content-Type": "application/json"

@@ -11,7 +11,9 @@ async function getSessionDebug() {
   }
   
   try {
-    const response = await fetch(`${AUTH_URL}/api/auth/session`, {
+    // Try local API
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://blazeneuro.com";
+    const localResponse = await fetch(`${baseUrl}/api/session`, {
       headers: { 
         cookie,
         "Content-Type": "application/json"
@@ -19,18 +21,34 @@ async function getSessionDebug() {
       cache: "no-store",
     });
     
-    const data = await response.json();
+    const localData = await localResponse.json();
+    
+    // Try direct auth URL
+    const authResponse = await fetch(`${AUTH_URL}/api/auth/session`, {
+      headers: { 
+        cookie,
+        "Content-Type": "application/json"
+      },
+      cache: "no-store",
+    });
+    
+    const authData = await authResponse.json();
     
     return {
-      status: response.status,
-      ok: response.ok,
-      data,
-      cookie: cookie.substring(0, 50) + "...",
+      cookie: cookie.substring(0, 100) + "...",
+      localAPI: {
+        status: localResponse.status,
+        data: localData
+      },
+      authAPI: {
+        status: authResponse.status,
+        data: authData
+      }
     };
   } catch (error) {
     return {
       error: error instanceof Error ? error.message : "Unknown error",
-      cookie: cookie.substring(0, 50) + "...",
+      cookie: cookie.substring(0, 100) + "...",
     };
   }
 }
@@ -41,7 +59,7 @@ export default async function DebugPage() {
   return (
     <div className="container mx-auto p-8">
       <h1 className="text-2xl font-bold mb-4">Session Debug Info</h1>
-      <pre className="bg-gray-100 p-4 rounded overflow-auto">
+      <pre className="bg-gray-100 p-4 rounded overflow-auto text-xs">
         {JSON.stringify(sessionInfo, null, 2)}
       </pre>
       <div className="mt-4">
