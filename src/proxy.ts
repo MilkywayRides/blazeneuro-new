@@ -12,6 +12,7 @@ const allowedOrigins = [
 
 export function proxy(request: NextRequest) {
   const origin = request.headers.get('origin')
+  const pathname = request.nextUrl.pathname
   
   // Handle preflight
   if (request.method === 'OPTIONS') {
@@ -46,15 +47,15 @@ export function proxy(request: NextRequest) {
   }
   
   // Add pathname for redirect tracking
-  response.headers.set('x-pathname', request.nextUrl.pathname)
+  response.headers.set('x-pathname', pathname)
   
   // Cache static assets
-  if (request.nextUrl.pathname.match(/\.(jpg|jpeg|png|gif|svg|ico|webp|woff|woff2|ttf|eot)$/)) {
+  if (pathname.match(/\.(jpg|jpeg|png|gif|svg|ico|webp|woff|woff2|ttf|eot)$/)) {
     response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
   }
   
   // Cache API responses
-  if (request.nextUrl.pathname.startsWith('/api/')) {
+  if (pathname.startsWith('/api/')) {
     response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
   }
   
