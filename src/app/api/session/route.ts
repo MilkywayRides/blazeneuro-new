@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
         cookie,
         "Content-Type": "application/json",
       },
+      credentials: "include",
       cache: "no-store",
     });
 
@@ -22,7 +23,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ user: null, session: null }, { status: 200 });
     }
 
-    const data = await response.json();
+    const text = await response.text();
+    
+    if (!text || text.trim() === '') {
+      return NextResponse.json({ user: null, session: null }, { status: 200 });
+    }
+
+    const data = JSON.parse(text);
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error("[Session API] Error:", error);
