@@ -138,6 +138,18 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
         
         setupDots()
+        startAutoScroll()
+    }
+    
+    private fun startAutoScroll() {
+        lifecycleScope.launch {
+            while (true) {
+                kotlinx.coroutines.delay(4000)
+                val currentItem = viewPager.currentItem
+                val nextItem = if (currentItem == topBlogs.size - 1) 0 else currentItem + 1
+                viewPager.setCurrentItem(nextItem, true)
+            }
+        }
     }
     
     private fun setupDots() {

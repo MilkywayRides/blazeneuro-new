@@ -35,22 +35,13 @@
                     android:text="Your Dashboard"
                     android:textColor="@color/muted_foreground"
                     android:textSize="@dimen/text_base"
-                    android:layout_marginTop="@dimen/space_xs" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Top Liked Posts"
-                    android:textColor="@color/foreground"
-                    android:textSize="@dimen/text_lg"
-                    android:textStyle="bold"
-                    android:layout_marginTop="@dimen/space_xl"
-                    android:layout_marginBottom="@dimen/space_md" />
+                    android:layout_marginTop="@dimen/space_xs"
+                    android:layout_marginBottom="@dimen/space_lg" />
 
                 <androidx.viewpager2.widget.ViewPager2
                     android:id="@+id/vpCarousel"
                     android:layout_width="match_parent"
-                    android:layout_height="200dp"
+                    android:layout_height="240dp"
                     android:clipToPadding="false"
                     android:clipChildren="false"
                     android:paddingStart="32dp"
