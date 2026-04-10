@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, boolean, primaryKey } from "drizzle-orm/pg-core"
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -48,6 +48,16 @@ export const verification = pgTable("verification", {
   createdAt: timestamp("createdAt").defaultNow(),
   updatedAt: timestamp("updatedAt").defaultNow()
 })
+
+export const blogFeedback = pgTable("blog_feedback", {
+  blogId: text("blog_id").notNull(),
+  userId: text("user_id").notNull(),
+  liked: boolean("liked").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow()
+}, (table) => ({
+  pk: primaryKey({ columns: [table.blogId, table.userId] })
+}))
 
 export const oauthApp = pgTable("oauthApp", {
   id: text("id").primaryKey(),
