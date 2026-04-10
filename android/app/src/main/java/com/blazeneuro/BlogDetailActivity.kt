@@ -30,13 +30,7 @@ class BlogDetailActivity : AppCompatActivity() {
             .build()
 
         // Handle deep link
-        val slug = when {
-            intent.data != null -> {
-                // Extract slug from URL: https://blazeneuro.com/blogs/slug
-                intent.data?.lastPathSegment
-            }
-            else -> intent.getStringExtra("slug")
-        } ?: return finish()
+        val slug = intent.data?.lastPathSegment ?: intent.getStringExtra("slug") ?: return finish()
         
         val title = intent.getStringExtra("title") ?: "Blog Post"
         

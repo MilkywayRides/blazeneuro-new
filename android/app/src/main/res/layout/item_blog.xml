@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@drawable/card_background"
+    android:padding="@dimen/space_md"
+    android:layout_marginBottom="@dimen/space_md"
+    android:gravity="center_vertical">
+
+    <ImageView
+        android:id="@+id/ivCover"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:scaleType="centerCrop"
+        android:background="@drawable/card_background"
+        android:src="@drawable/ic_home" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginStart="@dimen/space_md">
+
+        <TextView
+            android:id="@+id/tvBlogTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Blog Title"
+            android:textColor="@color/foreground"
+            android:textSize="@dimen/text_base"
+            android:textStyle="bold"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/tvBlogDesc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Blog description..."
+            android:textColor="@color/muted_foreground"
+            android:textSize="@dimen/text_sm"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:layout_marginTop="@dimen/space_xs" />
+
+    </LinearLayout>
+
+</LinearLayout>

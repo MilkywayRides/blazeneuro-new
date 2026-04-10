@@ -44,7 +44,8 @@ export async function GET(req: NextRequest) {
         description: blog.excerpt,
         slug: blog.slug,
         createdAt: blog.createdAt,
-        readTime: sql<number>`5`
+        readTime: sql<number>`5`,
+        coverImage: blog.coverImage
       })
       .from(blog)
       .orderBy(desc(blog.createdAt))

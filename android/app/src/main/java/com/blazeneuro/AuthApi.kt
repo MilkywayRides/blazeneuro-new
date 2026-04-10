@@ -58,7 +58,8 @@ object AuthApi {
         val description: String?,
         val slug: String,
         val createdAt: String,
-        val readTime: Int = 5
+        val readTime: Int = 5,
+        val coverImage: String?
     )
 
     data class BlogDetail(
@@ -288,7 +289,8 @@ object AuthApi {
                     description = blog.optString("description", null),
                     slug = blog.getString("slug"),
                     createdAt = blog.getString("createdAt"),
-                    readTime = blog.optInt("readTime", 5)
+                    readTime = blog.optInt("readTime", 5),
+                    coverImage = blog.optString("coverImage", null)
                 )
             }
         } catch (e: Exception) {

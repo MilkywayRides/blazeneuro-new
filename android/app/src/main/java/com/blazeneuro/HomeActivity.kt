@@ -143,7 +143,14 @@ class SearchAdapter(private val results: List<AuthApi.SearchResult>) : RecyclerV
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val result = results[position]
         holder.tvTitle.text = result.title
-        holder.tvDesc.text = result.description ?: ""
+        holder.tvDesc.visibility = View.GONE
+        holder.itemView.setOnClickListener {
+            val intent = Intent(holder.itemView.context, BlogDetailActivity::class.java).apply {
+                putExtra("slug", result.slug)
+                putExtra("title", result.title)
+            }
+            holder.itemView.context.startActivity(intent)
+        }
     }
 
     override fun getItemCount() = results.size
@@ -189,12 +196,13 @@ class BlogsFragment : Fragment(R.layout.fragment_blogs) {
 
 class BlogAdapter(private val blogs: List<AuthApi.Blog>) : RecyclerView.Adapter<BlogAdapter.ViewHolder>() {
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val tvTitle: TextView = view.findViewById(R.id.tvFeatureTitle)
-        val tvDesc: TextView = view.findViewById(R.id.tvFeatureDesc)
+        val ivCover: ImageView = view.findViewById(R.id.ivCover)
+        val tvTitle: TextView = view.findViewById(R.id.tvBlogTitle)
+        val tvDesc: TextView = view.findViewById(R.id.tvBlogDesc)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_feature, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_blog, parent, false)
         return ViewHolder(view)
     }
 
@@ -202,6 +210,15 @@ class BlogAdapter(private val blogs: List<AuthApi.Blog>) : RecyclerView.Adapter<
         val blog = blogs[position]
         holder.tvTitle.text = blog.title
         holder.tvDesc.text = blog.description ?: "${blog.readTime} min read"
+        
+        // Load cover image with Glide
+        if (!blog.coverImage.isNullOrEmpty()) {
+            com.bumptech.glide.Glide.with(holder.itemView.context)
+                .load(blog.coverImage)
+                .placeholder(R.drawable.ic_home)
+                .into(holder.ivCover)
+        }
+        
         holder.itemView.setOnClickListener {
             val intent = Intent(holder.itemView.context, BlogDetailActivity::class.java).apply {
                 putExtra("slug", blog.slug)
