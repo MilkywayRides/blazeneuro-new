@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { blog } from "@/lib/schema"
-import { or, like, desc, sql } from "drizzle-orm"
+import { desc, sql } from "drizzle-orm"
 
-export const runtime = 'edge'
 export const dynamic = 'force-dynamic'
 
 const RATE_LIMIT = 50

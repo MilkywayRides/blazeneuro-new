@@ -3,7 +3,6 @@ import { db } from "@/lib/db"
 import { blog } from "@/lib/schema"
 import { sql } from "drizzle-orm"
 
-export const runtime = 'edge'
 export const dynamic = 'force-dynamic'
 
 export async function GET(

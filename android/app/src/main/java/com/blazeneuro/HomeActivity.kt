@@ -202,6 +202,14 @@ class BlogAdapter(private val blogs: List<AuthApi.Blog>) : RecyclerView.Adapter<
         val blog = blogs[position]
         holder.tvTitle.text = blog.title
         holder.tvDesc.text = blog.description ?: "${blog.readTime} min read"
+        holder.itemView.setOnClickListener {
+            val intent = Intent(holder.itemView.context, BlogDetailActivity::class.java).apply {
+                putExtra("slug", blog.slug)
+                putExtra("title", blog.title)
+                putExtra("description", blog.description)
+            }
+            holder.itemView.context.startActivity(intent)
+        }
     }
 
     override fun getItemCount() = blogs.size

@@ -3,7 +3,6 @@ import { db } from "@/lib/db"
 import { blog } from "@/lib/schema"
 import { desc, sql } from "drizzle-orm"
 
-export const runtime = 'edge'
 export const dynamic = 'force-dynamic'
 
 const RATE_LIMIT = 100
@@ -45,7 +44,7 @@ export async function GET(req: NextRequest) {
         description: blog.excerpt,
         slug: blog.slug,
         createdAt: blog.createdAt,
-        readTime: sql<number>`CAST(LENGTH(${blog.content}) / 1000 AS INTEGER)`
+        readTime: sql<number>`5`
       })
       .from(blog)
       .orderBy(desc(blog.createdAt))
