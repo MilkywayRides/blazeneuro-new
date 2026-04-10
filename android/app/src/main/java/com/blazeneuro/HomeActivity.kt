@@ -34,6 +34,15 @@ class HomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home_bottom_nav)
         AuthApi.init(this)
+        
+        // Set status bar appearance based on theme
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            val nightMode = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
+            if (nightMode == android.content.res.Configuration.UI_MODE_NIGHT_NO) {
+                // Light mode - dark status bar icons
+                window.decorView.systemUiVisibility = android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            }
+        }
 
         container = findViewById(R.id.fragmentContainer)
         navHome = findViewById(R.id.navHome)

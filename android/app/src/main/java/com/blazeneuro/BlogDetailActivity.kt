@@ -24,6 +24,15 @@ class BlogDetailActivity : AppCompatActivity() {
         setContentView(R.layout.activity_blog_detail)
         AuthApi.init(this)
         
+        // Set status bar appearance based on theme
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            val nightMode = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
+            if (nightMode == android.content.res.Configuration.UI_MODE_NIGHT_NO) {
+                // Light mode - dark status bar icons
+                window.decorView.systemUiVisibility = android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            }
+        }
+        
         // Show loading spinner
         findViewById<android.view.View>(R.id.loadingSpinner).visibility = android.view.View.VISIBLE
         findViewById<android.widget.ScrollView>(R.id.scrollView).visibility = android.view.View.GONE
