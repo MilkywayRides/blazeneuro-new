@@ -54,7 +54,7 @@ export async function GET(
       }
     })
     
-    response.headers.set('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=1200')
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')
     response.headers.set('X-Content-Type-Options', 'nosniff')
     response.headers.set('X-Frame-Options', 'DENY')
     
