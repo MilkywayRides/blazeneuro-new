@@ -41,13 +41,13 @@ class HomeActivity : AppCompatActivity() {
         navProjects = findViewById(R.id.navProjects)
         navProfile = findViewById(R.id.navProfile)
 
-        navHome.setOnClickListener { showFragment(HomeFragment(), 0) }
+        navHome.setOnClickListener { showFragment(ChatFragment(), 0) }
         navSearch.setOnClickListener { showFragment(SearchFragment(), 1) }
         navBlogs.setOnClickListener { showFragment(BlogsFragment(), 2) }
         navProjects.setOnClickListener { showFragment(ProjectsFragment(), 3) }
         navProfile.setOnClickListener { showFragment(ProfileFragment(), 4) }
 
-        showFragment(HomeFragment(), 0)
+        showFragment(ChatFragment(), 0)
     }
 
     private fun showFragment(fragment: Fragment, index: Int) {
@@ -89,6 +89,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         swipeRefresh = view.findViewById(R.id.swipeRefresh)
         swipeRefresh.setOnRefreshListener {
             swipeRefresh.isRefreshing = false
+        }
+        
+        view.findViewById<View>(R.id.btnChat).setOnClickListener {
+            startActivity(Intent(requireContext(), ChatActivity::class.java))
         }
     }
 }
