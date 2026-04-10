@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import { blogs } from "@/lib/schema"
-import { or, like, desc } from "drizzle-orm"
+import { blog } from "@/lib/schema"
+import { or, like, desc, sql } from "drizzle-orm"
 
 export const runtime = 'edge'
 export const dynamic = 'force-dynamic'
@@ -49,21 +49,17 @@ export async function GET(req: NextRequest) {
     
     const results = await db
       .select({
-        id: blogs.id,
-        title: blogs.title,
-        description: blogs.description,
-        slug: blogs.slug,
-        createdAt: blogs.createdAt
+        id: blog.id,
+        title: blog.title,
+        description: blog.excerpt,
+        slug: blog.slug,
+        createdAt: blog.createdAt
       })
-      .from(blogs)
+      .from(blog)
       .where(
-        or(
-          like(blogs.title, searchTerm),
-          like(blogs.description, searchTerm),
-          like(blogs.content, searchTerm)
-        )
+        sql`${blog.published} = true AND (${blog.title} ILIKE ${searchTerm} OR ${blog.excerpt} ILIKE ${searchTerm} OR ${blog.content} ILIKE ${searchTerm})`
       )
-      .orderBy(desc(blogs.createdAt))
+      .orderBy(desc(blog.createdAt))
       .limit(20)
 
     const response = NextResponse.json({ 

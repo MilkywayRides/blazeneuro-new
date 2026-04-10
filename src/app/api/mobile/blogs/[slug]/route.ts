@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import { blogs } from "@/lib/schema"
-import { eq } from "drizzle-orm"
+import { blog } from "@/lib/schema"
+import { eq, sql } from "drizzle-orm"
 
 export const runtime = 'edge'
 export const dynamic = 'force-dynamic'
@@ -11,17 +11,17 @@ export async function GET(
   { params }: { params: { slug: string } }
 ) {
   try {
-    const blog = await db
+    const blogPost = await db
       .select()
-      .from(blogs)
-      .where(eq(blogs.slug, params.slug))
+      .from(blog)
+      .where(sql`${blog.slug} = ${params.slug} AND ${blog.published} = true`)
       .limit(1)
 
-    if (!blog.length) {
+    if (!blogPost.length) {
       return NextResponse.json({ error: "Blog not found" }, { status: 404 })
     }
 
-    const response = NextResponse.json({ blog: blog[0] })
+    const response = NextResponse.json({ blog: blogPost[0] })
     
     response.headers.set('Cache-Control', 'public, s-maxage=600, stale-while-revalidate=1200')
     response.headers.set('X-Content-Type-Options', 'nosniff')

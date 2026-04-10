@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import { blogs } from "@/lib/schema"
+import { blog } from "@/lib/schema"
 import { desc, sql } from "drizzle-orm"
 
 export const runtime = 'edge'
@@ -40,15 +40,16 @@ export async function GET(req: NextRequest) {
 
     const blogList = await db
       .select({
-        id: blogs.id,
-        title: blogs.title,
-        description: blogs.description,
-        slug: blogs.slug,
-        createdAt: blogs.createdAt,
-        readTime: sql<number>`CAST(LENGTH(${blogs.content}) / 1000 AS INTEGER)`
+        id: blog.id,
+        title: blog.title,
+        description: blog.excerpt,
+        slug: blog.slug,
+        createdAt: blog.createdAt,
+        readTime: sql<number>`CAST(LENGTH(${blog.content}) / 1000 AS INTEGER)`
       })
-      .from(blogs)
-      .orderBy(desc(blogs.createdAt))
+      .from(blog)
+      .where(sql`${blog.published} = true`)
+      .orderBy(desc(blog.createdAt))
       .limit(limit)
       .offset(offset)
 
