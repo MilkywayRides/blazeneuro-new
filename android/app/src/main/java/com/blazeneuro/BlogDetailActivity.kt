@@ -23,6 +23,15 @@ class BlogDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_blog_detail)
         AuthApi.init(this)
+        
+        // Apply blur effect to header
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            findViewById<android.view.View>(R.id.headerBlur)?.setRenderEffect(
+                android.graphics.RenderEffect.createBlurEffect(
+                    15f, 15f, android.graphics.Shader.TileMode.CLAMP
+                )
+            )
+        }
 
         markwon = Markwon.builder(this)
             .usePlugin(HtmlPlugin.create())
@@ -46,10 +55,12 @@ class BlogDetailActivity : AppCompatActivity() {
         }
         
         findViewById<android.view.View>(R.id.btnLike).setOnClickListener {
+            android.util.Log.d("BlogDetail", "Like button clicked")
             submitFeedback(true)
         }
         
         findViewById<android.view.View>(R.id.btnDislike).setOnClickListener {
+            android.util.Log.d("BlogDetail", "Dislike button clicked")
             submitFeedback(false)
         }
         
@@ -65,6 +76,16 @@ class BlogDetailActivity : AppCompatActivity() {
             blogId = blog.id
             findViewById<TextView>(R.id.tvTitle).text = blog.title
             findViewById<TextView>(R.id.tvAuthor).text = blog.authorName ?: "Anonymous"
+            
+            // Load author avatar
+            val ivAuthor = findViewById<ImageView>(R.id.ivAuthor)
+            if (!blog.authorImage.isNullOrEmpty()) {
+                com.bumptech.glide.Glide.with(this)
+                    .load(blog.authorImage)
+                    .circleCrop()
+                    .placeholder(R.drawable.ic_profile)
+                    .into(ivAuthor)
+            }
             
             val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
             val created = try { dateFormat.format(Date(blog.createdAt)) } catch (e: Exception) { "Recently" }
@@ -93,6 +114,32 @@ class BlogDetailActivity : AppCompatActivity() {
     }
 
     private fun submitFeedback(liked: Boolean) {
+        android.util.Log.d("BlogDetail", "submitFeedback called: liked=$liked, blogId=$blogId")
+        val id = blogId
+        if (id == null) {
+            android.util.Log.e("BlogDetail", "blogId is null, cannot submit feedback")
+            Toast.makeText(this, "Blog not loaded yet", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Update counts immediately for better UX
+        val currentLikes = findViewById<TextView>(R.id.tvLikeCount).text.toString().toIntOrNull() ?: 0
+        val currentDislikes = findViewById<TextView>(R.id.tvDislikeCount).text.toString().toIntOrNull() ?: 0
+        if (liked) {
+            findViewById<TextView>(R.id.tvLikeCount).text = "${currentLikes + 1}"
+        } else {
+            findViewById<TextView>(R.id.tvDislikeCount).text = "${currentDislikes + 1}"
+        }
         Toast.makeText(this, if (liked) "Thanks for your feedback! 👍" else "Thanks for your feedback! 👎", Toast.LENGTH_SHORT).show()
+        
+        // Try to submit to backend (will fail until endpoint is created)
+        lifecycleScope.launch {
+            try {
+                android.util.Log.d("BlogDetail", "Submitting feedback: liked=$liked, blogId=$id")
+                AuthApi.submitBlogFeedback(id, liked)
+            } catch (e: Exception) {
+                android.util.Log.e("BlogDetail", "Feedback submission failed (endpoint may not exist yet)", e)
+            }
+        }
     }
 }

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { blogFeedback } from '@/lib/schema';
-import { eq, and } from 'drizzle-orm';
 
 export async function POST(
   request: NextRequest,
@@ -11,19 +10,17 @@ export async function POST(
     const { liked } = await request.json();
     const blogId = params.slug;
     
-    // Get user session (you'll need to implement this based on your auth)
-    // For now, we'll use a placeholder
     const userId = request.headers.get('x-user-id') || 'anonymous';
     
-    // Upsert feedback
     await db.insert(blogFeedback)
       .values({
+        id: `${blogId}-${userId}`,
         blogId,
         userId,
         liked
       })
       .onConflictDoUpdate({
-        target: [blogFeedback.blogId, blogFeedback.userId],
+        target: blogFeedback.id,
         set: { liked }
       });
     

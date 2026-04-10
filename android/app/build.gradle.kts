@@ -54,4 +54,5 @@ dependencies {
     implementation("io.noties.markwon:image:4.6.2")
     implementation("io.noties.markwon:image-glide:4.6.2")
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("jp.wasabeef:blurry:4.0.1")
 }

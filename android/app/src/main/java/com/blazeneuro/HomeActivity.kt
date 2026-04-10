@@ -235,11 +235,22 @@ class BlogAdapter(private val blogs: List<AuthApi.Blog>) : RecyclerView.Adapter<
                 holder.tvTitle.text = blog.title
                 holder.tvDesc.text = blog.description ?: "${blog.readTime} min read"
                 
+                holder.ivCover.setBackgroundResource(R.drawable.skeleton_shimmer)
+                (holder.ivCover.background as? android.graphics.drawable.AnimationDrawable)?.start()
+                
                 if (!blog.coverImage.isNullOrEmpty()) {
                     com.bumptech.glide.Glide.with(holder.itemView.context)
                         .load(blog.coverImage)
-                        .placeholder(R.drawable.ic_home)
-                        .error(R.drawable.ic_home)
+                        .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
+                            override fun onLoadFailed(e: com.bumptech.glide.load.engine.GlideException?, model: Any?, target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
+                                holder.ivCover.setBackgroundResource(R.drawable.skeleton_bg)
+                                return false
+                            }
+                            override fun onResourceReady(resource: android.graphics.drawable.Drawable, model: Any, target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>, dataSource: com.bumptech.glide.load.DataSource, isFirstResource: Boolean): Boolean {
+                                holder.ivCover.background = null
+                                return false
+                            }
+                        })
                         .into(holder.ivCover)
                 }
                 
@@ -256,11 +267,22 @@ class BlogAdapter(private val blogs: List<AuthApi.Blog>) : RecyclerView.Adapter<
                 holder.tvTitle.text = blog.title
                 holder.tvDesc.text = blog.description ?: "${blog.readTime} min read"
                 
+                holder.ivCover.setBackgroundResource(R.drawable.skeleton_shimmer)
+                (holder.ivCover.background as? android.graphics.drawable.AnimationDrawable)?.start()
+                
                 if (!blog.coverImage.isNullOrEmpty()) {
                     com.bumptech.glide.Glide.with(holder.itemView.context)
                         .load(blog.coverImage)
-                        .placeholder(R.drawable.ic_home)
-                        .error(R.drawable.ic_home)
+                        .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
+                            override fun onLoadFailed(e: com.bumptech.glide.load.engine.GlideException?, model: Any?, target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>, isFirstResource: Boolean): Boolean {
+                                holder.ivCover.setBackgroundResource(R.drawable.skeleton_bg)
+                                return false
+                            }
+                            override fun onResourceReady(resource: android.graphics.drawable.Drawable, model: Any, target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>, dataSource: com.bumptech.glide.load.DataSource, isFirstResource: Boolean): Boolean {
+                                holder.ivCover.background = null
+                                return false
+                            }
+                        })
                         .into(holder.ivCover)
                 }
                 

@@ -290,7 +290,7 @@ object AuthApi {
                     slug = blog.getString("slug"),
                     createdAt = blog.getString("createdAt"),
                     readTime = blog.optInt("readTime", 5),
-                    coverImage = blog.optString("coverImage", null)
+                    coverImage = blog.optString("coverImage").takeIf { it.isNotEmpty() }
                 )
             }
         } catch (e: Exception) {
@@ -369,6 +369,28 @@ object AuthApi {
 
     private fun clearSession() {
         prefs.edit().clear().apply()
+    }
+
+    suspend fun submitBlogFeedback(blogId: String, liked: Boolean): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val json = JSONObject().apply {
+                put("liked", liked)
+            }
+            val body = json.toString().toRequestBody("application/json".toMediaType())
+            val url = "$SITE_URL/api/mobile/blogs/$blogId/feedback"
+            Log.d(TAG, "submitBlogFeedback: POST $url with body: ${json.toString()}")
+            val request = Request.Builder()
+                .url(url)
+                .post(body)
+                .build()
+            val response = client.newCall(request).execute()
+            val responseBody = response.body?.string()
+            Log.d(TAG, "submitBlogFeedback: status=${response.code}, body=$responseBody")
+            response.isSuccessful
+        } catch (e: Exception) {
+            Log.e(TAG, "submitBlogFeedback error", e)
+            false
+        }
     }
 
     // ---- Cookie management for WebView ----

@@ -49,16 +49,6 @@ export const verification = pgTable("verification", {
   updatedAt: timestamp("updatedAt").defaultNow()
 })
 
-export const blogFeedback = pgTable("blog_feedback", {
-  blogId: text("blog_id").notNull(),
-  userId: text("user_id").notNull(),
-  liked: boolean("liked").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow()
-}, (table) => ({
-  pk: primaryKey({ columns: [table.blogId, table.userId] })
-}))
-
 export const oauthApp = pgTable("oauthApp", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
