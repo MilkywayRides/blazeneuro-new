@@ -13,12 +13,8 @@ export async function GET(
     const { slug } = await params
     
     const blogPost = await db
-      .select({
-        blog: blog,
-        author: user
-      })
+      .select()
       .from(blog)
-      .leftJoin(user, sql`${blog.authorId} = ${user.id}`)
       .where(sql`${blog.slug} = ${slug}`)
       .limit(1)
 
@@ -26,23 +22,33 @@ export async function GET(
       return NextResponse.json({ error: "Blog not found" }, { status: 404 })
     }
 
+    const blogData = blogPost[0]
+    
+    // Get author
+    const authorData = await db
+      .select()
+      .from(user)
+      .where(sql`${user.id} = ${blogData.authorId}`)
+      .limit(1)
+
+    // Get feedback counts
     const feedbackData = await db
       .select({
         likes: sql<number>`COUNT(CASE WHEN ${blogFeedback.liked} = true THEN 1 END)`,
         dislikes: sql<number>`COUNT(CASE WHEN ${blogFeedback.liked} = false THEN 1 END)`
       })
       .from(blogFeedback)
-      .where(sql`${blogFeedback.blogId} = ${blogPost[0].blog.id}`)
+      .where(sql`${blogFeedback.blogId} = ${blogData.id}`)
 
     const response = NextResponse.json({ 
-      blog: blogPost[0].blog,
-      author: blogPost[0].author ? {
-        name: blogPost[0].author.name,
-        image: blogPost[0].author.image
+      blog: blogData,
+      author: authorData.length > 0 ? {
+        name: authorData[0].name,
+        image: authorData[0].image
       } : null,
       feedback: {
-        likes: feedbackData[0]?.likes || 0,
-        dislikes: feedbackData[0]?.dislikes || 0
+        likes: Number(feedbackData[0]?.likes) || 0,
+        dislikes: Number(feedbackData[0]?.dislikes) || 0
       }
     })
     
