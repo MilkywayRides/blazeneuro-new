@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import io.noties.markwon.Markwon
 import io.noties.markwon.html.HtmlPlugin
+import io.noties.markwon.image.glide.GlideImagesPlugin
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
@@ -25,9 +26,18 @@ class BlogDetailActivity : AppCompatActivity() {
 
         markwon = Markwon.builder(this)
             .usePlugin(HtmlPlugin.create())
+            .usePlugin(GlideImagesPlugin.create(this))
             .build()
 
-        val slug = intent.getStringExtra("slug") ?: return finish()
+        // Handle deep link
+        val slug = when {
+            intent.data != null -> {
+                // Extract slug from URL: https://blazeneuro.com/blogs/slug
+                intent.data?.lastPathSegment
+            }
+            else -> intent.getStringExtra("slug")
+        } ?: return finish()
+        
         val title = intent.getStringExtra("title") ?: "Blog Post"
         
         findViewById<TextView>(R.id.tvTitle).text = title

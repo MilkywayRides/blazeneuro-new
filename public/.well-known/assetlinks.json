@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.blazeneuro",
+    "sha256_cert_fingerprints": [
+      "FC:76:0B:BB:D8:0D:9C:46:D8:68:1D:FB:26:35:C1:8D:15:E9:F3:58:A5:4F:91:24:51:9C:45:DA:F4:5B:8C:08"
+    ]
+  }
+}]
