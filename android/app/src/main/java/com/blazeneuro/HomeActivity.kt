@@ -194,38 +194,85 @@ class BlogsFragment : Fragment(R.layout.fragment_blogs) {
     }
 }
 
-class BlogAdapter(private val blogs: List<AuthApi.Blog>) : RecyclerView.Adapter<BlogAdapter.ViewHolder>() {
-    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+class BlogAdapter(private val blogs: List<AuthApi.Blog>) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    
+    companion object {
+        const val TYPE_HERO = 0
+        const val TYPE_NORMAL = 1
+    }
+    
+    class HeroViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val ivCover: ImageView = view.findViewById(R.id.ivHeroCover)
+        val tvTitle: TextView = view.findViewById(R.id.tvHeroTitle)
+        val tvDesc: TextView = view.findViewById(R.id.tvHeroDesc)
+    }
+    
+    class NormalViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val ivCover: ImageView = view.findViewById(R.id.ivCover)
         val tvTitle: TextView = view.findViewById(R.id.tvBlogTitle)
         val tvDesc: TextView = view.findViewById(R.id.tvBlogDesc)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_blog, parent, false)
-        return ViewHolder(view)
+    override fun getItemViewType(position: Int): Int {
+        return if (position == 0) TYPE_HERO else TYPE_NORMAL
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val blog = blogs[position]
-        holder.tvTitle.text = blog.title
-        holder.tvDesc.text = blog.description ?: "${blog.readTime} min read"
-        
-        // Load cover image with Glide
-        if (!blog.coverImage.isNullOrEmpty()) {
-            com.bumptech.glide.Glide.with(holder.itemView.context)
-                .load(blog.coverImage)
-                .placeholder(R.drawable.ic_home)
-                .into(holder.ivCover)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return if (viewType == TYPE_HERO) {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_hero_blog, parent, false)
+            HeroViewHolder(view)
+        } else {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_blog, parent, false)
+            NormalViewHolder(view)
         }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        val blog = blogs[position]
         
-        holder.itemView.setOnClickListener {
-            val intent = Intent(holder.itemView.context, BlogDetailActivity::class.java).apply {
-                putExtra("slug", blog.slug)
-                putExtra("title", blog.title)
-                putExtra("description", blog.description)
+        when (holder) {
+            is HeroViewHolder -> {
+                holder.tvTitle.text = blog.title
+                holder.tvDesc.text = blog.description ?: "${blog.readTime} min read"
+                
+                if (!blog.coverImage.isNullOrEmpty()) {
+                    com.bumptech.glide.Glide.with(holder.itemView.context)
+                        .load(blog.coverImage)
+                        .placeholder(R.drawable.ic_home)
+                        .error(R.drawable.ic_home)
+                        .into(holder.ivCover)
+                }
+                
+                holder.itemView.setOnClickListener {
+                    val intent = Intent(holder.itemView.context, BlogDetailActivity::class.java).apply {
+                        putExtra("slug", blog.slug)
+                        putExtra("title", blog.title)
+                        putExtra("description", blog.description)
+                    }
+                    holder.itemView.context.startActivity(intent)
+                }
             }
-            holder.itemView.context.startActivity(intent)
+            is NormalViewHolder -> {
+                holder.tvTitle.text = blog.title
+                holder.tvDesc.text = blog.description ?: "${blog.readTime} min read"
+                
+                if (!blog.coverImage.isNullOrEmpty()) {
+                    com.bumptech.glide.Glide.with(holder.itemView.context)
+                        .load(blog.coverImage)
+                        .placeholder(R.drawable.ic_home)
+                        .error(R.drawable.ic_home)
+                        .into(holder.ivCover)
+                }
+                
+                holder.itemView.setOnClickListener {
+                    val intent = Intent(holder.itemView.context, BlogDetailActivity::class.java).apply {
+                        putExtra("slug", blog.slug)
+                        putExtra("title", blog.title)
+                        putExtra("description", blog.description)
+                    }
+                    holder.itemView.context.startActivity(intent)
+                }
+            }
         }
     }
 

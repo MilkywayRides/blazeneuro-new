@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
         slug: blog.slug,
         createdAt: blog.createdAt,
         readTime: sql<number>`5`,
-        coverImage: blog.coverImage
+        coverImage: sql<string>`COALESCE(${blog.coverImage}, 'https://placehold.co/400x300/1a1a1a/888888?text=Blog')`
       })
       .from(blog)
       .orderBy(desc(blog.createdAt))
