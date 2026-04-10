@@ -61,6 +61,19 @@ object AuthApi {
         val readTime: Int = 5
     )
 
+    data class BlogDetail(
+        val id: String,
+        val title: String,
+        val content: String,
+        val authorId: String,
+        val authorName: String?,
+        val authorImage: String?,
+        val createdAt: String,
+        val updatedAt: String,
+        val likeCount: Int,
+        val dislikeCount: Int
+    )
+
     data class SearchResult(
         val id: String,
         val title: String,
@@ -308,6 +321,37 @@ object AuthApi {
         } catch (e: Exception) {
             Log.e(TAG, "Search error", e)
             emptyList()
+        }
+    }
+
+    suspend fun getBlogDetail(slug: String): BlogDetail? = withContext(Dispatchers.IO) {
+        try {
+            val request = Request.Builder()
+                .url("$SITE_URL/api/mobile/blogs/$slug")
+                .get()
+                .build()
+
+            val response = client.newCall(request).execute()
+            val json = JSONObject(response.body?.string() ?: "{}")
+            val blog = json.optJSONObject("blog") ?: return@withContext null
+            val author = json.optJSONObject("author")
+            val feedback = json.optJSONObject("feedback")
+            
+            BlogDetail(
+                id = blog.getString("id"),
+                title = blog.getString("title"),
+                content = blog.getString("content"),
+                authorId = blog.getString("authorId"),
+                authorName = author?.optString("name"),
+                authorImage = author?.optString("image"),
+                createdAt = blog.getString("createdAt"),
+                updatedAt = blog.getString("updatedAt"),
+                likeCount = feedback?.optInt("likes") ?: 0,
+                dislikeCount = feedback?.optInt("dislikes") ?: 0
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Get blog detail error", e)
+            null
         }
     }
 
