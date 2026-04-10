@@ -12,7 +12,11 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const before = searchParams.get('before');
     
-    let query = db
+    const whereCondition = before 
+      ? sql`${chatMessage.createdAt} < ${before}`
+      : undefined;
+    
+    const messages = await db
       .select({
         id: chatMessage.id,
         content: chatMessage.content,
@@ -25,14 +29,9 @@ export async function GET(request: NextRequest) {
       })
       .from(chatMessage)
       .leftJoin(user, eq(chatMessage.userId, user.id))
+      .where(whereCondition)
       .orderBy(desc(chatMessage.createdAt))
       .limit(limit);
-    
-    if (before) {
-      query = query.where(sql`${chatMessage.createdAt} < ${before}`);
-    }
-    
-    const messages = await query;
     
     return NextResponse.json({ messages });
   } catch (error) {

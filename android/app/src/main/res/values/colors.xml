@@ -7,6 +7,8 @@
     <color name="card">#FF18181B</color>                <!-- zinc-900 -->
     <color name="card_foreground">#FFFAFAFA</color>     <!-- zinc-50 -->
     
+    <color name="surface">#FF18181B</color>             <!-- zinc-900 (same as card) -->
+    
     <color name="muted">#FF27272A</color>               <!-- zinc-800 -->
     <color name="muted_foreground">#FFA1A1AA</color>    <!-- zinc-400 -->
     
