@@ -138,6 +138,32 @@ export const githubConnection = pgTable("githubConnection", {
   updatedAt: timestamp("updatedAt").notNull().defaultNow()
 })
 
+export const chatMessage = pgTable("chat_message", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => user.id),
+  content: text("content").notNull(),
+  imageUrl: text("image_url"),
+  replyToId: text("reply_to_id").references(() => chatMessage.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow()
+})
+
+export const chatMention = pgTable("chat_mention", {
+  id: text("id").primaryKey(),
+  messageId: text("message_id").notNull().references(() => chatMessage.id, { onDelete: 'cascade' }),
+  userId: text("user_id").notNull().references(() => user.id),
+  createdAt: timestamp("created_at").notNull().defaultNow()
+})
+
+export const pushToken = pgTable("push_token", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => user.id),
+  token: text("token").notNull().unique(),
+  platform: text("platform").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow()
+})
+
+
 export const project = pgTable("project", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),

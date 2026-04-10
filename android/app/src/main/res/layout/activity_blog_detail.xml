@@ -105,7 +105,16 @@
 
     </ScrollView>
 
+    <ProgressBar
+        android:id="@+id/loadingSpinner"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:indeterminateTint="@color/primary"
+        android:visibility="gone" />
+
     <androidx.cardview.widget.CardView
+        android:id="@+id/feedbackCard"
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:layout_gravity="bottom"

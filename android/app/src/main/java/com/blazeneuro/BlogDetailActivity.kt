@@ -24,6 +24,11 @@ class BlogDetailActivity : AppCompatActivity() {
         setContentView(R.layout.activity_blog_detail)
         AuthApi.init(this)
         
+        // Show loading spinner
+        findViewById<android.view.View>(R.id.loadingSpinner).visibility = android.view.View.VISIBLE
+        findViewById<android.widget.ScrollView>(R.id.scrollView).visibility = android.view.View.GONE
+        findViewById<androidx.cardview.widget.CardView>(R.id.feedbackCard).visibility = android.view.View.GONE
+        
         // Apply blur effect to header
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
             findViewById<android.view.View>(R.id.headerBlur)?.setRenderEffect(
@@ -44,7 +49,6 @@ class BlogDetailActivity : AppCompatActivity() {
         val title = intent.getStringExtra("title") ?: "Blog Post"
         
         findViewById<TextView>(R.id.tvTitle).text = title
-        findViewById<TextView>(R.id.tvContent).text = "Loading..."
         
         findViewById<ImageView>(R.id.btnBack).setOnClickListener {
             finish()
@@ -74,6 +78,12 @@ class BlogDetailActivity : AppCompatActivity() {
         if (blog != null) {
             currentBlog = blog
             blogId = blog.id
+            
+            // Hide loading, show content
+            findViewById<android.view.View>(R.id.loadingSpinner).visibility = android.view.View.GONE
+            findViewById<android.widget.ScrollView>(R.id.scrollView).visibility = android.view.View.VISIBLE
+            findViewById<androidx.cardview.widget.CardView>(R.id.feedbackCard).visibility = android.view.View.VISIBLE
+            
             findViewById<TextView>(R.id.tvTitle).text = blog.title
             findViewById<TextView>(R.id.tvAuthor).text = blog.authorName ?: "Anonymous"
             
@@ -92,12 +102,20 @@ class BlogDetailActivity : AppCompatActivity() {
             val updated = try { dateFormat.format(Date(blog.updatedAt)) } catch (e: Exception) { "Recently" }
             
             findViewById<TextView>(R.id.tvMeta).text = "Published $created • Updated $updated"
-            findViewById<TextView>(R.id.tvLikeCount).text = "${blog.likeCount}"
-            findViewById<TextView>(R.id.tvDislikeCount).text = "${blog.dislikeCount}"
+            findViewById<TextView>(R.id.tvLikeCount).text = formatCount(blog.likeCount)
+            findViewById<TextView>(R.id.tvDislikeCount).text = formatCount(blog.dislikeCount)
             
             markwon.setMarkdown(findViewById(R.id.tvContent), blog.content)
         } else {
             findViewById<TextView>(R.id.tvContent).text = "Failed to load blog content"
+        }
+    }
+    
+    private fun formatCount(count: Int): String {
+        return when {
+            count >= 1000000 -> String.format("%.1fM", count / 1000000.0)
+            count >= 1000 -> String.format("%.1fK", count / 1000.0)
+            else -> count.toString()
         }
     }
 
@@ -122,17 +140,28 @@ class BlogDetailActivity : AppCompatActivity() {
             return
         }
         
-        // Update counts immediately for better UX
-        val currentLikes = findViewById<TextView>(R.id.tvLikeCount).text.toString().toIntOrNull() ?: 0
-        val currentDislikes = findViewById<TextView>(R.id.tvDislikeCount).text.toString().toIntOrNull() ?: 0
+        // Update counts immediately
+        val currentLikes = findViewById<TextView>(R.id.tvLikeCount).text.toString().replace("K", "000").replace("M", "000000").toIntOrNull() ?: 0
+        val currentDislikes = findViewById<TextView>(R.id.tvDislikeCount).text.toString().replace("K", "000").replace("M", "000000").toIntOrNull() ?: 0
         if (liked) {
-            findViewById<TextView>(R.id.tvLikeCount).text = "${currentLikes + 1}"
+            findViewById<TextView>(R.id.tvLikeCount).text = formatCount(currentLikes + 1)
         } else {
-            findViewById<TextView>(R.id.tvDislikeCount).text = "${currentDislikes + 1}"
+            findViewById<TextView>(R.id.tvDislikeCount).text = formatCount(currentDislikes + 1)
         }
         Toast.makeText(this, if (liked) "Thanks for your feedback! 👍" else "Thanks for your feedback! 👎", Toast.LENGTH_SHORT).show()
         
-        // Try to submit to backend (will fail until endpoint is created)
+        // Animate card slide down and remove
+        val feedbackCard = findViewById<androidx.cardview.widget.CardView>(R.id.feedbackCard)
+        feedbackCard.animate()
+            .translationY(feedbackCard.height.toFloat() + 100f)
+            .alpha(0f)
+            .setDuration(300)
+            .withEndAction {
+                feedbackCard.visibility = android.view.View.GONE
+            }
+            .start()
+        
+        // Try to submit to backend
         lifecycleScope.launch {
             try {
                 android.util.Log.d("BlogDetail", "Submitting feedback: liked=$liked, blogId=$id")

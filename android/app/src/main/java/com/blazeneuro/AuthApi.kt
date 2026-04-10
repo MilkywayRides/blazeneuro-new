@@ -422,6 +422,70 @@ object AuthApi {
             "Request failed (code $code)"
         }
     }
+    
+    // ---- Chat API ----
+    
+    suspend fun getChatMessages(limit: Int = 50, before: String? = null): List<ChatMessage> = withContext(Dispatchers.IO) {
+        try {
+            val url = "$SITE_URL/api/mobile/chat?limit=$limit${if (before != null) "&before=$before" else ""}"
+            val request = Request.Builder().url(url).get().build()
+            val response = client.newCall(request).execute()
+            val json = JSONObject(response.body?.string() ?: "{}")
+            val messagesArray = json.optJSONArray("messages") ?: return@withContext emptyList()
+            
+            (0 until messagesArray.length()).map { i ->
+                val msg = messagesArray.getJSONObject(i)
+                ChatMessage(
+                    id = msg.getString("id"),
+                    userId = msg.getString("userId"),
+                    userName = msg.optString("userName", "Unknown"),
+                    userImage = msg.optString("userImage"),
+                    content = msg.getString("content"),
+                    imageUrl = msg.optString("imageUrl"),
+                    replyToId = msg.optString("replyToId"),
+                    createdAt = msg.getString("createdAt")
+                )
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "getChatMessages error", e)
+            emptyList()
+        }
+    }
+    
+    suspend fun sendChatMessage(content: String, imageUrl: String?, replyToId: String?, mentions: List<String>): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val json = JSONObject().apply {
+                put("content", content)
+                if (imageUrl != null) put("imageUrl", imageUrl)
+                if (replyToId != null) put("replyToId", replyToId)
+                if (mentions.isNotEmpty()) put("mentions", JSONArray(mentions))
+            }
+            val body = json.toString().toRequestBody("application/json".toMediaType())
+            val request = Request.Builder()
+                .url("$SITE_URL/api/mobile/chat")
+                .post(body)
+                .build()
+            val response = client.newCall(request).execute()
+            response.isSuccessful
+        } catch (e: Exception) {
+            Log.e(TAG, "sendChatMessage error", e)
+            false
+        }
+    }
+    
+    suspend fun deleteChatMessage(messageId: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val request = Request.Builder()
+                .url("$SITE_URL/api/mobile/chat/$messageId")
+                .delete()
+                .build()
+            val response = client.newCall(request).execute()
+            response.isSuccessful
+        } catch (e: Exception) {
+            Log.e(TAG, "deleteChatMessage error", e)
+            false
+        }
+    }
 
     // ---- Persistent Cookie Jar ----
 
