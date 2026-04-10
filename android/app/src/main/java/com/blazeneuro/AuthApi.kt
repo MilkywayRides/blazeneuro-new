@@ -254,8 +254,17 @@ object AuthApi {
                 .get()
                 .build()
 
+            Log.d(TAG, "Fetching blogs from: $SITE_URL/api/mobile/blogs")
             val response = client.newCall(request).execute()
-            val json = JSONObject(response.body?.string() ?: "{}")
+            val responseBody = response.body?.string() ?: "{}"
+            Log.d(TAG, "Blogs response: ${response.code} - $responseBody")
+
+            if (!response.isSuccessful) {
+                Log.e(TAG, "Blogs API failed: ${response.code}")
+                return@withContext emptyList()
+            }
+
+            val json = JSONObject(responseBody)
             val blogsArray = json.optJSONArray("blogs") ?: return@withContext emptyList()
 
             (0 until blogsArray.length()).map { i ->

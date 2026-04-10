@@ -54,9 +54,9 @@ export async function GET(req: NextRequest) {
       .offset(offset)
 
     const response = NextResponse.json({ 
-      blogs: blogList,
-      count: blogList.length,
-      hasMore: blogList.length === limit
+      blogs: blogList || [],
+      count: blogList?.length || 0,
+      hasMore: (blogList?.length || 0) === limit
     })
     
     response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600')
@@ -64,8 +64,13 @@ export async function GET(req: NextRequest) {
     response.headers.set('X-Frame-Options', 'DENY')
     
     return response
-  } catch (error) {
-    console.error("Blogs API error:", error)
-    return NextResponse.json({ error: "Failed to fetch blogs" }, { status: 500 })
+  } catch (error: any) {
+    console.error("Blogs API error:", error?.message || error)
+    // Return empty array instead of error
+    return NextResponse.json({ 
+      blogs: [],
+      count: 0,
+      hasMore: false
+    })
   }
 }

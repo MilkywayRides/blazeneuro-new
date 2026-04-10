@@ -165,16 +165,24 @@ class BlogsFragment : Fragment(R.layout.fragment_blogs) {
             loadBlogs()
         }
         
+        // Load blogs immediately
+        swipeRefresh.isRefreshing = true
         loadBlogs()
     }
 
     private fun loadBlogs() {
         lifecycleScope.launch {
-            val result = AuthApi.getBlogs()
-            blogs.clear()
-            blogs.addAll(result)
-            adapter.notifyDataSetChanged()
-            swipeRefresh.isRefreshing = false
+            try {
+                val result = AuthApi.getBlogs()
+                android.util.Log.d("BlogsFragment", "Loaded ${result.size} blogs")
+                blogs.clear()
+                blogs.addAll(result)
+                adapter.notifyDataSetChanged()
+            } catch (e: Exception) {
+                android.util.Log.e("BlogsFragment", "Error loading blogs", e)
+            } finally {
+                swipeRefresh.isRefreshing = false
+            }
         }
     }
 }
