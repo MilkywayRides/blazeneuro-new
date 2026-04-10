@@ -123,7 +123,7 @@
         android:layout_marginBottom="24dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp"
-        app:cardBackgroundColor="#CC000000">
+        app:cardBackgroundColor="@color/feedback_card_bg">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -138,7 +138,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Was this post helpful?"
-                android:textColor="@color/foreground"
+                android:textColor="@color/feedback_card_text"
                 android:textSize="14sp" />
 
             <LinearLayout
@@ -165,7 +165,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="0"
-                    android:textColor="@color/foreground"
+                    android:textColor="@color/feedback_card_text"
                     android:textSize="13sp" />
 
             </LinearLayout>
@@ -193,7 +193,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="0"
-                    android:textColor="@color/foreground"
+                    android:textColor="@color/feedback_card_text"
                     android:textSize="13sp" />
 
             </LinearLayout>

@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, primaryKey } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, boolean, primaryKey, integer } from "drizzle-orm/pg-core"
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -95,6 +95,8 @@ export const blog = pgTable("blog", {
   searchKeywords: text("searchKeywords").array(),
   published: boolean("published").notNull().default(false),
   authorId: text("authorId").notNull().references(() => user.id),
+  likeCount: integer("likeCount").notNull().default(0),
+  dislikeCount: integer("dislikeCount").notNull().default(0),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow()
 })

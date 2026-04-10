@@ -39,6 +39,9 @@
     
     <color name="divider">#FF27272A</color>
     
+    <color name="feedback_card_bg">#CC000000</color>
+    <color name="feedback_card_text">#FFFFFFFF</color>
+    
     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>
     <color name="transparent">#00000000</color>
