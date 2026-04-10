@@ -57,7 +57,7 @@ export async function GET(req: NextRequest) {
       })
       .from(blog)
       .where(
-        sql`${blog.published} = true AND (${blog.title} ILIKE ${searchTerm} OR ${blog.excerpt} ILIKE ${searchTerm} OR ${blog.content} ILIKE ${searchTerm})`
+        sql`${blog.title} ILIKE ${searchTerm} OR ${blog.excerpt} ILIKE ${searchTerm} OR ${blog.content} ILIKE ${searchTerm}`
       )
       .orderBy(desc(blog.createdAt))
       .limit(20)

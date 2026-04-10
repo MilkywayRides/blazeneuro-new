@@ -16,7 +16,7 @@ export async function GET(
     const blogPost = await db
       .select()
       .from(blog)
-      .where(sql`${blog.slug} = ${slug} AND ${blog.published} = true`)
+      .where(sql`${blog.slug} = ${slug}`)
       .limit(1)
 
     if (!blogPost.length) {

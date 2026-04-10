@@ -48,7 +48,6 @@ export async function GET(req: NextRequest) {
         readTime: sql<number>`CAST(LENGTH(${blog.content}) / 1000 AS INTEGER)`
       })
       .from(blog)
-      .where(sql`${blog.published} = true`)
       .orderBy(desc(blog.createdAt))
       .limit(limit)
       .offset(offset)
@@ -66,7 +65,6 @@ export async function GET(req: NextRequest) {
     return response
   } catch (error: any) {
     console.error("Blogs API error:", error?.message || error)
-    // Return empty array instead of error
     return NextResponse.json({ 
       blogs: [],
       count: 0,
