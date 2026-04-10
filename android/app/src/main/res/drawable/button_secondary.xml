@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- shadcn primary button: white bg, dark text, 8dp radius -->
+<!-- Secondary button (shadcn secondary variant) -->
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="#33000000">
+    android:color="#1AFFFFFF">
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/primary" />
+            <solid android:color="@color/secondary" />
             <corners android:radius="@dimen/radius_md" />
         </shape>
     </item>

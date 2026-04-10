@@ -8,7 +8,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="BlazeNeuro"
         android:theme="@style/AppTheme"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="false">
         
         <activity
             android:name=".MainActivity"
@@ -21,7 +21,17 @@
         
         <activity
             android:name=".LoginActivity"
-            android:exported="false" />
+            android:exported="true"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="blazeneuro"
+                    android:host="callback" />
+            </intent-filter>
+        </activity>
             
         <activity
             android:name=".SignupActivity"
@@ -29,6 +39,10 @@
             
         <activity
             android:name=".HomeActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ForgotPasswordActivity"
             android:exported="false" />
     </application>
 </manifest>

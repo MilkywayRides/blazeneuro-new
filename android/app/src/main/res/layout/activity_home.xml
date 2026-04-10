@@ -1,36 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- shadcn-inspired Home (WebView) Screen -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp"
     android:background="@color/background">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Welcome"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        android:textColor="@color/foreground"
-        android:layout_marginBottom="8dp" />
-
-    <TextView
-        android:id="@+id/tvUserName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:textColor="@color/muted_foreground"
-        android:layout_marginBottom="32dp" />
-
-    <Button
-        android:id="@+id/btnLogout"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefresh"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:text="Logout"
-        android:textColor="@color/primary_foreground"
-        android:textSize="14sp"
-        android:textAllCaps="false"
-        android:background="@drawable/button_primary" />
+        android:layout_height="match_parent">
 
-</LinearLayout>
+        <WebView
+            android:id="@+id/webView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <!-- Thin progress bar at top -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_gravity="top"
+        android:max="100"
+        android:progressDrawable="@android:drawable/progress_horizontal"
+        android:progressTint="@color/foreground"
+        android:visibility="gone" />
+
+    <!-- Logout FAB — shadcn secondary style -->
+    <TextView
+        android:id="@+id/fabLogout"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/space_lg"
+        android:background="@drawable/button_secondary"
+        android:elevation="4dp"
+        android:gravity="center"
+        android:text="↩"
+        android:textColor="@color/foreground"
+        android:textSize="@dimen/text_lg" />
+
+</FrameLayout>

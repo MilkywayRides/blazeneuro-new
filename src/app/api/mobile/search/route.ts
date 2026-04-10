@@ -1,0 +1,84 @@
+import { NextRequest, NextResponse } from "next/server"
+import { db } from "@/lib/db"
+import { blogs } from "@/lib/schema"
+import { or, like, desc } from "drizzle-orm"
+
+export const runtime = 'edge'
+export const dynamic = 'force-dynamic'
+
+const RATE_LIMIT = 50
+const RATE_WINDOW = 60000
+
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now()
+  const record = rateLimitMap.get(ip)
+  
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_WINDOW })
+    return true
+  }
+  
+  if (record.count >= RATE_LIMIT) return false
+  
+  record.count++
+  return true
+}
+
+export async function GET(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown'
+  
+  if (!checkRateLimit(ip)) {
+    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 })
+  }
+
+  const { searchParams } = new URL(req.url)
+  const query = searchParams.get("q")
+
+  if (!query || query.length < 2) {
+    return NextResponse.json({ error: "Query must be at least 2 characters" }, { status: 400 })
+  }
+
+  if (query.length > 100) {
+    return NextResponse.json({ error: "Query too long" }, { status: 400 })
+  }
+
+  try {
+    const searchTerm = `%${query}%`
+    
+    const results = await db
+      .select({
+        id: blogs.id,
+        title: blogs.title,
+        description: blogs.description,
+        slug: blogs.slug,
+        createdAt: blogs.createdAt
+      })
+      .from(blogs)
+      .where(
+        or(
+          like(blogs.title, searchTerm),
+          like(blogs.description, searchTerm),
+          like(blogs.content, searchTerm)
+        )
+      )
+      .orderBy(desc(blogs.createdAt))
+      .limit(20)
+
+    const response = NextResponse.json({ 
+      results,
+      count: results.length,
+      query
+    })
+    
+    response.headers.set('Cache-Control', 'public, s-maxage=180, stale-while-revalidate=360')
+    response.headers.set('X-Content-Type-Options', 'nosniff')
+    response.headers.set('X-Frame-Options', 'DENY')
+    
+    return response
+  } catch (error) {
+    console.error("Search API error:", error)
+    return NextResponse.json({ error: "Search failed" }, { status: 500 })
+  }
+}

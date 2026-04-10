@@ -223,3 +223,22 @@ export const schema = {
   databaseBranch,
   adminChatMessage
 }
+
+
+export const blogs = pgTable("blogs", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  content: text("content").notNull(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow()
+})
+
+export const blogFeedback = pgTable("blog_feedback", {
+  id: text("id").primaryKey(),
+  blogId: text("blogId").notNull().references(() => blogs.id),
+  userId: text("userId"),
+  liked: boolean("liked").notNull(),
+  createdAt: timestamp("createdAt").notNull().defaultNow()
+})

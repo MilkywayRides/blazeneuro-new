@@ -3,33 +3,23 @@ package com.blazeneuro
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.text.method.PasswordTransformationMethod
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONObject
-import java.util.concurrent.TimeUnit
 
 class LoginActivity : AppCompatActivity() {
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .build()
-    private val authUrl = "https://auth.blazeneuro.com"
+    private val TAG = "LoginActivity"
+    private var passwordVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+        AuthApi.init(this)
 
         val etEmail = findViewById<EditText>(R.id.etEmail)
         val etPassword = findViewById<EditText>(R.id.etPassword)
@@ -37,103 +27,143 @@ class LoginActivity : AppCompatActivity() {
         val btnGoogle = findViewById<Button>(R.id.btnGoogle)
         val btnGithub = findViewById<Button>(R.id.btnGithub)
         val tvError = findViewById<TextView>(R.id.tvError)
+        val tvForgotPassword = findViewById<TextView>(R.id.tvForgotPassword)
+        val tvSignupLink = findViewById<TextView>(R.id.tvSignupLink)
+        val btnTogglePassword = findViewById<TextView>(R.id.btnTogglePassword)
+        val btnBack = findViewById<TextView>(R.id.btnBack)
+        val progressBar = findViewById<ProgressBar>(R.id.progressBar)
 
+        // Back button
+        btnBack.setOnClickListener { finish() }
+
+        // Password toggle
+        btnTogglePassword.setOnClickListener {
+            passwordVisible = !passwordVisible
+            if (passwordVisible) {
+                etPassword.transformationMethod = null
+                btnTogglePassword.text = "🙈"
+            } else {
+                etPassword.transformationMethod = PasswordTransformationMethod.getInstance()
+                btnTogglePassword.text = "👁"
+            }
+            etPassword.setSelection(etPassword.text.length)
+        }
+
+        // Email login
         btnLogin.setOnClickListener {
-            val email = etEmail.text.toString()
+            val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString()
 
             if (email.isEmpty() || password.isEmpty()) {
-                tvError.text = "Please fill all fields"
-                tvError.visibility = View.VISIBLE
+                showError(tvError, "Please fill all fields")
                 return@setOnClickListener
             }
 
-            btnLogin.isEnabled = false
+            setLoading(true, btnLogin, progressBar)
             tvError.visibility = View.GONE
 
             lifecycleScope.launch {
                 try {
-                    val result = login(email, password)
+                    val result = AuthApi.signInEmail(email, password)
                     if (result.success) {
-                        val prefs = getSharedPreferences("auth", MODE_PRIVATE)
-                        prefs.edit().apply {
-                            putString("token", result.token)
-                            putString("userName", result.userName)
-                            apply()
-                        }
-                        startActivity(Intent(this@LoginActivity, HomeActivity::class.java))
-                        finish()
+                        navigateToHome()
                     } else {
-                        tvError.text = result.error
-                        tvError.visibility = View.VISIBLE
+                        showError(tvError, result.error ?: "Login failed")
                     }
                 } catch (e: Exception) {
-                    Log.e("LoginActivity", "Login error", e)
-                    tvError.text = "Login failed: ${e.message}"
-                    tvError.visibility = View.VISIBLE
+                    Log.e(TAG, "Login error", e)
+                    showError(tvError, "Login failed: ${e.message}")
                 } finally {
-                    btnLogin.isEnabled = true
+                    setLoading(false, btnLogin, progressBar)
                 }
             }
         }
 
+        // Google sign-in via Chrome Custom Tabs
         btnGoogle.setOnClickListener {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("$authUrl/oauth/v1/authorize/google?redirectTo=https://blazeneuro.com"))
-            startActivity(intent)
+            openSocialAuth("google")
         }
 
+        // GitHub sign-in via Chrome Custom Tabs
         btnGithub.setOnClickListener {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("$authUrl/oauth/v1/authorize/github?redirectTo=https://blazeneuro.com"))
-            startActivity(intent)
+            openSocialAuth("github")
         }
+
+        // Forgot password
+        tvForgotPassword.setOnClickListener {
+            startActivity(Intent(this, ForgotPasswordActivity::class.java))
+        }
+
+        // Signup link
+        tvSignupLink.setOnClickListener {
+            startActivity(Intent(this, SignupActivity::class.java))
+            finish()
+        }
+
+        // Handle callback from social auth
+        handleSocialAuthCallback(intent)
     }
 
-    private suspend fun login(email: String, password: String): LoginResult = withContext(Dispatchers.IO) {
-        try {
-            val json = JSONObject().apply {
-                put("email", email)
-                put("password", password)
-            }
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleSocialAuthCallback(intent)
+    }
 
-            val body = json.toString().toRequestBody("application/json".toMediaType())
-            val request = Request.Builder()
-                .url("$authUrl/api/auth/sign-in/email")
-                .post(body)
-                .addHeader("Content-Type", "application/json")
-                .build()
+    private fun handleSocialAuthCallback(intent: Intent?) {
+        val data = intent?.data ?: return
+        Log.d(TAG, "Received callback: $data")
 
-            Log.d("LoginActivity", "Sending request to: $authUrl/api/auth/sign-in/email")
-            val response = client.newCall(request).execute()
-            val responseBody = response.body?.string() ?: ""
-            
-            Log.d("LoginActivity", "Response code: ${response.code}")
-            Log.d("LoginActivity", "Response body: $responseBody")
-
-            if (response.isSuccessful) {
-                val jsonResponse = JSONObject(responseBody)
-                val user = jsonResponse.optJSONObject("user")
-                val token = jsonResponse.optJSONObject("session")?.optString("token") ?: ""
-                val userName = user?.optString("name") ?: "User"
-                
-                LoginResult(true, token, userName, null)
-            } else {
-                val error = try {
-                    JSONObject(responseBody).optString("message", "Login failed")
-                } catch (e: Exception) {
-                    "Login failed: ${response.code}"
+        if (data.scheme == "blazeneuro" && data.host == "callback") {
+            // After social login, check session
+            lifecycleScope.launch {
+                val result = AuthApi.getSession()
+                if (result.success) {
+                    navigateToHome()
+                } else {
+                    showError(
+                        findViewById(R.id.tvError),
+                        "Social login completed but session not found. Please try email login."
+                    )
                 }
-                LoginResult(false, null, null, error)
             }
-        } catch (e: Exception) {
-            Log.e("LoginActivity", "Network error", e)
-            LoginResult(false, null, null, "Network error: ${e.message}")
         }
     }
 
-    data class LoginResult(
-        val success: Boolean,
-        val token: String?,
-        val userName: String?,
-        val error: String?
-    )
+    private fun openSocialAuth(provider: String) {
+        val callbackUrl = "${AuthApi.AUTH_BASE_URL}/callback"
+        val url = when (provider) {
+            "google" -> AuthApi.getGoogleSignInUrl(callbackUrl)
+            "github" -> AuthApi.getGithubSignInUrl(callbackUrl)
+            else -> return
+        }
+
+        try {
+            val customTabsIntent = CustomTabsIntent.Builder()
+                .setShowTitle(true)
+                .build()
+            customTabsIntent.launchUrl(this, Uri.parse(url))
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to open Custom Tab", e)
+            // Fallback to browser
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        }
+    }
+
+    private fun navigateToHome() {
+        startActivity(Intent(this, HomeActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        })
+        finish()
+    }
+
+    private fun showError(tvError: TextView, message: String) {
+        tvError.text = message
+        tvError.visibility = View.VISIBLE
+    }
+
+    private fun setLoading(loading: Boolean, btn: Button, progressBar: ProgressBar) {
+        btn.isEnabled = !loading
+        btn.text = if (loading) "Logging in..." else "Login"
+        progressBar.visibility = if (loading) View.VISIBLE else View.GONE
+    }
 }

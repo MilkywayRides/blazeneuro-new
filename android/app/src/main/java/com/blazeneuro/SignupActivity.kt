@@ -3,33 +3,23 @@ package com.blazeneuro
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.text.method.PasswordTransformationMethod
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONObject
-import java.util.concurrent.TimeUnit
 
 class SignupActivity : AppCompatActivity() {
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .build()
-    private val authUrl = "https://auth.blazeneuro.com"
+    private val TAG = "SignupActivity"
+    private var passwordVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_signup)
+        AuthApi.init(this)
 
         val etName = findViewById<EditText>(R.id.etName)
         val etEmail = findViewById<EditText>(R.id.etEmail)
@@ -38,114 +28,108 @@ class SignupActivity : AppCompatActivity() {
         val btnGoogle = findViewById<Button>(R.id.btnGoogle)
         val btnGithub = findViewById<Button>(R.id.btnGithub)
         val tvError = findViewById<TextView>(R.id.tvError)
+        val tvLoginLink = findViewById<TextView>(R.id.tvLoginLink)
+        val btnTogglePassword = findViewById<TextView>(R.id.btnTogglePassword)
+        val btnBack = findViewById<TextView>(R.id.btnBack)
+        val progressBar = findViewById<ProgressBar>(R.id.progressBar)
 
+        // Back button
+        btnBack.setOnClickListener { finish() }
+
+        // Password toggle
+        btnTogglePassword.setOnClickListener {
+            passwordVisible = !passwordVisible
+            if (passwordVisible) {
+                etPassword.transformationMethod = null
+                btnTogglePassword.text = "🙈"
+            } else {
+                etPassword.transformationMethod = PasswordTransformationMethod.getInstance()
+                btnTogglePassword.text = "👁"
+            }
+            etPassword.setSelection(etPassword.text.length)
+        }
+
+        // Email signup
         btnSignup.setOnClickListener {
-            val name = etName.text.toString()
-            val email = etEmail.text.toString()
+            val name = etName.text.toString().trim()
+            val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString()
 
             if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
-                tvError.text = "Please fill all fields"
-                tvError.visibility = View.VISIBLE
+                showError(tvError, "Please fill all fields")
                 return@setOnClickListener
             }
 
-            btnSignup.isEnabled = false
+            if (password.length < 8) {
+                showError(tvError, "Password must be at least 8 characters")
+                return@setOnClickListener
+            }
+
+            setLoading(true, btnSignup, progressBar)
             tvError.visibility = View.GONE
 
             lifecycleScope.launch {
                 try {
-                    val result = signup(name, email, password)
+                    val result = AuthApi.signUpEmail(name, email, password)
                     if (result.success) {
-                        val prefs = getSharedPreferences("auth", MODE_PRIVATE)
-                        prefs.edit().apply {
-                            putString("token", result.token)
-                            putString("userName", result.userName)
-                            apply()
-                        }
-                        startActivity(Intent(this@SignupActivity, HomeActivity::class.java))
-                        finish()
+                        navigateToHome()
                     } else {
-                        tvError.text = result.error
-                        tvError.visibility = View.VISIBLE
+                        showError(tvError, result.error ?: "Signup failed")
                     }
                 } catch (e: Exception) {
-                    tvError.text = "Signup failed: ${e.message}"
-                    tvError.visibility = View.VISIBLE
+                    Log.e(TAG, "Signup error", e)
+                    showError(tvError, "Signup failed: ${e.message}")
                 } finally {
-                    btnSignup.isEnabled = true
+                    setLoading(false, btnSignup, progressBar)
                 }
             }
         }
 
-        btnGoogle.setOnClickListener {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("$authUrl/oauth/v1/authorize/google?redirectTo=https://blazeneuro.com"))
-            startActivity(intent)
-        }
+        // Social auth
+        btnGoogle.setOnClickListener { openSocialAuth("google") }
+        btnGithub.setOnClickListener { openSocialAuth("github") }
 
-        btnGithub.setOnClickListener {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("$authUrl/oauth/v1/authorize/github?redirectTo=https://blazeneuro.com"))
-            startActivity(intent)
+        // Login link
+        tvLoginLink.setOnClickListener {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
         }
     }
 
-    private suspend fun signup(name: String, email: String, password: String): SignupResult = withContext(Dispatchers.IO) {
+    private fun openSocialAuth(provider: String) {
+        val callbackUrl = "${AuthApi.AUTH_BASE_URL}/callback"
+        val url = when (provider) {
+            "google" -> AuthApi.getGoogleSignInUrl(callbackUrl)
+            "github" -> AuthApi.getGithubSignInUrl(callbackUrl)
+            else -> return
+        }
+
         try {
-            val json = JSONObject().apply {
-                put("name", name)
-                put("email", email)
-                put("password", password)
-            }
-
-            val body = json.toString().toRequestBody("application/json".toMediaType())
-            val request = Request.Builder()
-                .url("$authUrl/api/auth/sign-up/email")
-                .post(body)
-                .addHeader("Content-Type", "application/json")
+            val customTabsIntent = CustomTabsIntent.Builder()
+                .setShowTitle(true)
                 .build()
-
-            android.util.Log.d("SignupActivity", "Sending request to: $authUrl/api/auth/sign-up/email")
-            android.util.Log.d("SignupActivity", "Request body: ${json.toString()}")
-            
-            val response = client.newCall(request).execute()
-            val responseBody = response.body?.string() ?: ""
-            
-            android.util.Log.d("SignupActivity", "Response code: ${response.code}")
-            android.util.Log.d("SignupActivity", "Response body: $responseBody")
-
-            if (response.isSuccessful) {
-                val jsonResponse = JSONObject(responseBody)
-                val user = jsonResponse.optJSONObject("user")
-                val token = jsonResponse.optJSONObject("session")?.optString("token") ?: ""
-                val userName = user?.optString("name") ?: name
-                
-                SignupResult(true, token, userName, null)
-            } else {
-                val error = if (responseBody.isEmpty()) {
-                    when (response.code) {
-                        500 -> "Email already exists or server error"
-                        400 -> "Invalid input"
-                        else -> "Signup failed: ${response.code}"
-                    }
-                } else {
-                    try {
-                        JSONObject(responseBody).optString("message", "Signup failed")
-                    } catch (e: Exception) {
-                        "Signup failed: ${response.code}"
-                    }
-                }
-                SignupResult(false, null, null, error)
-            }
+            customTabsIntent.launchUrl(this, Uri.parse(url))
         } catch (e: Exception) {
-            android.util.Log.e("SignupActivity", "Network error", e)
-            SignupResult(false, null, null, "Network error: ${e.message}")
+            Log.e(TAG, "Failed to open Custom Tab", e)
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         }
     }
 
-    data class SignupResult(
-        val success: Boolean,
-        val token: String?,
-        val userName: String?,
-        val error: String?
-    )
+    private fun navigateToHome() {
+        startActivity(Intent(this, HomeActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        })
+        finish()
+    }
+
+    private fun showError(tvError: TextView, message: String) {
+        tvError.text = message
+        tvError.visibility = View.VISIBLE
+    }
+
+    private fun setLoading(loading: Boolean, btn: Button, progressBar: ProgressBar) {
+        btn.isEnabled = !loading
+        btn.text = if (loading) "Creating account..." else "Create Account"
+        progressBar.visibility = if (loading) View.VISIBLE else View.GONE
+    }
 }

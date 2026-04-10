@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- shadcn spacing scale (rem × 16) -->
+    <dimen name="space_xs">4dp</dimen>
+    <dimen name="space_sm">8dp</dimen>
+    <dimen name="space_md">12dp</dimen>
+    <dimen name="space_lg">16dp</dimen>
+    <dimen name="space_xl">24dp</dimen>
+    <dimen name="space_2xl">32dp</dimen>
+    <dimen name="space_3xl">48dp</dimen>
+    
+    <!-- shadcn border-radius (0.5rem = 8dp base, then variations) -->
+    <dimen name="radius_sm">6dp</dimen>
+    <dimen name="radius_md">8dp</dimen>
+    <dimen name="radius_lg">12dp</dimen>
+    <dimen name="radius_xl">16dp</dimen>
+    <dimen name="radius_full">999dp</dimen>
+    
+    <!-- Typography (matches shadcn Inter font sizing) -->
+    <dimen name="text_xs">12sp</dimen>
+    <dimen name="text_sm">14sp</dimen>
+    <dimen name="text_base">16sp</dimen>
+    <dimen name="text_lg">18sp</dimen>
+    <dimen name="text_xl">20sp</dimen>
+    <dimen name="text_2xl">24sp</dimen>
+    <dimen name="text_3xl">30sp</dimen>
+    <dimen name="text_4xl">36sp</dimen>
+    
+    <!-- Component heights -->
+    <dimen name="input_height">48dp</dimen>
+    <dimen name="button_height">44dp</dimen>
+    <dimen name="icon_size">20dp</dimen>
+    
+    <!-- Border -->
+    <dimen name="border_width">1dp</dimen>
+</resources>
