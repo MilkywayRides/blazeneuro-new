@@ -41,11 +41,11 @@ class BlogDetailActivity : AppCompatActivity() {
             downloadBlog()
         }
         
-        findViewById<TextView>(R.id.btnLike).setOnClickListener {
+        findViewById<android.view.View>(R.id.btnLike).setOnClickListener {
             submitFeedback(true)
         }
         
-        findViewById<TextView>(R.id.btnDislike).setOnClickListener {
+        findViewById<android.view.View>(R.id.btnDislike).setOnClickListener {
             submitFeedback(false)
         }
         
@@ -67,8 +67,8 @@ class BlogDetailActivity : AppCompatActivity() {
             val updated = try { dateFormat.format(Date(blog.updatedAt)) } catch (e: Exception) { "Recently" }
             
             findViewById<TextView>(R.id.tvMeta).text = "Published $created • Updated $updated"
-            findViewById<TextView>(R.id.btnLike).text = "👍 ${blog.likeCount}"
-            findViewById<TextView>(R.id.btnDislike).text = "👎 ${blog.dislikeCount}"
+            findViewById<TextView>(R.id.tvLikeCount).text = "${blog.likeCount}"
+            findViewById<TextView>(R.id.tvDislikeCount).text = "${blog.dislikeCount}"
             
             markwon.setMarkdown(findViewById(R.id.tvContent), blog.content)
         } else {

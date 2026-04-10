@@ -34,11 +34,13 @@ export async function GET(
     // Get feedback counts
     const feedbackData = await db
       .select({
-        likes: sql<number>`COUNT(CASE WHEN ${blogFeedback.liked} = true THEN 1 END)`,
-        dislikes: sql<number>`COUNT(CASE WHEN ${blogFeedback.liked} = false THEN 1 END)`
+        liked: blogFeedback.liked
       })
       .from(blogFeedback)
       .where(sql`${blogFeedback.blogId} = ${blogData.id}`)
+
+    const likes = feedbackData.filter(f => f.liked === true).length
+    const dislikes = feedbackData.filter(f => f.liked === false).length
 
     const response = NextResponse.json({ 
       blog: blogData,
@@ -47,8 +49,8 @@ export async function GET(
         image: authorData[0].image
       } : null,
       feedback: {
-        likes: Number(feedbackData[0]?.likes) || 0,
-        dislikes: Number(feedbackData[0]?.dislikes) || 0
+        likes: likes,
+        dislikes: dislikes
       }
     })
     
