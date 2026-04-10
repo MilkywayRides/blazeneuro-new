@@ -10,11 +10,13 @@ export async function POST(
     const { liked } = await request.json();
     const { slug: blogId } = await params;
     
-    const userId = request.headers.get('x-user-id') || 'anonymous';
+    const userIdHeader = request.headers.get('x-user-id');
+    const userId = userIdHeader && userIdHeader !== 'anonymous' ? userIdHeader : null;
+    const feedbackId = userId ? `${blogId}-${userId}` : `${blogId}-anon-${Date.now()}`;
     
     await db.insert(blogFeedback)
       .values({
-        id: `${blogId}-${userId}`,
+        id: feedbackId,
         blogId,
         userId,
         liked
