@@ -4,11 +4,11 @@ import { blogFeedback } from '@/lib/schema';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
     const { liked } = await request.json();
-    const blogId = params.slug;
+    const { slug: blogId } = await params;
     
     const userId = request.headers.get('x-user-id') || 'anonymous';
     
