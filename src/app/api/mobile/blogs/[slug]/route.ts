@@ -1,20 +1,22 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { blog } from "@/lib/schema"
-import { eq, sql } from "drizzle-orm"
+import { sql } from "drizzle-orm"
 
 export const runtime = 'edge'
 export const dynamic = 'force-dynamic'
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params
+    
     const blogPost = await db
       .select()
       .from(blog)
-      .where(sql`${blog.slug} = ${params.slug} AND ${blog.published} = true`)
+      .where(sql`${blog.slug} = ${slug} AND ${blog.published} = true`)
       .limit(1)
 
     if (!blogPost.length) {
