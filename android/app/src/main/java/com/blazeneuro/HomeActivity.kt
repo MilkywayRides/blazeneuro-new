@@ -30,6 +30,7 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var navProfile: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        applyTheme()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home_bottom_nav)
         AuthApi.init(this)
@@ -41,13 +42,13 @@ class HomeActivity : AppCompatActivity() {
         navProjects = findViewById(R.id.navProjects)
         navProfile = findViewById(R.id.navProfile)
 
-        navHome.setOnClickListener { showFragment(ChatFragment(), 0) }
+        navHome.setOnClickListener { showFragment(HomeFragment(), 0) }
         navSearch.setOnClickListener { showFragment(SearchFragment(), 1) }
         navBlogs.setOnClickListener { showFragment(BlogsFragment(), 2) }
         navProjects.setOnClickListener { showFragment(ProjectsFragment(), 3) }
         navProfile.setOnClickListener { showFragment(ProfileFragment(), 4) }
 
-        showFragment(ChatFragment(), 0)
+        showFragment(HomeFragment(), 0)
     }
 
     private fun showFragment(fragment: Fragment, index: Int) {
@@ -79,20 +80,142 @@ class HomeActivity : AppCompatActivity() {
             label.alpha = if (i == index) 1f else 0.5f
         }
     }
+    
+    private fun applyTheme() {
+        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
+        val theme = prefs.getString("theme", "system")
+        val mode = when (theme) {
+            "light" -> androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
+            "dark" -> androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+            else -> androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+        }
+        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(mode)
+    }
 }
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var swipeRefresh: SwipeRefreshLayout
+    private lateinit var viewPager: androidx.viewpager2.widget.ViewPager2
+    private val topBlogs = mutableListOf<AuthApi.Blog>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         view.findViewById<TextView>(R.id.tvTitle).text = "Welcome, ${AuthApi.getSavedUserName()}!"
         swipeRefresh = view.findViewById(R.id.swipeRefresh)
+        viewPager = view.findViewById(R.id.vpCarousel)
+        
         swipeRefresh.setOnRefreshListener {
-            swipeRefresh.isRefreshing = false
+            loadTopBlogs()
         }
         
-        view.findViewById<View>(R.id.btnChat).setOnClickListener {
-            startActivity(Intent(requireContext(), ChatActivity::class.java))
+        setupCarousel()
+        loadTopBlogs()
+    }
+    
+    private fun setupCarousel() {
+        val adapter = CarouselAdapter(topBlogs) { blog ->
+            val intent = Intent(requireContext(), BlogDetailActivity::class.java).apply {
+                putExtra("slug", blog.slug)
+            }
+            startActivity(intent)
+        }
+        viewPager.adapter = adapter
+        viewPager.offscreenPageLimit = 1
+        
+        val pageMargin = resources.getDimensionPixelOffset(R.dimen.space_md)
+        viewPager.setPageTransformer { page, position ->
+            page.translationX = -pageMargin * position
+            page.scaleY = 1 - (0.15f * kotlin.math.abs(position))
+            page.alpha = 0.5f + (1 - kotlin.math.abs(position)) * 0.5f
+        }
+        
+        setupDots()
+    }
+    
+    private fun setupDots() {
+        val dotsLayout = view?.findViewById<android.widget.LinearLayout>(R.id.dotsIndicator)
+        viewPager.registerOnPageChangeCallback(object : androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                updateDots(position)
+            }
+        })
+    }
+    
+    private fun updateDots(position: Int) {
+        val dotsLayout = view?.findViewById<android.widget.LinearLayout>(R.id.dotsIndicator) ?: return
+        dotsLayout.removeAllViews()
+        
+        for (i in topBlogs.indices) {
+            val dot = View(context).apply {
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    if (i == position) 24 else 16,
+                    if (i == position) 24 else 16
+                ).apply {
+                    setMargins(8, 0, 8, 0)
+                }
+                background = resources.getDrawable(
+                    if (i == position) R.drawable.dot_active else R.drawable.dot_inactive,
+                    null
+                )
+            }
+            dotsLayout.addView(dot)
+        }
+    }
+    
+    private fun loadTopBlogs() {
+        lifecycleScope.launch {
+            try {
+                val blogs = AuthApi.getTopBlogs()
+                topBlogs.clear()
+                topBlogs.addAll(blogs)
+                viewPager.adapter?.notifyDataSetChanged()
+                updateDots(0)
+                swipeRefresh.isRefreshing = false
+            } catch (e: Exception) {
+                swipeRefresh.isRefreshing = false
+            }
+        }
+    }
+}
+
+class CarouselAdapter(
+    private val blogs: List<AuthApi.Blog>,
+    private val onClick: (AuthApi.Blog) -> Unit
+) : RecyclerView.Adapter<CarouselAdapter.ViewHolder>() {
+
+    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val ivCover: ImageView = view.findViewById(R.id.ivCover)
+        val tvTitle: TextView = view.findViewById(R.id.tvTitle)
+        val tvLikes: TextView = view.findViewById(R.id.tvLikes)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_carousel, parent, false)
+        return ViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val blog = blogs[position]
+        holder.tvTitle.text = blog.title
+        holder.tvLikes.text = "❤️ ${formatCount(blog.likeCount)} likes"
+        
+        if (!blog.coverImage.isNullOrEmpty()) {
+            com.bumptech.glide.Glide.with(holder.ivCover)
+                .load(blog.coverImage)
+                .centerCrop()
+                .into(holder.ivCover)
+        }
+        
+        holder.itemView.setOnClickListener { onClick(blog) }
+    }
+
+    override fun getItemCount() = blogs.size
+    
+    private fun formatCount(count: Int): String {
+        return when {
+            count >= 1000000 -> String.format("%.1fM", count / 1000000.0)
+            count >= 1000 -> String.format("%.1fK", count / 1000.0)
+            else -> count.toString()
         }
     }
 }
@@ -307,9 +430,50 @@ class BlogAdapter(private val blogs: List<AuthApi.Blog>) : RecyclerView.Adapter<
 class ProjectsFragment : Fragment(R.layout.fragment_projects)
 
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
+    private val downloads = mutableListOf<DownloadedBlog>()
+    private lateinit var adapter: DownloadsAdapter
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         view.findViewById<TextView>(R.id.tvUserName).text = AuthApi.getSavedUserName()
         view.findViewById<TextView>(R.id.tvUserEmail).text = AuthApi.getSavedUserEmail()
+        
+        // Theme switcher
+        val prefs = requireContext().getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+        val currentTheme = prefs.getString("theme", "system") ?: "system"
+        
+        when (currentTheme) {
+            "light" -> view.findViewById<android.widget.RadioButton>(R.id.rbLight).isChecked = true
+            "dark" -> view.findViewById<android.widget.RadioButton>(R.id.rbDark).isChecked = true
+            else -> view.findViewById<android.widget.RadioButton>(R.id.rbSystem).isChecked = true
+        }
+        
+        view.findViewById<android.widget.RadioGroup>(R.id.rgTheme).setOnCheckedChangeListener { _, checkedId ->
+            val theme = when (checkedId) {
+                R.id.rbLight -> "light"
+                R.id.rbDark -> "dark"
+                else -> "system"
+            }
+            prefs.edit().putString("theme", theme).apply()
+            
+            // Apply theme immediately and recreate activity
+            val mode = when (theme) {
+                "light" -> androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
+                "dark" -> androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+                else -> androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            }
+            activity?.let {
+                androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(mode)
+            }
+        }
+        
+        // Downloads
+        val rvDownloads = view.findViewById<RecyclerView>(R.id.rvDownloads)
+        adapter = DownloadsAdapter(downloads) { blog -> openDownloadedBlog(blog) }
+        rvDownloads.layoutManager = LinearLayoutManager(context)
+        rvDownloads.adapter = adapter
+        
+        loadDownloads()
+        
         view.findViewById<View>(R.id.btnLogout).setOnClickListener {
             (activity as? HomeActivity)?.let { act ->
                 act.lifecycleScope.launch {
@@ -322,4 +486,72 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             }
         }
     }
+    
+    private fun loadDownloads() {
+        val files = requireContext().filesDir.listFiles { file -> file.name.startsWith("blog_") }
+        downloads.clear()
+        files?.forEach { file ->
+            val content = file.readText()
+            val lines = content.split("\n")
+            if (lines.size >= 3) {
+                downloads.add(DownloadedBlog(
+                    id = file.name.removePrefix("blog_").removeSuffix(".txt"),
+                    title = lines[0],
+                    author = lines[2].removePrefix("By "),
+                    file = file
+                ))
+            }
+        }
+        adapter.notifyDataSetChanged()
+        view?.findViewById<View>(R.id.tvNoDownloads)?.visibility = 
+            if (downloads.isEmpty()) View.VISIBLE else View.GONE
+    }
+    
+    private fun openDownloadedBlog(blog: DownloadedBlog) {
+        val intent = Intent(requireContext(), BlogDetailActivity::class.java).apply {
+            putExtra("slug", blog.id)
+            putExtra("title", blog.title)
+            putExtra("offline", true)
+        }
+        startActivity(intent)
+    }
+}
+
+data class DownloadedBlog(
+    val id: String,
+    val title: String,
+    val author: String,
+    val file: java.io.File
+)
+
+class DownloadsAdapter(
+    private val downloads: List<DownloadedBlog>,
+    private val onClick: (DownloadedBlog) -> Unit
+) : RecyclerView.Adapter<DownloadsAdapter.ViewHolder>() {
+
+    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val tvTitle: TextView = view.findViewById(R.id.tvTitle)
+        val tvAuthor: TextView = view.findViewById(R.id.tvAuthor)
+        val btnDelete: ImageView = view.findViewById(R.id.btnDelete)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_download, parent, false)
+        return ViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val blog = downloads[position]
+        holder.tvTitle.text = blog.title
+        holder.tvAuthor.text = blog.author
+        holder.itemView.setOnClickListener { onClick(blog) }
+        holder.btnDelete.setOnClickListener {
+            blog.file.delete()
+            (downloads as MutableList).removeAt(position)
+            notifyItemRemoved(position)
+        }
+    }
+
+    override fun getItemCount() = downloads.size
 }

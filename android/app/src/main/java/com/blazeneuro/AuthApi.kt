@@ -60,7 +60,13 @@ object AuthApi {
         val slug: String,
         val createdAt: String,
         val readTime: Int = 5,
-        val coverImage: String?
+        val coverImage: String?,
+        val excerpt: String = "",
+        val authorName: String = "",
+        val authorImage: String? = null,
+        val likeCount: Int = 0,
+        val dislikeCount: Int = 0,
+        val updatedAt: Long = 0L
     )
 
     data class BlogDetail(
@@ -261,6 +267,39 @@ object AuthApi {
     }
 
     // ---- API Methods ----
+    
+    suspend fun getTopBlogs(): List<Blog> = withContext(Dispatchers.IO) {
+        try {
+            val request = Request.Builder()
+                .url("$SITE_URL/api/mobile/blogs/top")
+                .get()
+                .build()
+            val response = client.newCall(request).execute()
+            val json = JSONObject(response.body?.string() ?: "{}")
+            val blogsArray = json.optJSONArray("blogs") ?: return@withContext emptyList()
+            
+            (0 until blogsArray.length()).map { i ->
+                val blogObj = blogsArray.getJSONObject(i)
+                Blog(
+                    id = blogObj.getString("id"),
+                    slug = blogObj.getString("slug"),
+                    title = blogObj.getString("title"),
+                    description = blogObj.optString("excerpt", ""),
+                    excerpt = blogObj.optString("excerpt", ""),
+                    coverImage = blogObj.optString("coverImage"),
+                    authorName = blogObj.optString("authorName", "Anonymous"),
+                    authorImage = blogObj.optString("authorImage"),
+                    likeCount = blogObj.optInt("likeCount", 0),
+                    dislikeCount = 0,
+                    createdAt = "",
+                    updatedAt = 0L
+                )
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "getTopBlogs error", e)
+            emptyList()
+        }
+    }
 
     suspend fun getBlogs(limit: Int = 20, offset: Int = 0): List<Blog> = withContext(Dispatchers.IO) {
         try {

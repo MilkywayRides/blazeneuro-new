@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        applyTheme()
         super.onCreate(savedInstanceState)
 
         AuthApi.init(this)
@@ -28,6 +29,17 @@ class MainActivity : AppCompatActivity() {
         } else {
             showWelcomeScreen()
         }
+    }
+    
+    private fun applyTheme() {
+        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
+        val theme = prefs.getString("theme", "system")
+        val mode = when (theme) {
+            "light" -> androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
+            "dark" -> androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+            else -> androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+        }
+        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(mode)
     }
 
     private fun showWelcomeScreen() {

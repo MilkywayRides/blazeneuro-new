@@ -38,6 +38,76 @@
             android:layout_marginTop="@dimen/space_xs"
             android:layout_marginBottom="@dimen/space_xl" />
 
+        <!-- Theme Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Theme"
+            android:textColor="@color/foreground"
+            android:textSize="@dimen/text_lg"
+            android:textStyle="bold"
+            android:layout_marginBottom="@dimen/space_md" />
+
+        <RadioGroup
+            android:id="@+id/rgTheme"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_xl">
+
+            <RadioButton
+                android:id="@+id/rbLight"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="Light"
+                android:textColor="@color/foreground"
+                android:paddingStart="@dimen/space_md" />
+
+            <RadioButton
+                android:id="@+id/rbDark"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="Dark"
+                android:textColor="@color/foreground"
+                android:paddingStart="@dimen/space_md" />
+
+            <RadioButton
+                android:id="@+id/rbSystem"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="System Default"
+                android:textColor="@color/foreground"
+                android:paddingStart="@dimen/space_md" />
+
+        </RadioGroup>
+
+        <!-- Downloads Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Downloads"
+            android:textColor="@color/foreground"
+            android:textSize="@dimen/text_lg"
+            android:textStyle="bold"
+            android:layout_marginBottom="@dimen/space_md" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvDownloads"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/space_xl"
+            android:nestedScrollingEnabled="false" />
+
+        <TextView
+            android:id="@+id/tvNoDownloads"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="No downloaded posts"
+            android:textColor="@color/muted_foreground"
+            android:textSize="@dimen/text_base"
+            android:gravity="center"
+            android:padding="@dimen/space_xl"
+            android:visibility="gone" />
+
         <TextView
             android:id="@+id/btnLogout"
             android:layout_width="match_parent"

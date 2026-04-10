@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- shadcn dark mode palette (zinc-based) -->
+    <color name="background">#FF09090B</color>         <!-- zinc-950 -->
+    <color name="foreground">#FFFAFAFA</color>          <!-- zinc-50 -->
+    
+    <color name="card">#FF18181B</color>                <!-- zinc-900 -->
+    <color name="card_foreground">#FFFAFAFA</color>     <!-- zinc-50 -->
+    
+    <color name="surface">#FF18181B</color>             <!-- zinc-900 (same as card) -->
+    
+    <color name="muted">#FF27272A</color>               <!-- zinc-800 -->
+    <color name="muted_foreground">#FFA1A1AA</color>    <!-- zinc-400 -->
+    
+    <color name="border">#FF27272A</color>              <!-- zinc-800 -->
+    <color name="input_border">#FF3F3F46</color>        <!-- zinc-700 -->
+    
+    <color name="primary">#FFFAFAFA</color>             <!-- white primary (shadcn default dark) -->
+    <color name="primary_foreground">#FF18181B</color>  <!-- zinc-900 -->
+    
+    <color name="secondary">#FF27272A</color>           <!-- zinc-800 -->
+    <color name="secondary_foreground">#FFFAFAFA</color>
+    
+    <color name="accent">#FF27272A</color>
+    <color name="accent_foreground">#FFFAFAFA</color>
+    
+    <color name="destructive">#FF7F1D1D</color>         <!-- red-900 -->
+    <color name="destructive_foreground">#FFFEF2F2</color>
+    
+    <color name="ring">#FFD4D4D8</color>                <!-- zinc-300 (focus ring) -->
+    
+    <!-- Semantic -->
+    <color name="text_primary">#FFFAFAFA</color>
+    <color name="text_secondary">#FFA1A1AA</color>      <!-- zinc-400 -->
+    <color name="text_muted">#FF71717A</color>           <!-- zinc-500 -->
+    
+    <color name="error">#FFEF4444</color>               <!-- red-500 -->
+    <color name="success">#FF22C55E</color>             <!-- green-500 -->
+    
+    <color name="divider">#FF27272A</color>
+    
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="transparent">#00000000</color>
+</resources>
