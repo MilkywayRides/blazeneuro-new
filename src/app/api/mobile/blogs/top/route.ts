@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { blog, user } from '@/lib/schema';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,13 +15,15 @@ export async function GET(request: NextRequest) {
         excerpt: blog.excerpt,
         coverImage: blog.coverImage,
         likeCount: blog.likeCount,
+        dislikeCount: blog.dislikeCount,
         authorName: user.name,
-        authorImage: user.image
+        authorImage: user.image,
+        score: sql<number>`${blog.likeCount} - ${blog.dislikeCount}`
       })
       .from(blog)
       .leftJoin(user, eq(blog.authorId, user.id))
       .where(eq(blog.published, true))
-      .orderBy(desc(blog.likeCount))
+      .orderBy(desc(sql`${blog.likeCount} - ${blog.dislikeCount}`))
       .limit(5);
 
     return NextResponse.json({ blogs: topBlogs });

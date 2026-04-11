@@ -106,6 +106,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var viewPager: androidx.viewpager2.widget.ViewPager2
     private val topBlogs = mutableListOf<AuthApi.Blog>()
+    private var isLoading = true
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         view.findViewById<TextView>(R.id.tvTitle).text = "Welcome, ${AuthApi.getSavedUserName()}!"
@@ -117,15 +118,26 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
         
         setupCarousel()
+        showSkeleton()
         loadTopBlogs()
     }
     
+    private fun showSkeleton() {
+        topBlogs.clear()
+        topBlogs.add(AuthApi.Blog("", "", "", "", "", 0, null, "", "", null, 0, 0, 0))
+        topBlogs.add(AuthApi.Blog("", "", "", "", "", 0, null, "", "", null, 0, 0, 0))
+        topBlogs.add(AuthApi.Blog("", "", "", "", "", 0, null, "", "", null, 0, 0, 0))
+        viewPager.adapter?.notifyDataSetChanged()
+    }
+    
     private fun setupCarousel() {
-        val adapter = CarouselAdapter(topBlogs) { blog ->
-            val intent = Intent(requireContext(), BlogDetailActivity::class.java).apply {
-                putExtra("slug", blog.slug)
+        val adapter = CarouselAdapter(topBlogs, isLoading) { blog ->
+            if (!isLoading) {
+                val intent = Intent(requireContext(), BlogDetailActivity::class.java).apply {
+                    putExtra("slug", blog.slug)
+                }
+                startActivity(intent)
             }
-            startActivity(intent)
         }
         viewPager.adapter = adapter
         viewPager.offscreenPageLimit = 1
@@ -145,18 +157,19 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         lifecycleScope.launch {
             while (true) {
                 kotlinx.coroutines.delay(4000)
-                val currentItem = viewPager.currentItem
-                val nextItem = if (currentItem == topBlogs.size - 1) 0 else currentItem + 1
-                viewPager.setCurrentItem(nextItem, true)
+                if (!isLoading && topBlogs.isNotEmpty()) {
+                    val currentItem = viewPager.currentItem
+                    val nextItem = if (currentItem == topBlogs.size - 1) 0 else currentItem + 1
+                    viewPager.setCurrentItem(nextItem, true)
+                }
             }
         }
     }
     
     private fun setupDots() {
-        val dotsLayout = view?.findViewById<android.widget.LinearLayout>(R.id.dotsIndicator)
         viewPager.registerOnPageChangeCallback(object : androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
-                updateDots(position)
+                if (!isLoading) updateDots(position)
             }
         })
     }
@@ -186,12 +199,15 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         lifecycleScope.launch {
             try {
                 val blogs = AuthApi.getTopBlogs()
+                isLoading = false
                 topBlogs.clear()
                 topBlogs.addAll(blogs)
+                (viewPager.adapter as? CarouselAdapter)?.setLoading(false)
                 viewPager.adapter?.notifyDataSetChanged()
                 updateDots(0)
                 swipeRefresh.isRefreshing = false
             } catch (e: Exception) {
+                isLoading = false
                 swipeRefresh.isRefreshing = false
             }
         }
@@ -200,8 +216,13 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
 class CarouselAdapter(
     private val blogs: List<AuthApi.Blog>,
+    private var isLoading: Boolean = true,
     private val onClick: (AuthApi.Blog) -> Unit
 ) : RecyclerView.Adapter<CarouselAdapter.ViewHolder>() {
+
+    fun setLoading(loading: Boolean) {
+        isLoading = loading
+    }
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val ivCover: ImageView = view.findViewById(R.id.ivCover)
@@ -216,9 +237,20 @@ class CarouselAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        if (isLoading) {
+            holder.ivCover.setBackgroundColor(holder.itemView.context.getColor(R.color.muted))
+            holder.tvTitle.text = ""
+            holder.tvTitle.setBackgroundResource(R.drawable.skeleton_shimmer)
+            holder.tvLikes.text = ""
+            holder.tvLikes.setBackgroundResource(R.drawable.skeleton_shimmer)
+            return
+        }
+        
         val blog = blogs[position]
+        holder.tvTitle.background = null
+        holder.tvLikes.background = null
         holder.tvTitle.text = blog.title
-        holder.tvLikes.text = "❤️ ${formatCount(blog.likeCount)} likes"
+        holder.tvLikes.text = formatCount(blog.likeCount)
         
         if (!blog.coverImage.isNullOrEmpty()) {
             com.bumptech.glide.Glide.with(holder.ivCover)
