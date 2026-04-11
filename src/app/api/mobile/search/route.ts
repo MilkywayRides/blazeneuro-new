@@ -34,6 +34,12 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url)
   const query = searchParams.get("q")
+  const getTrending = searchParams.get("trending")
+
+  // Get trending searches - return empty for now until table is created
+  if (getTrending === "true") {
+    return NextResponse.json({ trending: [] })
+  }
 
   if (!query || query.length < 2) {
     return NextResponse.json({ error: "Query must be at least 2 characters" }, { status: 400 })
