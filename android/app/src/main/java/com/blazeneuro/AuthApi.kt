@@ -112,11 +112,12 @@ object AuthApi {
                 val jsonResponse = JSONObject(responseBody)
                 val user = jsonResponse.optJSONObject("user")
                 val token = jsonResponse.optJSONObject("session")?.optString("token") ?: ""
+                val userId = user?.optString("id")
                 val userName = user?.optString("name") ?: "User"
                 val userEmail = user?.optString("email") ?: email
                 val userImage = user?.optString("image", null)
 
-                saveSession(token, userName, userEmail, userImage)
+                saveSession(token, userName, userEmail, userImage, userId)
                 AuthResult(true, token, userName, userEmail, userImage)
             } else {
                 val error = parseError(responseBody, response.code)
@@ -151,11 +152,12 @@ object AuthApi {
                 val jsonResponse = JSONObject(responseBody)
                 val user = jsonResponse.optJSONObject("user")
                 val token = jsonResponse.optJSONObject("session")?.optString("token") ?: ""
+                val userId = user?.optString("id")
                 val userName = user?.optString("name") ?: name
                 val userEmail = user?.optString("email") ?: email
                 val userImage = user?.optString("image", null)
 
-                saveSession(token, userName, userEmail, userImage)
+                saveSession(token, userName, userEmail, userImage, userId)
                 AuthResult(true, token, userName, userEmail, userImage)
             } else {
                 val error = parseError(responseBody, response.code)
@@ -184,10 +186,11 @@ object AuthApi {
                 val session = jsonResponse.optJSONObject("session")
                 if (user != null && session != null) {
                     val token = session.optString("token", "")
+                    val userId = user.optString("id")
                     val userName = user.optString("name", "User")
                     val userEmail = user.optString("email", "")
                     val userImage = user.optString("image", null)
-                    saveSession(token, userName, userEmail, userImage)
+                    saveSession(token, userName, userEmail, userImage, userId)
                     return@withContext AuthResult(true, token, userName, userEmail, userImage)
                 }
             }
@@ -423,12 +426,13 @@ object AuthApi {
         }
     }
 
-    private fun saveSession(token: String, userName: String, userEmail: String, userImage: String?) {
+    private fun saveSession(token: String, userName: String, userEmail: String, userImage: String?, userId: String? = null) {
         prefs.edit().apply {
             putString(KEY_TOKEN, token)
             putString(KEY_USER_NAME, userName)
             putString(KEY_USER_EMAIL, userEmail)
             if (userImage != null) putString(KEY_USER_IMAGE, userImage)
+            if (userId != null) putString(KEY_USER_ID, userId)
             apply()
         }
     }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { communityPost, user } from '@/lib/schema'
-import { eq, desc, isNull } from 'drizzle-orm'
+import { eq, desc, isNull, inArray } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 
 export async function GET(req: NextRequest) {
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
       })
       .from(communityPost)
       .leftJoin(user, eq(communityPost.userId, user.id))
-      .where(eq(communityPost.replyToId, postIds[0]))
+      .where(inArray(communityPost.replyToId, postIds))
       .orderBy(communityPost.createdAt) : []
 
     const postsWithReplies = posts.map(post => ({

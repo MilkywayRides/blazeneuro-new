@@ -604,6 +604,7 @@ class ProjectsFragment : Fragment(R.layout.fragment_projects) {
     private val posts = mutableListOf<CommunityPost>()
     private lateinit var adapter: CommunityAdapter
     private var replyingTo: CommunityPost? = null
+    private var pollingJob: kotlinx.coroutines.Job? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         view.findViewById<ImageView>(R.id.ivBack).setOnClickListener {
@@ -647,64 +648,15 @@ class ProjectsFragment : Fragment(R.layout.fragment_projects) {
             }
         }
         
-        setupWebSocket()
         loadPosts()
+        startPolling()
     }
     
-    private fun setupWebSocket() {
-        CommunitySocket.connect()
-        
-        CommunitySocket.on("community:post_created") { data ->
-            activity?.runOnUiThread {
-                try {
-                    val obj = data as? org.json.JSONObject ?: return@runOnUiThread
-                    val newPost = CommunityPost(
-                        id = obj.getString("id"),
-                        author = obj.optString("userName", "Unknown"),
-                        message = obj.getString("message"),
-                        time = "Just now",
-                        likes = obj.getInt("likes"),
-                        dislikes = obj.getInt("dislikes"),
-                        isReply = obj.optString("replyToId", null) != null
-                    )
-                    
-                    val replyToId = obj.optString("replyToId", null)
-                    if (replyToId != null) {
-                        posts.find { it.id == replyToId }?.replies?.add(newPost)
-                    } else {
-                        posts.add(0, newPost)
-                    }
-                    adapter.refresh()
-                } catch (e: Exception) {
-                    android.util.Log.e("ProjectsFragment", "Error handling new post", e)
-                }
-            }
-        }
-        
-        CommunitySocket.on("community:post_updated") { data ->
-            activity?.runOnUiThread {
-                try {
-                    val obj = data as? org.json.JSONObject ?: return@runOnUiThread
-                    val postId = obj.getString("id")
-                    val likes = obj.getInt("likes")
-                    val dislikes = obj.getInt("dislikes")
-                    
-                    posts.find { it.id == postId }?.let {
-                        it.likes = likes
-                        it.dislikes = dislikes
-                        adapter.refresh()
-                    }
-                    
-                    posts.forEach { post ->
-                        post.replies.find { it.id == postId }?.let {
-                            it.likes = likes
-                            it.dislikes = dislikes
-                            adapter.refresh()
-                        }
-                    }
-                } catch (e: Exception) {
-                    android.util.Log.e("ProjectsFragment", "Error handling post update", e)
-                }
+    private fun startPolling() {
+        pollingJob = lifecycleScope.launch {
+            while (true) {
+                delay(3000)
+                loadPosts(silent = true)
             }
         }
     }
@@ -713,17 +665,24 @@ class ProjectsFragment : Fragment(R.layout.fragment_projects) {
         lifecycleScope.launch {
             try {
                 val userId = AuthApi.getSavedUserId() ?: return@launch
-                val data = org.json.JSONObject().apply {
-                    put("userId", userId)
-                    put("message", message)
-                    if (replyingTo != null) put("replyToId", replyingTo!!.id)
-                }
+                val newPost = CommunityApi.createPost(userId, message, replyingTo?.id)
                 
-                CommunitySocket.emit("community:new_post", data)
-                
-                if (replyingTo != null) {
-                    replyBar.visibility = View.GONE
-                    replyingTo = null
+                if (newPost != null) {
+                    if (replyingTo != null) {
+                        // Add reply to parent post
+                        posts.find { it.id == replyingTo!!.id }?.replies?.add(newPost)
+                        adapter.refresh()
+                        replyBar.visibility = View.GONE
+                        replyingTo = null
+                    } else {
+                        // Add new post at top
+                        posts.add(0, newPost)
+                        adapter.refresh()
+                        rvPosts.scrollToPosition(0)
+                    }
+                    // Refresh from server after 1 second to get accurate data
+                    delay(1000)
+                    loadPosts(silent = true)
                 }
             } catch (e: Exception) {
                 android.util.Log.e("ProjectsFragment", "Error sending message", e)
@@ -731,7 +690,7 @@ class ProjectsFragment : Fragment(R.layout.fragment_projects) {
         }
     }
     
-    private fun loadPosts() {
+    private fun loadPosts(silent: Boolean = false) {
         lifecycleScope.launch {
             try {
                 val loadedPosts = CommunityApi.getPosts()
@@ -739,16 +698,16 @@ class ProjectsFragment : Fragment(R.layout.fragment_projects) {
                 posts.addAll(loadedPosts)
                 adapter.refresh()
             } catch (e: Exception) {
-                android.util.Log.e("ProjectsFragment", "Error loading posts", e)
+                if (!silent) android.util.Log.e("ProjectsFragment", "Error loading posts", e)
             } finally {
-                swipeRefresh.isRefreshing = false
+                if (!silent) swipeRefresh.isRefreshing = false
             }
         }
     }
     
     override fun onDestroyView() {
         super.onDestroyView()
-        CommunitySocket.disconnect()
+        pollingJob?.cancel()
     }
 }
 
@@ -843,21 +802,13 @@ class CommunityAdapter(
             
             holder.ivUpvote.setOnClickListener {
                 kotlinx.coroutines.GlobalScope.launch {
-                    val data = org.json.JSONObject().apply {
-                        put("postId", post.id)
-                        put("action", "like")
-                    }
-                    CommunitySocket.emit("community:like", data)
+                    CommunityApi.likePost(post.id, "like")
                 }
             }
             
             holder.ivDownvote.setOnClickListener {
                 kotlinx.coroutines.GlobalScope.launch {
-                    val data = org.json.JSONObject().apply {
-                        put("postId", post.id)
-                        put("action", "dislike")
-                    }
-                    CommunitySocket.emit("community:like", data)
+                    CommunityApi.likePost(post.id, "dislike")
                 }
             }
             
@@ -882,21 +833,13 @@ class CommunityAdapter(
             
             holder.ivUpvote.setOnClickListener {
                 kotlinx.coroutines.GlobalScope.launch {
-                    val data = org.json.JSONObject().apply {
-                        put("postId", post.id)
-                        put("action", "like")
-                    }
-                    CommunitySocket.emit("community:like", data)
+                    CommunityApi.likePost(post.id, "like")
                 }
             }
             
             holder.ivDownvote.setOnClickListener {
                 kotlinx.coroutines.GlobalScope.launch {
-                    val data = org.json.JSONObject().apply {
-                        put("postId", post.id)
-                        put("action", "dislike")
-                    }
-                    CommunitySocket.emit("community:like", data)
+                    CommunityApi.likePost(post.id, "dislike")
                 }
             }
             
