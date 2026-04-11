@@ -21,7 +21,7 @@ object CommunitySocket {
                 reconnectionAttempts = 5
             }
             
-            socket = IO.socket("http://10.0.2.2:3001", opts)
+            socket = IO.socket("https://blazeneuro.com", opts)
             
             socket?.on(Socket.EVENT_CONNECT) {
                 android.util.Log.d("CommunitySocket", "Connected")

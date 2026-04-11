@@ -11,7 +11,7 @@ import org.json.JSONObject
 
 object CommunityApi {
     private val client = OkHttpClient()
-    private const val BASE_URL = "http://10.0.2.2:3001/api/community"
+    private const val BASE_URL = "https://blazeneuro.com/api/community"
 
     suspend fun getPosts(): List<CommunityPost> = withContext(Dispatchers.IO) {
         val request = Request.Builder()
