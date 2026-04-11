@@ -7,6 +7,7 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewOutlineProvider
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -16,12 +17,14 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class HomeActivity : AppCompatActivity() {
+    private lateinit var drawerLayout: DrawerLayout
     private lateinit var container: FrameLayout
     private lateinit var navHome: View
     private lateinit var navSearch: View
@@ -44,6 +47,7 @@ class HomeActivity : AppCompatActivity() {
             }
         }
 
+        drawerLayout = findViewById(R.id.drawerLayout)
         container = findViewById(R.id.fragmentContainer)
         navHome = findViewById(R.id.navHome)
         navSearch = findViewById(R.id.navSearch)
@@ -65,6 +69,16 @@ class HomeActivity : AppCompatActivity() {
             .replace(R.id.fragmentContainer, fragment)
             .commit()
         updateNavSelection(index)
+        
+        // Hide bottom nav for Community
+        findViewById<View>(R.id.navHome).parent?.let { parent ->
+            (parent.parent as? View)?.visibility = if (index == 3) View.GONE else View.VISIBLE
+        }
+        
+        // Adjust container margin
+        container.layoutParams = (container.layoutParams as FrameLayout.LayoutParams).apply {
+            bottomMargin = if (index == 3) 0 else resources.getDimensionPixelSize(R.dimen.bottom_nav_height)
+        }
     }
 
     private fun updateNavSelection(index: Int) {
@@ -90,6 +104,10 @@ class HomeActivity : AppCompatActivity() {
         }
     }
     
+    fun openDrawer() {
+        drawerLayout.openDrawer(android.view.Gravity.START)
+    }
+    
     private fun applyTheme() {
         val prefs = getSharedPreferences("settings", MODE_PRIVATE)
         val theme = prefs.getString("theme", "system")
@@ -110,6 +128,11 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         view.findViewById<TextView>(R.id.tvTitle).text = "Welcome, ${AuthApi.getSavedUserName()}!"
+        
+        view.findViewById<ImageView>(R.id.ivMenu).setOnClickListener {
+            (requireActivity() as? HomeActivity)?.openDrawer()
+        }
+        
         swipeRefresh = view.findViewById(R.id.swipeRefresh)
         viewPager = view.findViewById(R.id.vpCarousel)
         
@@ -142,6 +165,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         viewPager.adapter = adapter
         viewPager.offscreenPageLimit = 1
         
+        // Start at a high position to allow infinite scrolling
+        if (!isLoading && topBlogs.isNotEmpty()) {
+            val startPosition = Int.MAX_VALUE / 2
+            viewPager.setCurrentItem(startPosition - (startPosition % topBlogs.size), false)
+        }
+        
         val pageMargin = resources.getDimensionPixelOffset(R.dimen.space_md)
         viewPager.setPageTransformer { page, position ->
             page.translationX = -pageMargin * position
@@ -159,8 +188,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 kotlinx.coroutines.delay(4000)
                 if (!isLoading && topBlogs.isNotEmpty()) {
                     val currentItem = viewPager.currentItem
-                    val nextItem = if (currentItem == topBlogs.size - 1) 0 else currentItem + 1
-                    viewPager.setCurrentItem(nextItem, true)
+                    viewPager.setCurrentItem(currentItem + 1, true)
                 }
             }
         }
@@ -169,7 +197,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun setupDots() {
         viewPager.registerOnPageChangeCallback(object : androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
-                if (!isLoading) updateDots(position)
+                if (!isLoading) updateDots(position % topBlogs.size)
             }
         })
     }
@@ -204,6 +232,13 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 topBlogs.addAll(blogs)
                 (viewPager.adapter as? CarouselAdapter)?.setLoading(false)
                 viewPager.adapter?.notifyDataSetChanged()
+                
+                // Set to middle position for infinite scroll
+                if (topBlogs.isNotEmpty()) {
+                    val startPosition = Int.MAX_VALUE / 2
+                    viewPager.setCurrentItem(startPosition - (startPosition % topBlogs.size), false)
+                }
+                
                 updateDots(0)
                 swipeRefresh.isRefreshing = false
             } catch (e: Exception) {
@@ -237,16 +272,24 @@ class CarouselAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        if (isLoading) {
-            holder.ivCover.setBackgroundColor(holder.itemView.context.getColor(R.color.muted))
+        if (isLoading || blogs.isEmpty()) {
+            holder.ivCover.setImageDrawable(null)
+            holder.ivCover.setBackgroundResource(R.drawable.skeleton_shimmer)
+            (holder.ivCover.background as? android.graphics.drawable.AnimationDrawable)?.start()
+            
             holder.tvTitle.text = ""
             holder.tvTitle.setBackgroundResource(R.drawable.skeleton_shimmer)
+            (holder.tvTitle.background as? android.graphics.drawable.AnimationDrawable)?.start()
+            
             holder.tvLikes.text = ""
             holder.tvLikes.setBackgroundResource(R.drawable.skeleton_shimmer)
+            (holder.tvLikes.background as? android.graphics.drawable.AnimationDrawable)?.start()
             return
         }
         
-        val blog = blogs[position]
+        val actualPosition = position % blogs.size
+        val blog = blogs[actualPosition]
+        holder.ivCover.background = null
         holder.tvTitle.background = null
         holder.tvLikes.background = null
         holder.tvTitle.text = blog.title
@@ -255,14 +298,19 @@ class CarouselAdapter(
         if (!blog.coverImage.isNullOrEmpty()) {
             com.bumptech.glide.Glide.with(holder.ivCover)
                 .load(blog.coverImage)
-                .centerCrop()
+                .transform(
+                    com.bumptech.glide.load.resource.bitmap.CenterCrop(),
+                    com.bumptech.glide.load.resource.bitmap.RoundedCorners(32)
+                )
                 .into(holder.ivCover)
+        } else {
+            holder.ivCover.setImageDrawable(null)
         }
         
         holder.itemView.setOnClickListener { onClick(blog) }
     }
 
-    override fun getItemCount() = blogs.size
+    override fun getItemCount() = if (isLoading || blogs.isEmpty()) blogs.size else Int.MAX_VALUE
     
     private fun formatCount(count: Int): String {
         return when {
@@ -547,7 +595,324 @@ class BlogAdapter(private val blogs: List<AuthApi.Blog>) : RecyclerView.Adapter<
 
     override fun getItemCount() = blogs.size
 }
-class ProjectsFragment : Fragment(R.layout.fragment_projects)
+class ProjectsFragment : Fragment(R.layout.fragment_projects) {
+    private lateinit var rvPosts: RecyclerView
+    private lateinit var swipeRefresh: SwipeRefreshLayout
+    private lateinit var etMessage: EditText
+    private lateinit var replyBar: View
+    private lateinit var tvReplyTo: TextView
+    private val posts = mutableListOf<CommunityPost>()
+    private lateinit var adapter: CommunityAdapter
+    private var replyingTo: CommunityPost? = null
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        view.findViewById<ImageView>(R.id.ivBack).setOnClickListener {
+            (activity as? HomeActivity)?.let { homeActivity ->
+                homeActivity.supportFragmentManager.beginTransaction()
+                    .replace(R.id.fragmentContainer, HomeFragment())
+                    .commit()
+                homeActivity.findViewById<View>(R.id.navHome).performClick()
+            }
+        }
+        
+        rvPosts = view.findViewById(R.id.rvPosts)
+        swipeRefresh = view.findViewById(R.id.swipeRefresh)
+        etMessage = view.findViewById(R.id.etMessage)
+        replyBar = view.findViewById(R.id.replyBar)
+        tvReplyTo = view.findViewById(R.id.tvReplyTo)
+        
+        adapter = CommunityAdapter(posts) { post ->
+            replyingTo = post
+            replyBar.visibility = View.VISIBLE
+            tvReplyTo.text = "Replying to u/${post.author}"
+            etMessage.requestFocus()
+        }
+        rvPosts.layoutManager = LinearLayoutManager(context)
+        rvPosts.adapter = adapter
+        
+        swipeRefresh.setOnRefreshListener {
+            loadPosts()
+        }
+        
+        view.findViewById<ImageView>(R.id.btnCancelReply).setOnClickListener {
+            replyingTo = null
+            replyBar.visibility = View.GONE
+        }
+        
+        view.findViewById<View>(R.id.btnSend).setOnClickListener {
+            val message = etMessage.text.toString().trim()
+            if (message.isNotEmpty()) {
+                sendMessage(message)
+                etMessage.text.clear()
+            }
+        }
+        
+        setupWebSocket()
+        loadPosts()
+    }
+    
+    private fun setupWebSocket() {
+        CommunitySocket.connect()
+        
+        CommunitySocket.on("community:post_created") { data ->
+            activity?.runOnUiThread {
+                try {
+                    val obj = data as? org.json.JSONObject ?: return@runOnUiThread
+                    val newPost = CommunityPost(
+                        id = obj.getString("id"),
+                        author = obj.optString("userName", "Unknown"),
+                        message = obj.getString("message"),
+                        time = "Just now",
+                        likes = obj.getInt("likes"),
+                        dislikes = obj.getInt("dislikes"),
+                        isReply = obj.optString("replyToId", null) != null
+                    )
+                    
+                    val replyToId = obj.optString("replyToId", null)
+                    if (replyToId != null) {
+                        posts.find { it.id == replyToId }?.replies?.add(newPost)
+                    } else {
+                        posts.add(0, newPost)
+                    }
+                    adapter.refresh()
+                } catch (e: Exception) {
+                    android.util.Log.e("ProjectsFragment", "Error handling new post", e)
+                }
+            }
+        }
+        
+        CommunitySocket.on("community:post_updated") { data ->
+            activity?.runOnUiThread {
+                try {
+                    val obj = data as? org.json.JSONObject ?: return@runOnUiThread
+                    val postId = obj.getString("id")
+                    val likes = obj.getInt("likes")
+                    val dislikes = obj.getInt("dislikes")
+                    
+                    posts.find { it.id == postId }?.let {
+                        it.likes = likes
+                        it.dislikes = dislikes
+                        adapter.refresh()
+                    }
+                    
+                    posts.forEach { post ->
+                        post.replies.find { it.id == postId }?.let {
+                            it.likes = likes
+                            it.dislikes = dislikes
+                            adapter.refresh()
+                        }
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("ProjectsFragment", "Error handling post update", e)
+                }
+            }
+        }
+    }
+    
+    private fun sendMessage(message: String) {
+        lifecycleScope.launch {
+            try {
+                val userId = AuthApi.getSavedUserId() ?: return@launch
+                val data = org.json.JSONObject().apply {
+                    put("userId", userId)
+                    put("message", message)
+                    if (replyingTo != null) put("replyToId", replyingTo!!.id)
+                }
+                
+                CommunitySocket.emit("community:new_post", data)
+                
+                if (replyingTo != null) {
+                    replyBar.visibility = View.GONE
+                    replyingTo = null
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("ProjectsFragment", "Error sending message", e)
+            }
+        }
+    }
+    
+    private fun loadPosts() {
+        lifecycleScope.launch {
+            try {
+                val loadedPosts = CommunityApi.getPosts()
+                posts.clear()
+                posts.addAll(loadedPosts)
+                adapter.refresh()
+            } catch (e: Exception) {
+                android.util.Log.e("ProjectsFragment", "Error loading posts", e)
+            } finally {
+                swipeRefresh.isRefreshing = false
+            }
+        }
+    }
+    
+    override fun onDestroyView() {
+        super.onDestroyView()
+        CommunitySocket.disconnect()
+    }
+}
+
+data class CommunityPost(
+    val id: String,
+    val author: String,
+    val message: String,
+    val time: String,
+    var likes: Int,
+    var dislikes: Int,
+    val replies: MutableList<CommunityPost> = mutableListOf(),
+    val isReply: Boolean = false
+)
+
+class CommunityAdapter(
+    private val posts: List<CommunityPost>,
+    private val onReply: (CommunityPost) -> Unit = {}
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    
+    companion object {
+        const val TYPE_POST = 0
+        const val TYPE_REPLY = 1
+    }
+    
+    private val flatList = mutableListOf<Pair<CommunityPost, Boolean>>()
+    
+    init {
+        updateFlatList()
+    }
+    
+    private fun updateFlatList() {
+        flatList.clear()
+        posts.forEach { post ->
+            flatList.add(Pair(post, false))
+            post.replies.forEach { reply ->
+                flatList.add(Pair(reply, true))
+            }
+        }
+    }
+    
+    override fun getItemViewType(position: Int) = if (flatList[position].second) TYPE_REPLY else TYPE_POST
+    
+    class PostViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val tvAuthor: TextView = view.findViewById(R.id.tvAuthor)
+        val tvTime: TextView = view.findViewById(R.id.tvTime)
+        val tvMessage: TextView = view.findViewById(R.id.tvMessage)
+        val tvVotes: TextView = view.findViewById(R.id.tvVotes)
+        val tvReplies: TextView = view.findViewById(R.id.tvReplies)
+        val ivUpvote: ImageView = view.findViewById(R.id.ivUpvote)
+        val ivDownvote: ImageView = view.findViewById(R.id.ivDownvote)
+        val btnReply: View = view.findViewById(R.id.btnReply)
+        val btnShare: View = view.findViewById(R.id.btnShare)
+    }
+    
+    class ReplyViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val tvAuthor: TextView = view.findViewById(R.id.tvAuthor)
+        val tvTime: TextView = view.findViewById(R.id.tvTime)
+        val tvMessage: TextView = view.findViewById(R.id.tvMessage)
+        val tvVotes: TextView = view.findViewById(R.id.tvVotes)
+        val ivUpvote: ImageView = view.findViewById(R.id.ivUpvote)
+        val ivDownvote: ImageView = view.findViewById(R.id.ivDownvote)
+        val btnReply: TextView = view.findViewById(R.id.btnReply)
+    }
+    
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return if (viewType == TYPE_POST) {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_community_post, parent, false)
+            PostViewHolder(view)
+        } else {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_community_reply, parent, false)
+            ReplyViewHolder(view)
+        }
+    }
+    
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        val (post, isReply) = flatList[position]
+        
+        if (holder is PostViewHolder) {
+            holder.tvAuthor.text = "u/${post.author}"
+            holder.tvTime.text = post.time
+            holder.tvMessage.text = post.message
+            
+            val votes = post.likes - post.dislikes
+            holder.tvVotes.text = when {
+                votes >= 1000 -> String.format("%.1fk", votes / 1000.0)
+                else -> votes.toString()
+            }
+            
+            holder.tvReplies.text = if (post.replies.size == 1) "1 reply" else "${post.replies.size} replies"
+            
+            holder.ivUpvote.setOnClickListener {
+                kotlinx.coroutines.GlobalScope.launch {
+                    val data = org.json.JSONObject().apply {
+                        put("postId", post.id)
+                        put("action", "like")
+                    }
+                    CommunitySocket.emit("community:like", data)
+                }
+            }
+            
+            holder.ivDownvote.setOnClickListener {
+                kotlinx.coroutines.GlobalScope.launch {
+                    val data = org.json.JSONObject().apply {
+                        put("postId", post.id)
+                        put("action", "dislike")
+                    }
+                    CommunitySocket.emit("community:like", data)
+                }
+            }
+            
+            holder.btnReply.setOnClickListener {
+                onReply(post)
+            }
+            
+            holder.btnShare.setOnClickListener {
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, post.message)
+                }
+                holder.itemView.context.startActivity(Intent.createChooser(intent, "Share post"))
+            }
+        } else if (holder is ReplyViewHolder) {
+            holder.tvAuthor.text = "u/${post.author}"
+            holder.tvTime.text = post.time
+            holder.tvMessage.text = post.message
+            
+            val votes = post.likes - post.dislikes
+            holder.tvVotes.text = votes.toString()
+            
+            holder.ivUpvote.setOnClickListener {
+                kotlinx.coroutines.GlobalScope.launch {
+                    val data = org.json.JSONObject().apply {
+                        put("postId", post.id)
+                        put("action", "like")
+                    }
+                    CommunitySocket.emit("community:like", data)
+                }
+            }
+            
+            holder.ivDownvote.setOnClickListener {
+                kotlinx.coroutines.GlobalScope.launch {
+                    val data = org.json.JSONObject().apply {
+                        put("postId", post.id)
+                        put("action", "dislike")
+                    }
+                    CommunitySocket.emit("community:like", data)
+                }
+            }
+            
+            holder.btnReply.setOnClickListener {
+                android.widget.Toast.makeText(holder.itemView.context, "Reply to reply coming soon", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    
+    override fun getItemCount() = flatList.size
+    
+    fun refresh() {
+        updateFlatList()
+        notifyDataSetChanged()
+    }
+}
 
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private val downloads = mutableListOf<DownloadedBlog>()

@@ -56,4 +56,6 @@ dependencies {
     implementation("io.noties.markwon:image-glide:4.6.2")
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("jp.wasabeef:blurry:4.0.1")
+    implementation("io.socket:socket.io-client:2.1.0")
+    implementation("com.google.code.gson:gson:2.10.1")
 }

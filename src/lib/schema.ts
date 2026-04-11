@@ -241,6 +241,17 @@ export const searchQuery = pgTable("search_queries", {
   createdAt: timestamp("created_at").notNull().defaultNow()
 })
 
+export const communityPost = pgTable("community_post", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => user.id),
+  message: text("message").notNull(),
+  likes: integer("likes").notNull().default(0),
+  dislikes: integer("dislikes").notNull().default(0),
+  replyToId: text("reply_to_id").references(() => communityPost.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow()
+})
+
 export const schema = {
   user,
   session,
@@ -259,6 +270,7 @@ export const schema = {
   databaseBranch,
   adminChatMessage,
   blogSearchCache,
-  searchQuery
+  searchQuery,
+  communityPost
 }
 

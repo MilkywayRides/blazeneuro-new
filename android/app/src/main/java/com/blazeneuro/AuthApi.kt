@@ -23,6 +23,7 @@ object AuthApi {
     private const val PREFS_NAME = "auth"
     private const val KEY_COOKIES = "cookies"
     private const val KEY_TOKEN = "token"
+    private const val KEY_USER_ID = "userId"
     private const val KEY_USER_NAME = "userName"
     private const val KEY_USER_EMAIL = "userEmail"
     private const val KEY_USER_IMAGE = "userImage"
@@ -260,6 +261,10 @@ object AuthApi {
 
     fun getSavedUserEmail(): String {
         return prefs.getString(KEY_USER_EMAIL, "") ?: ""
+    }
+    
+    fun getSavedUserId(): String? {
+        return prefs.getString(KEY_USER_ID, null)
     }
 
     fun getSavedToken(): String {

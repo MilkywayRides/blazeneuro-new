@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@color/card"
+    android:paddingTop="@dimen/space_sm"
+    android:paddingBottom="@dimen/space_sm"
+    android:paddingEnd="@dimen/space_md">
+
+    <View
+        android:layout_width="2dp"
+        android:layout_height="match_parent"
+        android:background="@color/border"
+        android:layout_marginStart="56dp"
+        android:layout_marginEnd="@dimen/space_md" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tvAuthor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="u/username"
+                android:textColor="@color/foreground"
+                android:textSize="@dimen/text_xs"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" • "
+                android:textColor="@color/muted_foreground"
+                android:textSize="@dimen/text_xs" />
+
+            <TextView
+                android:id="@+id/tvTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1h ago"
+                android:textColor="@color/muted_foreground"
+                android:textSize="@dimen/text_xs" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="This is a reply message"
+            android:textColor="@color/foreground"
+            android:textSize="@dimen/text_sm"
+            android:lineSpacingExtra="2dp"
+            android:layout_marginTop="2dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="@dimen/space_xs"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/ivUpvote"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_thumbs_up"
+                android:tint="@color/muted_foreground"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <TextView
+                android:id="@+id/tvVotes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="5"
+                android:textColor="@color/muted_foreground"
+                android:textSize="@dimen/text_xs"
+                android:textStyle="bold"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp" />
+
+            <ImageView
+                android:id="@+id/ivDownvote"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_thumbs_down"
+                android:tint="@color/muted_foreground"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <TextView
+                android:id="@+id/btnReply"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reply"
+                android:textColor="@color/muted_foreground"
+                android:textSize="@dimen/text_xs"
+                android:textStyle="bold"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="@dimen/space_xs"
+                android:layout_marginStart="@dimen/space_sm" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

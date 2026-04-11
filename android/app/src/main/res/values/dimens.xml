@@ -30,6 +30,7 @@
     <dimen name="input_height">48dp</dimen>
     <dimen name="button_height">44dp</dimen>
     <dimen name="icon_size">20dp</dimen>
+    <dimen name="bottom_nav_height">72dp</dimen>
     
     <!-- Border -->
     <dimen name="border_width">1dp</dimen>
