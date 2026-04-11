@@ -366,6 +366,27 @@ object AuthApi {
         }
     }
 
+    suspend fun getTrendingSearches(): List<String> = withContext(Dispatchers.IO) {
+        try {
+            val request = Request.Builder()
+                .url("$SITE_URL/api/mobile/search?trending=true")
+                .get()
+                .build()
+
+            val response = client.newCall(request).execute()
+            val json = JSONObject(response.body?.string() ?: "{}")
+            val trendingArray = json.optJSONArray("trending") ?: return@withContext emptyList()
+
+            (0 until trendingArray.length()).map { i ->
+                val item = trendingArray.getJSONObject(i)
+                item.getString("query")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Trending error", e)
+            emptyList()
+        }
+    }
+
     suspend fun getBlogDetail(slug: String): BlogDetail? = withContext(Dispatchers.IO) {
         try {
             val request = Request.Builder()

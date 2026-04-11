@@ -42,8 +42,7 @@
                     android:id="@+id/navIconHome"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_home"
-                    android:tint="@color/foreground" />
+                    android:src="@drawable/ic_home" />
 
                 <TextView
                     android:id="@+id/navLabelHome"
@@ -70,8 +69,7 @@
                     android:id="@+id/navIconSearch"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_search"
-                    android:tint="@color/foreground" />
+                    android:src="@drawable/ic_search" />
 
                 <TextView
                     android:id="@+id/navLabelSearch"
@@ -98,8 +96,7 @@
                     android:id="@+id/navIconBlogs"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_blogs"
-                    android:tint="@color/foreground" />
+                    android:src="@drawable/ic_blogs" />
 
                 <TextView
                     android:id="@+id/navLabelBlogs"
@@ -126,8 +123,7 @@
                     android:id="@+id/navIconProjects"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_projects"
-                    android:tint="@color/foreground" />
+                    android:src="@drawable/ic_projects" />
 
                 <TextView
                     android:id="@+id/navLabelProjects"
@@ -154,8 +150,7 @@
                     android:id="@+id/navIconProfile"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/ic_profile"
-                    android:tint="@color/foreground" />
+                    android:src="@drawable/ic_profile" />
 
                 <TextView
                     android:id="@+id/navLabelProfile"

@@ -6,20 +6,60 @@
     android:padding="@dimen/space_lg"
     android:background="@color/background">
 
-    <EditText
-        android:id="@+id/etSearch"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:hint="Search..."
-        android:background="@drawable/card_background"
-        android:padding="@dimen/space_md"
+        android:layout_height="wrap_content"
+        android:background="@drawable/input_background"
+        android:paddingStart="@dimen/space_md"
+        android:paddingEnd="@dimen/space_md"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
+
+        <ImageView
+            android:id="@+id/ivSearchIcon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_search"
+            android:tint="@color/muted_foreground" />
+
+        <EditText
+            android:id="@+id/etSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/ivSearchIcon"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="@dimen/space_sm"
+            android:hint="Search blogs..."
+            android:background="@android:color/transparent"
+            android:textColor="@color/foreground"
+            android:textColorHint="@color/muted_foreground"
+            android:textSize="14sp" />
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/tvTrendingTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Trending Searches"
         android:textColor="@color/foreground"
-        android:textColorHint="@color/muted_foreground" />
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginTop="@dimen/space_lg"
+        android:layout_marginBottom="@dimen/space_sm" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvTrending"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/space_md" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvSearchResults"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:layout_marginTop="@dimen/space_md" />
 
 </LinearLayout>

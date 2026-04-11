@@ -244,29 +244,64 @@ class CarouselAdapter(
 class SearchFragment : Fragment(R.layout.fragment_search) {
     private lateinit var etSearch: EditText
     private lateinit var rvResults: RecyclerView
+    private lateinit var rvTrending: RecyclerView
+    private lateinit var tvTrendingTitle: TextView
     private val results = mutableListOf<AuthApi.SearchResult>()
+    private val trending = mutableListOf<String>()
     private lateinit var adapter: SearchAdapter
+    private lateinit var trendingAdapter: TrendingAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         etSearch = view.findViewById(R.id.etSearch)
         rvResults = view.findViewById(R.id.rvSearchResults)
+        rvTrending = view.findViewById(R.id.rvTrending)
+        tvTrendingTitle = view.findViewById(R.id.tvTrendingTitle)
+        
         adapter = SearchAdapter(results)
         rvResults.layoutManager = LinearLayoutManager(context)
         rvResults.adapter = adapter
+
+        trendingAdapter = TrendingAdapter(trending) { query ->
+            etSearch.setText(query)
+        }
+        rvTrending.layoutManager = androidx.recyclerview.widget.GridLayoutManager(context, 2)
+        rvTrending.adapter = trendingAdapter
+
+        loadTrending()
 
         etSearch.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
                 val query = s.toString()
                 if (query.length >= 2) {
+                    tvTrendingTitle.visibility = View.GONE
+                    rvTrending.visibility = View.GONE
                     lifecycleScope.launch {
                         delay(300)
                         searchBlogs(query)
                     }
+                } else {
+                    results.clear()
+                    adapter.notifyDataSetChanged()
+                    tvTrendingTitle.visibility = View.VISIBLE
+                    rvTrending.visibility = View.VISIBLE
                 }
             }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
+    }
+
+    private fun loadTrending() {
+        lifecycleScope.launch {
+            try {
+                val trendingResults = AuthApi.getTrendingSearches()
+                trending.clear()
+                trending.addAll(trendingResults)
+                trendingAdapter.notifyDataSetChanged()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     private suspend fun searchBlogs(query: String) {
@@ -277,21 +312,53 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
     }
 }
 
-class SearchAdapter(private val results: List<AuthApi.SearchResult>) : RecyclerView.Adapter<SearchAdapter.ViewHolder>() {
+class TrendingAdapter(
+    private val items: List<String>,
+    private val onClick: (String) -> Unit
+) : RecyclerView.Adapter<TrendingAdapter.ViewHolder>() {
+    
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val tvTitle: TextView = view.findViewById(R.id.tvFeatureTitle)
-        val tvDesc: TextView = view.findViewById(R.id.tvFeatureDesc)
+        val tvChip: TextView = view.findViewById(R.id.tvChip)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_feature, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_trending_chip, parent, false)
+        return ViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val item = items[position]
+        holder.tvChip.text = item
+        holder.itemView.setOnClickListener { onClick(item) }
+    }
+
+    override fun getItemCount() = items.size
+}
+
+class SearchAdapter(private val results: List<AuthApi.SearchResult>) : RecyclerView.Adapter<SearchAdapter.ViewHolder>() {
+    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val ivIcon: ImageView = view.findViewById(R.id.ivIcon)
+        val tvTitle: TextView = view.findViewById(R.id.tvTitle)
+        val tvDescription: TextView = view.findViewById(R.id.tvDescription)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_search_result, parent, false)
         return ViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val result = results[position]
         holder.tvTitle.text = result.title
-        holder.tvDesc.visibility = View.GONE
+        
+        if (!result.description.isNullOrEmpty()) {
+            holder.tvDescription.text = result.description
+            holder.tvDescription.visibility = View.VISIBLE
+        } else {
+            holder.tvDescription.visibility = View.GONE
+        }
+        
         holder.itemView.setOnClickListener {
             val intent = Intent(holder.itemView.context, BlogDetailActivity::class.java).apply {
                 putExtra("slug", result.slug)

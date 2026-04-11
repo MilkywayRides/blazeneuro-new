@@ -233,6 +233,14 @@ export const adminChatMessage = pgTable("adminChatMessage", {
   createdAt: timestamp("createdAt").notNull().defaultNow()
 })
 
+export const searchQuery = pgTable("search_queries", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  query: text("query").notNull(),
+  count: integer("count").notNull().default(1),
+  lastSearched: timestamp("last_searched").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow()
+})
+
 export const schema = {
   user,
   session,
@@ -250,6 +258,7 @@ export const schema = {
   database,
   databaseBranch,
   adminChatMessage,
-  blogSearchCache
+  blogSearchCache,
+  searchQuery
 }
 
