@@ -3,9 +3,9 @@ import { db } from '@/lib/db'
 import { communityPost } from '@/lib/schema'
 import { eq, sql } from 'drizzle-orm'
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params
+    const { id } = await params
     const { action } = await req.json()
 
     if (action !== 'like' && action !== 'dislike') {
