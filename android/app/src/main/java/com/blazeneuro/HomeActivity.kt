@@ -66,8 +66,8 @@ class HomeActivity : AppCompatActivity() {
 
         showFragment(HomeFragment(), 0)
         
-        // Fetch notifications immediately on start
-        lifecycleScope.launch {
+        // Fetch notifications immediately on start (in background)
+        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             android.util.Log.d("HomeActivity", "Initial notification fetch...")
             NotificationManager.fetchNotificationsFromServer(this@HomeActivity)
         }
@@ -134,7 +134,7 @@ class HomeActivity : AppCompatActivity() {
     }
     
     private fun startNotificationPolling() {
-        lifecycleScope.launch {
+        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             while (true) {
                 kotlinx.coroutines.delay(10000) // Poll every 10 seconds for testing
                 android.util.Log.d("HomeActivity", "Polling notifications...")
