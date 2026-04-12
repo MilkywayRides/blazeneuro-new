@@ -65,6 +65,12 @@ class HomeActivity : AppCompatActivity() {
         navProfile.setOnClickListener { showFragment(ProfileFragment(), 4) }
 
         showFragment(HomeFragment(), 0)
+        
+        // Fetch notifications immediately on start
+        lifecycleScope.launch {
+            android.util.Log.d("HomeActivity", "Initial notification fetch...")
+            NotificationManager.fetchNotificationsFromServer(this@HomeActivity)
+        }
     }
 
     private fun showFragment(fragment: Fragment, index: Int) {
@@ -130,7 +136,8 @@ class HomeActivity : AppCompatActivity() {
     private fun startNotificationPolling() {
         lifecycleScope.launch {
             while (true) {
-                kotlinx.coroutines.delay(30000) // Poll every 30 seconds
+                kotlinx.coroutines.delay(10000) // Poll every 10 seconds for testing
+                android.util.Log.d("HomeActivity", "Polling notifications...")
                 NotificationManager.fetchNotificationsFromServer(this@HomeActivity)
             }
         }
