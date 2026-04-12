@@ -1,17 +1,14 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { notification } from '@/lib/schema';
-import { desc, eq } from 'drizzle-orm';
+import { desc, isNull, eq } from 'drizzle-orm';
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-
     const notifications = await db
       .select()
       .from(notification)
-      .where(userId ? eq(notification.userId, userId) : eq(notification.userId, null))
+      .where(isNull(notification.userId))
       .orderBy(desc(notification.createdAt))
       .limit(50);
 

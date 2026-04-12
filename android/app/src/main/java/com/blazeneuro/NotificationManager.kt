@@ -154,12 +154,21 @@ object NotificationManager {
     suspend fun fetchNotificationsFromServer(context: Context) {
         try {
             val url = "${AuthApi.SITE_URL}/api/mobile/notifications"
+            android.util.Log.d("NotificationManager", "Fetching from: $url")
             val connection = java.net.URL(url).openConnection() as java.net.HttpURLConnection
             connection.requestMethod = "GET"
+            connection.connectTimeout = 10000
+            connection.readTimeout = 10000
             
-            if (connection.responseCode == 200) {
+            val responseCode = connection.responseCode
+            android.util.Log.d("NotificationManager", "Response code: $responseCode")
+            
+            if (responseCode == 200) {
                 val response = connection.inputStream.bufferedReader().readText()
+                android.util.Log.d("NotificationManager", "Response: $response")
                 val array = JSONArray(response)
+                android.util.Log.d("NotificationManager", "Found ${array.length()} notifications")
+                
                 val serverNotifications = (0 until array.length()).map { i ->
                     val obj = array.getJSONObject(i)
                     val description = obj.optString("description", "")
@@ -184,15 +193,20 @@ object NotificationManager {
                     existing.none { it.id == server.id }
                 }
                 
+                android.util.Log.d("NotificationManager", "New notifications: ${newNotifs.size}")
+                
                 if (newNotifs.isNotEmpty()) {
                     val updated = newNotifs + existing
                     saveNotifications(updated)
                     notifyListeners()
                     
                     newNotifs.forEach { notif ->
+                        android.util.Log.d("NotificationManager", "Showing notification: ${notif.fromUser} - ${notif.message}")
                         showSystemNotification(context, notif)
                     }
                 }
+            } else {
+                android.util.Log.e("NotificationManager", "HTTP error: $responseCode")
             }
         } catch (e: Exception) {
             android.util.Log.e("NotificationManager", "Fetch error", e)
