@@ -4,10 +4,14 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var drawerLayout: DrawerLayout
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         applyTheme()
         super.onCreate(savedInstanceState)
@@ -54,12 +58,38 @@ class MainActivity : AppCompatActivity() {
     private fun showWelcomeScreen() {
         setContentView(R.layout.activity_main)
 
+        drawerLayout = findViewById(R.id.drawerLayout)
+        val navigationView = findViewById<NavigationView>(R.id.navigationView)
+        
+        findViewById<android.widget.ImageView>(R.id.btnMenu).setOnClickListener {
+            drawerLayout.open()
+        }
+
         findViewById<android.widget.Button>(R.id.btnLogin).setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
         }
 
         findViewById<android.widget.Button>(R.id.btnSignup).setOnClickListener {
             startActivity(Intent(this, SignupActivity::class.java))
+        }
+        
+        navigationView.setNavigationItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.nav_about -> {
+                    // Handle about
+                }
+                R.id.nav_privacy -> {
+                    // Handle privacy
+                }
+                R.id.nav_terms -> {
+                    // Handle terms
+                }
+                R.id.nav_help -> {
+                    // Handle help
+                }
+            }
+            drawerLayout.close()
+            true
         }
     }
 }
