@@ -1,6 +1,7 @@
 package com.blazeneuro
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -39,7 +40,6 @@ class HomeActivity : AppCompatActivity() {
         AuthApi.init(this)
         NotificationManager.init(this)
         checkNotificationPermission()
-        startNotificationPolling()
         
         // Set status bar appearance based on theme
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
@@ -65,6 +65,13 @@ class HomeActivity : AppCompatActivity() {
         navProfile.setOnClickListener { showFragment(ProfileFragment(), 4) }
 
         showFragment(HomeFragment(), 0)
+        
+        // Start notification service
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(Intent(this, NotificationService::class.java))
+        } else {
+            startService(Intent(this, NotificationService::class.java))
+        }
         
         // Fetch notifications immediately on start (in background)
         lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
@@ -129,16 +136,6 @@ class HomeActivity : AppCompatActivity() {
             if (!asked) {
                 requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 100)
                 prefs.edit().putBoolean("notification_permission_asked", true).apply()
-            }
-        }
-    }
-    
-    private fun startNotificationPolling() {
-        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-            while (true) {
-                kotlinx.coroutines.delay(10000) // Poll every 10 seconds for testing
-                android.util.Log.d("HomeActivity", "Polling notifications...")
-                NotificationManager.fetchNotificationsFromServer(this@HomeActivity)
             }
         }
     }
