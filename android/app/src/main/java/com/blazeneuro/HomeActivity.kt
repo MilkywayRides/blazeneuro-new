@@ -37,6 +37,9 @@ class HomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home_bottom_nav)
         AuthApi.init(this)
+        NotificationManager.init(this)
+        checkNotificationPermission()
+        startNotificationPolling()
         
         // Set status bar appearance based on theme
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
@@ -108,6 +111,31 @@ class HomeActivity : AppCompatActivity() {
         drawerLayout.openDrawer(android.view.Gravity.START)
     }
     
+    fun openNotificationDrawer() {
+        drawerLayout.openDrawer(android.view.Gravity.END)
+    }
+    
+    private fun checkNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            val prefs = getSharedPreferences("settings", MODE_PRIVATE)
+            val asked = prefs.getBoolean("notification_permission_asked", false)
+            
+            if (!asked) {
+                requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 100)
+                prefs.edit().putBoolean("notification_permission_asked", true).apply()
+            }
+        }
+    }
+    
+    private fun startNotificationPolling() {
+        lifecycleScope.launch {
+            while (true) {
+                kotlinx.coroutines.delay(30000) // Poll every 30 seconds
+                NotificationManager.fetchNotificationsFromServer(this@HomeActivity)
+            }
+        }
+    }
+    
     private fun applyTheme() {
         val prefs = getSharedPreferences("settings", MODE_PRIVATE)
         val theme = prefs.getString("theme", "system")
@@ -125,12 +153,20 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var viewPager: androidx.viewpager2.widget.ViewPager2
     private val topBlogs = mutableListOf<AuthApi.Blog>()
     private var isLoading = true
+    private lateinit var notificationBadge: View
+    private val notificationListener = { updateNotificationBadge() }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         view.findViewById<TextView>(R.id.tvTitle).text = "Welcome, ${AuthApi.getSavedUserName()}!"
         
+        notificationBadge = view.findViewById(R.id.notificationBadge)
+        
         view.findViewById<ImageView>(R.id.ivMenu).setOnClickListener {
             (requireActivity() as? HomeActivity)?.openDrawer()
+        }
+        
+        view.findViewById<ImageView>(R.id.ivNotification).setOnClickListener {
+            NotificationBottomSheet().show(parentFragmentManager, "notifications")
         }
         
         swipeRefresh = view.findViewById(R.id.swipeRefresh)
@@ -140,9 +176,21 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             loadTopBlogs()
         }
         
+        NotificationManager.addListener(notificationListener)
+        updateNotificationBadge()
+        
         setupCarousel()
         showSkeleton()
         loadTopBlogs()
+    }
+    
+    override fun onDestroyView() {
+        super.onDestroyView()
+        NotificationManager.removeListener(notificationListener)
+    }
+    
+    private fun updateNotificationBadge() {
+        notificationBadge.visibility = if (NotificationManager.getUnreadCount() > 0) View.VISIBLE else View.GONE
     }
     
     private fun showSkeleton() {
@@ -292,7 +340,26 @@ class CarouselAdapter(
         holder.ivCover.background = null
         holder.tvTitle.background = null
         holder.tvLikes.background = null
-        holder.tvTitle.text = blog.title
+        
+        val titleWithPrefix = android.text.SpannableStringBuilder()
+        val hashSpan = android.text.SpannableString("# ")
+        hashSpan.setSpan(
+            android.text.style.ForegroundColorSpan(
+                ContextCompat.getColor(holder.itemView.context, R.color.muted_foreground)
+            ),
+            0,
+            2,
+            android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        hashSpan.setSpan(
+            android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+            0,
+            1,
+            android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        titleWithPrefix.append(hashSpan)
+        titleWithPrefix.append(blog.title)
+        holder.tvTitle.text = titleWithPrefix
         holder.tvLikes.text = formatCount(blog.likeCount)
         
         if (!blog.coverImage.isNullOrEmpty()) {
@@ -605,8 +672,13 @@ class ProjectsFragment : Fragment(R.layout.fragment_projects) {
     private lateinit var adapter: CommunityAdapter
     private var replyingTo: CommunityPost? = null
     private var pollingJob: kotlinx.coroutines.Job? = null
+    private lateinit var prefs: android.content.SharedPreferences
+    private lateinit var mentionPopup: android.widget.PopupWindow
+    private val userSuggestions = mutableListOf<String>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        prefs = requireContext().getSharedPreferences("community_cache", android.content.Context.MODE_PRIVATE)
+        
         view.findViewById<ImageView>(R.id.ivBack).setOnClickListener {
             (activity as? HomeActivity)?.let { homeActivity ->
                 homeActivity.supportFragmentManager.beginTransaction()
@@ -622,12 +694,14 @@ class ProjectsFragment : Fragment(R.layout.fragment_projects) {
         replyBar = view.findViewById(R.id.replyBar)
         tvReplyTo = view.findViewById(R.id.tvReplyTo)
         
-        adapter = CommunityAdapter(posts) { post ->
+        setupMentionAutocomplete()
+        
+        adapter = CommunityAdapter(posts, { post ->
             replyingTo = post
             replyBar.visibility = View.VISIBLE
             tvReplyTo.text = "Replying to u/${post.author}"
             etMessage.requestFocus()
-        }
+        }, { saveToCache() })
         rvPosts.layoutManager = LinearLayoutManager(context)
         rvPosts.adapter = adapter
         
@@ -648,14 +722,167 @@ class ProjectsFragment : Fragment(R.layout.fragment_projects) {
             }
         }
         
+        loadFromCache()
         loadPosts()
         startPolling()
+    }
+    
+    private fun setupMentionAutocomplete() {
+        etMessage.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                val text = s.toString()
+                val cursorPos = etMessage.selectionStart
+                
+                // Find @ before cursor
+                val lastAt = text.lastIndexOf('@', cursorPos - 1)
+                if (lastAt != -1 && (lastAt == 0 || text[lastAt - 1].isWhitespace())) {
+                    val query = text.substring(lastAt + 1, cursorPos)
+                    if (!query.contains(' ')) {
+                        showMentionSuggestions(query, lastAt)
+                        return
+                    }
+                }
+                dismissMentionPopup()
+            }
+        })
+    }
+    
+    private fun showMentionSuggestions(query: String, atPosition: Int) {
+        val filtered = userSuggestions.filter { it.contains(query, ignoreCase = true) }.take(5)
+        if (filtered.isEmpty()) {
+            dismissMentionPopup()
+            return
+        }
+        
+        val container = android.widget.LinearLayout(requireContext()).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setBackgroundResource(R.drawable.card_background)
+            elevation = 8f
+            setPadding(0, 16, 0, 16)
+        }
+        
+        val listView = RecyclerView(requireContext()).apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = MentionAdapter(filtered) { username ->
+                insertMention(username, atPosition)
+                dismissMentionPopup()
+            }
+            overScrollMode = View.OVER_SCROLL_NEVER
+        }
+        
+        container.addView(listView)
+        
+        if (!::mentionPopup.isInitialized || !mentionPopup.isShowing) {
+            mentionPopup = android.widget.PopupWindow(
+                container,
+                etMessage.width,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                true
+            )
+            mentionPopup.elevation = 12f
+            mentionPopup.inputMethodMode = android.widget.PopupWindow.INPUT_METHOD_NOT_NEEDED
+            mentionPopup.softInputMode = android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+        } else {
+            mentionPopup.contentView = container
+        }
+        
+        mentionPopup.showAsDropDown(etMessage, 0, -etMessage.height - 8)
+    }
+    
+    private fun insertMention(username: String, atPosition: Int) {
+        val text = etMessage.text.toString()
+        val cursorPos = etMessage.selectionStart
+        val before = text.substring(0, atPosition)
+        val after = text.substring(cursorPos)
+        etMessage.setText("$before@$username $after")
+        etMessage.setSelection(before.length + username.length + 2)
+    }
+    
+    private fun dismissMentionPopup() {
+        if (::mentionPopup.isInitialized && mentionPopup.isShowing) {
+            mentionPopup.dismiss()
+        }
+    }
+    
+    private fun loadFromCache() {
+        try {
+            val cached = prefs.getString("posts", null)
+            if (cached != null) {
+                val jsonArray = org.json.JSONArray(cached)
+                val cachedPosts = (0 until jsonArray.length()).map { i ->
+                    val obj = jsonArray.getJSONObject(i)
+                    val repliesArray = obj.optJSONArray("replies") ?: org.json.JSONArray()
+                    val replies = (0 until repliesArray.length()).map { j ->
+                        val r = repliesArray.getJSONObject(j)
+                        CommunityPost(
+                            id = r.getString("id"),
+                            author = r.getString("author"),
+                            message = r.getString("message"),
+                            time = r.getString("time"),
+                            likes = r.getInt("likes"),
+                            dislikes = r.getInt("dislikes"),
+                            isReply = true
+                        )
+                    }.toMutableList()
+                    
+                    CommunityPost(
+                        id = obj.getString("id"),
+                        author = obj.getString("author"),
+                        message = obj.getString("message"),
+                        time = obj.getString("time"),
+                        likes = obj.getInt("likes"),
+                        dislikes = obj.getInt("dislikes"),
+                        replies = replies
+                    )
+                }
+                posts.clear()
+                posts.addAll(cachedPosts)
+                adapter.refresh()
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("ProjectsFragment", "Error loading cache", e)
+        }
+    }
+    
+    private fun saveToCache() {
+        try {
+            val jsonArray = org.json.JSONArray()
+            posts.forEach { post ->
+                val obj = org.json.JSONObject().apply {
+                    put("id", post.id)
+                    put("author", post.author)
+                    put("message", post.message)
+                    put("time", post.time)
+                    put("likes", post.likes)
+                    put("dislikes", post.dislikes)
+                    
+                    val repliesArray = org.json.JSONArray()
+                    post.replies.forEach { reply ->
+                        repliesArray.put(org.json.JSONObject().apply {
+                            put("id", reply.id)
+                            put("author", reply.author)
+                            put("message", reply.message)
+                            put("time", reply.time)
+                            put("likes", reply.likes)
+                            put("dislikes", reply.dislikes)
+                        })
+                    }
+                    put("replies", repliesArray)
+                }
+                jsonArray.put(obj)
+            }
+            prefs.edit().putString("posts", jsonArray.toString()).apply()
+        } catch (e: Exception) {
+            android.util.Log.e("ProjectsFragment", "Error saving cache", e)
+        }
     }
     
     private fun startPolling() {
         pollingJob = lifecycleScope.launch {
             while (true) {
-                delay(3000)
+                delay(2000)
                 loadPosts(silent = true)
             }
         }
@@ -665,23 +892,68 @@ class ProjectsFragment : Fragment(R.layout.fragment_projects) {
         lifecycleScope.launch {
             try {
                 val userId = AuthApi.getSavedUserId() ?: return@launch
+                val userName = AuthApi.getSavedUserName()
+                
+                // Detect mentions
+                val mentions = NotificationManager.extractMentions(message)
+                mentions.forEach { mentionedUser ->
+                    if (mentionedUser != userName) {
+                        NotificationManager.addNotification(
+                            AppNotification(
+                                id = java.util.UUID.randomUUID().toString(),
+                                type = "mention",
+                                fromUser = userName,
+                                message = message,
+                                postId = "",
+                                timestamp = System.currentTimeMillis()
+                            )
+                        )
+                    }
+                }
+                
+                // If replying, notify the original author
+                if (replyingTo != null && replyingTo!!.author != userName) {
+                    NotificationManager.addNotification(
+                        AppNotification(
+                            id = java.util.UUID.randomUUID().toString(),
+                            type = "reply",
+                            fromUser = userName,
+                            message = message,
+                            postId = replyingTo!!.id,
+                            timestamp = System.currentTimeMillis()
+                        )
+                    )
+                }
+                
+                // Optimistic UI update
+                val tempPost = CommunityPost(
+                    id = "temp_${System.currentTimeMillis()}",
+                    author = userName,
+                    message = message,
+                    time = "Just now",
+                    likes = 0,
+                    dislikes = 0,
+                    isReply = replyingTo != null
+                )
+                
+                if (replyingTo != null) {
+                    posts.find { it.id == replyingTo!!.id }?.replies?.add(tempPost)
+                    adapter.refresh()
+                } else {
+                    posts.add(0, tempPost)
+                    adapter.refresh()
+                    rvPosts.scrollToPosition(0)
+                }
+                
+                saveToCache()
+                
                 val newPost = CommunityApi.createPost(userId, message, replyingTo?.id)
                 
                 if (newPost != null) {
-                    if (replyingTo != null) {
-                        // Add reply to parent post
-                        posts.find { it.id == replyingTo!!.id }?.replies?.add(newPost)
-                        adapter.refresh()
-                        replyBar.visibility = View.GONE
-                        replyingTo = null
-                    } else {
-                        // Add new post at top
-                        posts.add(0, newPost)
-                        adapter.refresh()
-                        rvPosts.scrollToPosition(0)
-                    }
-                    // Refresh from server after 1 second to get accurate data
-                    delay(1000)
+                    replyBar.visibility = View.GONE
+                    replyingTo = null
+                    // Reload to get real data
+                    delay(500)
                     loadPosts(silent = true)
                 }
             } catch (e: Exception) {
@@ -696,7 +968,17 @@ class ProjectsFragment : Fragment(R.layout.fragment_projects) {
                 val loadedPosts = CommunityApi.getPosts()
                 posts.clear()
                 posts.addAll(loadedPosts)
+                
+                // Extract unique usernames
+                userSuggestions.clear()
+                userSuggestions.addAll(posts.map { it.author }.distinct())
+                posts.forEach { post ->
+                    userSuggestions.addAll(post.replies.map { it.author })
+                }
+                userSuggestions.distinct()
+                
                 adapter.refresh()
+                saveToCache()
             } catch (e: Exception) {
                 if (!silent) android.util.Log.e("ProjectsFragment", "Error loading posts", e)
             } finally {
@@ -724,7 +1006,8 @@ data class CommunityPost(
 
 class CommunityAdapter(
     private val posts: List<CommunityPost>,
-    private val onReply: (CommunityPost) -> Unit = {}
+    private val onReply: (CommunityPost) -> Unit = {},
+    private val saveToCache: () -> Unit = {}
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     
     companion object {
@@ -801,12 +1084,18 @@ class CommunityAdapter(
             holder.tvReplies.text = if (post.replies.size == 1) "1 reply" else "${post.replies.size} replies"
             
             holder.ivUpvote.setOnClickListener {
+                post.likes++
+                holder.tvVotes.text = (post.likes - post.dislikes).toString()
+                saveToCache()
                 kotlinx.coroutines.GlobalScope.launch {
                     CommunityApi.likePost(post.id, "like")
                 }
             }
             
             holder.ivDownvote.setOnClickListener {
+                post.dislikes++
+                holder.tvVotes.text = (post.likes - post.dislikes).toString()
+                saveToCache()
                 kotlinx.coroutines.GlobalScope.launch {
                     CommunityApi.likePost(post.id, "dislike")
                 }
@@ -832,12 +1121,18 @@ class CommunityAdapter(
             holder.tvVotes.text = votes.toString()
             
             holder.ivUpvote.setOnClickListener {
+                post.likes++
+                holder.tvVotes.text = (post.likes - post.dislikes).toString()
+                saveToCache()
                 kotlinx.coroutines.GlobalScope.launch {
                     CommunityApi.likePost(post.id, "like")
                 }
             }
             
             holder.ivDownvote.setOnClickListener {
+                post.dislikes++
+                holder.tvVotes.text = (post.likes - post.dislikes).toString()
+                saveToCache()
                 kotlinx.coroutines.GlobalScope.launch {
                     CommunityApi.likePost(post.id, "dislike")
                 }
@@ -982,4 +1277,140 @@ class DownloadsAdapter(
     }
 
     override fun getItemCount() = downloads.size
+}
+
+
+class NotificationBottomSheet : com.google.android.material.bottomsheet.BottomSheetDialogFragment() {
+    private lateinit var rvNotifications: RecyclerView
+    private lateinit var tvEmpty: TextView
+    private val notifications = mutableListOf<AppNotification>()
+    private lateinit var adapter: NotificationAdapter
+    
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.bottom_sheet_notifications, container, false)
+    }
+    
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        
+        rvNotifications = view.findViewById(R.id.rvNotifications)
+        tvEmpty = view.findViewById(R.id.tvEmpty)
+        
+        adapter = NotificationAdapter(notifications) { notification ->
+            NotificationManager.markAsRead(notification.id)
+            dismiss()
+        }
+        rvNotifications.layoutManager = LinearLayoutManager(context)
+        rvNotifications.adapter = adapter
+        
+        loadNotifications()
+        
+        dialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        
+        view.post {
+            val parent = view.parent as? View
+            parent?.setBackgroundResource(android.R.color.transparent)
+            
+            val bottomSheet = dialog?.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+            bottomSheet?.setBackgroundResource(android.R.color.transparent)
+            
+            val behavior = com.google.android.material.bottomsheet.BottomSheetBehavior.from(bottomSheet!!)
+            val screenHeight = resources.displayMetrics.heightPixels
+            val desiredHeight = (screenHeight * 0.7).toInt()
+            
+            view.layoutParams.height = desiredHeight
+            view.requestLayout()
+            
+            behavior.peekHeight = desiredHeight
+            behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+        }
+    }
+    
+    private fun loadNotifications() {
+        notifications.clear()
+        notifications.addAll(NotificationManager.getNotifications())
+        adapter.notifyDataSetChanged()
+        
+        if (notifications.isEmpty()) {
+            rvNotifications.visibility = View.GONE
+            tvEmpty.visibility = View.VISIBLE
+        } else {
+            rvNotifications.visibility = View.VISIBLE
+            tvEmpty.visibility = View.GONE
+        }
+    }
+}
+
+
+class NotificationAdapter(
+    private val notifications: List<AppNotification>,
+    private val onClick: (AppNotification) -> Unit
+) : RecyclerView.Adapter<NotificationAdapter.ViewHolder>() {
+    
+    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val tvTitle: TextView = view.findViewById(R.id.tvTitle)
+        val tvMessage: TextView = view.findViewById(R.id.tvMessage)
+        val tvTime: TextView = view.findViewById(R.id.tvTime)
+        val indicator: View = view.findViewById(R.id.indicator)
+    }
+    
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_notification, parent, false)
+        return ViewHolder(view)
+    }
+    
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val notif = notifications[position]
+        holder.tvTitle.text = when (notif.type) {
+            "mention" -> "@${notif.fromUser} mentioned you"
+            "reply" -> "${notif.fromUser} replied to you"
+            else -> "Notification"
+        }
+        holder.tvMessage.text = notif.message
+        holder.tvTime.text = formatTimeAgo(notif.timestamp)
+        holder.indicator.visibility = if (notif.read) View.GONE else View.VISIBLE
+        holder.itemView.setOnClickListener { onClick(notif) }
+    }
+    
+    override fun getItemCount() = notifications.size
+    
+    private fun formatTimeAgo(timestamp: Long): String {
+        val diff = System.currentTimeMillis() - timestamp
+        return when {
+            diff < 60000 -> "Just now"
+            diff < 3600000 -> "${diff / 60000}m ago"
+            diff < 86400000 -> "${diff / 3600000}h ago"
+            else -> "${diff / 86400000}d ago"
+        }
+    }
+}
+
+
+class MentionAdapter(
+    private val users: List<String>,
+    private val onClick: (String) -> Unit
+) : RecyclerView.Adapter<MentionAdapter.ViewHolder>() {
+    
+    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val tvUsername: TextView = view.findViewById(R.id.tvUsername)
+    }
+    
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_mention, parent, false)
+        return ViewHolder(view)
+    }
+    
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val username = users[position]
+        holder.tvUsername.text = "@$username"
+        holder.itemView.setOnClickListener { onClick(username) }
+    }
+    
+    override fun getItemCount() = users.size
 }

@@ -17,16 +17,25 @@ class ChatActivity : AppCompatActivity() {
     private val messages = mutableListOf<ChatMessage>()
     private var isLoading = false
     private var replyToMessage: ChatMessage? = null
+    private var lastMessageId: String? = null
+    private var hasMore = true
+    private lateinit var layoutManager: LinearLayoutManager
+    private lateinit var swipeRefresh: androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
         AuthApi.init(this)
 
+        layoutManager = LinearLayoutManager(this).apply {
+            stackFromEnd = false
+        }
         recyclerView = findViewById(R.id.rvMessages)
-        recyclerView.layoutManager = LinearLayoutManager(this).apply {
-            reverseLayout = true
-            stackFromEnd = true
+        recyclerView.layoutManager = layoutManager
+        
+        swipeRefresh = findViewById(R.id.swipeRefresh)
+        swipeRefresh.setOnRefreshListener {
+            checkNewMessages()
         }
         
         adapter = ChatAdapter(
@@ -36,12 +45,19 @@ class ChatActivity : AppCompatActivity() {
             onMention = { user -> mentionUser(user) }
         )
         recyclerView.adapter = adapter
+        
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if (!isLoading && hasMore && layoutManager.findFirstVisibleItemPosition() == 0) {
+                    loadMoreMessages()
+                }
+            }
+        })
 
         findViewById<ImageView>(R.id.btnBack).setOnClickListener { finish() }
         findViewById<ImageView>(R.id.btnSend).setOnClickListener { sendMessage() }
 
         loadMessages()
-        startPolling()
     }
 
     private fun loadMessages() {
@@ -50,10 +66,12 @@ class ChatActivity : AppCompatActivity() {
         
         lifecycleScope.launch {
             try {
-                val newMessages = AuthApi.getChatMessages()
+                val newMessages = AuthApi.getChatMessages(limit = 20)
                 messages.clear()
                 messages.addAll(newMessages)
+                lastMessageId = newMessages.firstOrNull()?.id
                 adapter.notifyDataSetChanged()
+                recyclerView.scrollToPosition(messages.size - 1)
             } catch (e: Exception) {
                 Toast.makeText(this@ChatActivity, "Failed to load messages", Toast.LENGTH_SHORT).show()
             } finally {
@@ -61,12 +79,47 @@ class ChatActivity : AppCompatActivity() {
             }
         }
     }
-
-    private fun startPolling() {
+    
+    private fun loadMoreMessages() {
+        if (isLoading || !hasMore) return
+        isLoading = true
+        
         lifecycleScope.launch {
-            while (true) {
-                delay(3000)
-                loadMessages()
+            try {
+                val oldMessages = AuthApi.getChatMessages(limit = 20, before = lastMessageId)
+                if (oldMessages.isEmpty()) {
+                    hasMore = false
+                } else {
+                    messages.addAll(0, oldMessages)
+                    lastMessageId = oldMessages.firstOrNull()?.id
+                    adapter.notifyItemRangeInserted(0, oldMessages.size)
+                    layoutManager.scrollToPositionWithOffset(oldMessages.size, 0)
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@ChatActivity, "Failed to load more", Toast.LENGTH_SHORT).show()
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+    
+    private fun checkNewMessages() {
+        lifecycleScope.launch {
+            try {
+                val newMessages = AuthApi.getChatMessages(limit = 20)
+                val latestId = newMessages.lastOrNull()?.id
+                if (latestId != null && latestId != messages.lastOrNull()?.id) {
+                    val fresh = newMessages.filter { msg ->
+                        messages.none { it.id == msg.id }
+                    }
+                    messages.addAll(fresh)
+                    adapter.notifyItemRangeInserted(messages.size - fresh.size, fresh.size)
+                    recyclerView.scrollToPosition(messages.size - 1)
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@ChatActivity, "Failed to refresh", Toast.LENGTH_SHORT).show()
+            } finally {
+                swipeRefresh.isRefreshing = false
             }
         }
     }
@@ -84,7 +137,14 @@ class ChatActivity : AppCompatActivity() {
                 input.text.clear()
                 replyToMessage = null
                 findViewById<android.view.View>(R.id.replyPreview)?.visibility = android.view.View.GONE
-                loadMessages()
+                
+                // Add new message to bottom
+                val newMsg = AuthApi.getChatMessages(limit = 1)
+                if (newMsg.isNotEmpty()) {
+                    messages.add(newMsg[0])
+                    adapter.notifyItemInserted(messages.size - 1)
+                    recyclerView.scrollToPosition(messages.size - 1)
+                }
             } catch (e: Exception) {
                 Toast.makeText(this@ChatActivity, "Failed to send message", Toast.LENGTH_SHORT).show()
             }

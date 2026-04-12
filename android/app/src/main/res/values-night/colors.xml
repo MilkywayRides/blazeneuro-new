@@ -42,6 +42,14 @@
     <color name="feedback_card_bg">#CC000000</color>
     <color name="feedback_card_text">#FFFFFFFF</color>
     
+    <!-- Glassmorphism (dark theme: black film) -->
+    <color name="glass_bg">#40000000</color>              <!-- ~25% black -->
+    <color name="glass_border">#44FFFFFF</color>           <!-- ~27% white -->
+    <color name="glass_text">#FFFFFFFF</color>             <!-- white text -->
+    <color name="glass_text_muted">#B3FFFFFF</color>       <!-- 70% white -->
+    <color name="glass_btn_bg">#22FFFFFF</color>           <!-- ~13% white -->
+    <color name="glass_shadow">#60000000</color>           <!-- 38% black shadow -->
+    
     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>
     <color name="transparent">#00000000</color>

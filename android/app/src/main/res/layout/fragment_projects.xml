@@ -124,7 +124,7 @@
                     android:layout_height="match_parent"
                     android:src="@drawable/ic_send"
                     android:padding="8dp"
-                    android:tint="@android:color/white" />
+                    android:tint="@color/primary_foreground" />
 
             </androidx.cardview.widget.CardView>
 

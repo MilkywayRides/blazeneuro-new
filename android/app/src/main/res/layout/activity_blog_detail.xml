@@ -113,7 +113,8 @@
         android:indeterminateTint="@color/primary"
         android:visibility="gone" />
 
-    <androidx.cardview.widget.CardView
+    <!-- Glassmorphism feedback card with real backdrop blur -->
+    <eightbitlab.com.blurview.BlurView
         android:id="@+id/feedbackCard"
         android:layout_width="match_parent"
         android:layout_height="60dp"
@@ -121,9 +122,9 @@
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
         android:layout_marginBottom="24dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="8dp"
-        app:cardBackgroundColor="@color/feedback_card_bg">
+        android:elevation="8dp"
+        android:background="@drawable/feedback_glass_bg"
+        app:blurOverlayColor="@color/glass_bg">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -147,7 +148,7 @@
                 android:layout_height="36dp"
                 android:gravity="center"
                 android:orientation="horizontal"
-                android:background="@drawable/button_outline"
+                android:background="@drawable/feedback_glass_btn"
                 android:clickable="true"
                 android:focusable="true"
                 android:paddingStart="12dp"
@@ -176,7 +177,7 @@
                 android:layout_height="36dp"
                 android:gravity="center"
                 android:orientation="horizontal"
-                android:background="@drawable/button_outline"
+                android:background="@drawable/feedback_glass_btn"
                 android:clickable="true"
                 android:focusable="true"
                 android:paddingStart="12dp"
@@ -200,7 +201,7 @@
 
         </LinearLayout>
 
-    </androidx.cardview.widget.CardView>
+    </eightbitlab.com.blurview.BlurView>
 
     <View
         android:id="@+id/headerBlur"

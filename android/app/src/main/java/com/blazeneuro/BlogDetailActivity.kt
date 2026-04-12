@@ -36,7 +36,8 @@ class BlogDetailActivity : AppCompatActivity() {
         // Show loading spinner
         findViewById<android.view.View>(R.id.loadingSpinner).visibility = android.view.View.VISIBLE
         findViewById<android.widget.ScrollView>(R.id.scrollView).visibility = android.view.View.GONE
-        findViewById<androidx.cardview.widget.CardView>(R.id.feedbackCard).visibility = android.view.View.GONE
+        val feedbackBlurView = findViewById<eightbitlab.com.blurview.BlurView>(R.id.feedbackCard)
+        feedbackBlurView.visibility = android.view.View.GONE
         
         // Apply blur effect to header
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
@@ -46,6 +47,21 @@ class BlogDetailActivity : AppCompatActivity() {
                 )
             )
         }
+        
+        // Setup glassmorphism blur on feedback card
+        val rootView = window.decorView.findViewById<android.view.ViewGroup>(android.R.id.content)
+        
+        feedbackBlurView.setupWith(rootView, eightbitlab.com.blurview.RenderScriptBlur(this))
+            .setBlurRadius(20f)
+            .setBlurAutoUpdate(true)
+        
+        // Clip corners to match the glass background shape
+        feedbackBlurView.outlineProvider = object : android.view.ViewOutlineProvider() {
+            override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
+                outline.setRoundRect(0, 0, view.width, view.height, 20f * resources.displayMetrics.density)
+            }
+        }
+        feedbackBlurView.clipToOutline = true
 
         markwon = Markwon.builder(this)
             .usePlugin(HtmlPlugin.create())
@@ -91,7 +107,7 @@ class BlogDetailActivity : AppCompatActivity() {
             // Hide loading, show content
             findViewById<android.view.View>(R.id.loadingSpinner).visibility = android.view.View.GONE
             findViewById<android.widget.ScrollView>(R.id.scrollView).visibility = android.view.View.VISIBLE
-            findViewById<androidx.cardview.widget.CardView>(R.id.feedbackCard).visibility = android.view.View.VISIBLE
+            findViewById<eightbitlab.com.blurview.BlurView>(R.id.feedbackCard).visibility = android.view.View.VISIBLE
             
             findViewById<TextView>(R.id.tvTitle).text = blog.title
             findViewById<TextView>(R.id.tvAuthor).text = blog.authorName ?: "Anonymous"
@@ -160,7 +176,7 @@ class BlogDetailActivity : AppCompatActivity() {
         Toast.makeText(this, if (liked) "Thanks for your feedback! 👍" else "Thanks for your feedback! 👎", Toast.LENGTH_SHORT).show()
         
         // Animate card slide down and remove
-        val feedbackCard = findViewById<androidx.cardview.widget.CardView>(R.id.feedbackCard)
+        val feedbackCard = findViewById<eightbitlab.com.blurview.BlurView>(R.id.feedbackCard)
         feedbackCard.animate()
             .translationY(feedbackCard.height.toFloat() + 100f)
             .alpha(0f)
