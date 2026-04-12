@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { notification } from '@/lib/schema';
 import { desc, isNull, eq } from 'drizzle-orm';
 
-const MOBILE_API_KEY = process.env.MOBILE_API_KEY || 'blazeneuro_mobile_2026';
+const MOBILE_API_KEY = process.env.MOBILE_API_KEY || '8f41be3d74c5065d83964ec62515af4be2f4164faec6161ebe10bc44ec628600';
 
 export async function GET(request: Request) {
   try {

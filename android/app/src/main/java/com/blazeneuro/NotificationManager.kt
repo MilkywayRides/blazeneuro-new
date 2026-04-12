@@ -153,11 +153,12 @@ object NotificationManager {
     
     suspend fun fetchNotificationsFromServer(context: Context) {
         try {
-            val url = "${AuthApi.SITE_URL}/api/mobile/notifications?apiKey=blazeneuro_mobile_2026"
+            val apiKey = "8f41be3d74c5065d83964ec62515af4be2f4164faec6161ebe10bc44ec628600"
+            val url = "${AuthApi.SITE_URL}/api/mobile/notifications?apiKey=$apiKey"
             android.util.Log.d("NotificationManager", "Fetching from: $url")
             val connection = java.net.URL(url).openConnection() as java.net.HttpURLConnection
             connection.requestMethod = "GET"
-            connection.setRequestProperty("x-api-key", "blazeneuro_mobile_2026")
+            connection.setRequestProperty("x-api-key", apiKey)
             connection.connectTimeout = 10000
             connection.readTimeout = 10000
             
