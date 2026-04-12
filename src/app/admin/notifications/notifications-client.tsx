@@ -128,30 +128,44 @@ export default function NotificationsClient() {
             <CardTitle>Preview</CardTitle>
             <CardDescription>How the notification will appear on devices</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="rounded-lg border bg-card p-4 shadow-sm">
-                <div className="flex items-start gap-3">
-                  <div className="rounded-full bg-primary/10 p-2">
-                    <Bell className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-semibold">
-                      {title || 'Notification Title'}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {message || 'Your notification message will appear here'}
-                    </p>
-                    {link && (
-                      <p className="text-xs text-blue-500 truncate">{link}</p>
-                    )}
+          <CardContent className="flex justify-center">
+            <div className="w-[360px] h-[640px] border-[14px] border-gray-800 rounded-[40px] shadow-2xl bg-white dark:bg-gray-900 overflow-hidden relative">
+              {/* Status bar */}
+              <div className="h-6 bg-gray-100 dark:bg-gray-800 flex items-center justify-between px-6 text-xs">
+                <span>9:41</span>
+                <div className="flex gap-1">
+                  <div className="w-4 h-3 border border-current rounded-sm" />
+                  <div className="w-3 h-3 border border-current rounded-full" />
+                </div>
+              </div>
+              
+              {/* Notification */}
+              <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 shadow-lg">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Bell className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                        {title || 'Notification Title'}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                        {message || 'Your notification message will appear here'}
+                      </p>
+                      {link && (
+                        <p className="text-xs text-blue-500 truncate mt-1">{link}</p>
+                      )}
+                      <p className="text-xs text-gray-400 mt-2">now</p>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="text-xs text-muted-foreground">
-                <p>• Appears in system notification tray</p>
-                <p>• Shows badge on app icon</p>
-                <p>• Tapping opens {link ? 'the link' : 'the app'}</p>
+              
+              {/* Screen content */}
+              <div className="p-4 space-y-2">
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
               </div>
             </div>
           </CardContent>
