@@ -3,8 +3,17 @@ import { db } from '@/lib/db';
 import { notification } from '@/lib/schema';
 import { desc, isNull, eq } from 'drizzle-orm';
 
+const MOBILE_API_KEY = process.env.MOBILE_API_KEY || 'blazeneuro_mobile_2026';
+
 export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const apiKey = searchParams.get('apiKey') || request.headers.get('x-api-key');
+    
+    if (apiKey !== MOBILE_API_KEY) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const notifications = await db
       .select()
       .from(notification)
@@ -21,6 +30,12 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const apiKey = request.headers.get('x-api-key');
+    
+    if (apiKey !== MOBILE_API_KEY) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { notificationId } = await request.json();
 
     await db

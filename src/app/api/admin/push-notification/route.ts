@@ -1,9 +1,17 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { notification } from '@/lib/schema';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    
+    if (!session?.user || session.user.role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { title, message, type, link } = await request.json();
 
     if (!title || !message) {
