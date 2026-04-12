@@ -7,85 +7,119 @@
     android:background="@color/background">
 
     <!-- Main content -->
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="@dimen/space_xl">
+        android:layout_height="match_parent">
 
         <!-- Menu button -->
         <ImageView
             android:id="@+id/btnMenu"
             android:layout_width="40dp"
             android:layout_height="40dp"
+            android:layout_margin="@dimen/space_lg"
             android:padding="8dp"
             android:src="@drawable/ic_menu"
             android:contentDescription="Menu"
             android:background="?attr/selectableItemBackgroundBorderless" />
 
-        <!-- Spacer -->
-        <View
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
-            android:text="Welcome to BlazeNeuro"
-            android:textColor="@color/foreground"
-            android:textSize="32sp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/space_md"
-            android:text="Your intelligent workspace"
-            android:textColor="@color/muted_foreground"
-            android:textSize="@dimen/text_base" />
-
-        <!-- Spacer -->
-        <View
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <!-- Actions -->
-        <Button
-            android:id="@+id/btnLogin"
+        <!-- Welcome text at top -->
+        <LinearLayout
+            android:id="@+id/welcomeSection"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/button_height"
-            android:background="@drawable/button_primary"
-            android:fontFamily="sans-serif-medium"
-            android:text="Log in"
-            android:textAllCaps="false"
-            android:textColor="@color/primary_foreground"
-            android:textSize="@dimen/text_sm" />
-
-        <Button
-            android:id="@+id/btnSignup"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/button_height"
-            android:layout_marginTop="@dimen/space_md"
-            android:background="@drawable/button_outline"
-            android:fontFamily="sans-serif-medium"
-            android:text="Create account"
-            android:textAllCaps="false"
-            android:textColor="@color/foreground"
-            android:textSize="@dimen/text_sm" />
-
-        <TextView
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_below="@id/btnMenu"
             android:layout_marginTop="@dimen/space_xl"
-            android:layout_marginBottom="@dimen/space_lg"
-            android:text="By continuing, you agree to our Terms of Service"
-            android:textColor="@color/text_muted"
-            android:textSize="@dimen/text_xs" />
+            android:layout_marginStart="@dimen/space_xl"
+            android:layout_marginEnd="@dimen/space_xl"
+            android:orientation="vertical">
 
-    </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:text="Welcome to"
+                android:textColor="@color/foreground"
+                android:textSize="32sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:text="BlazeNeuro"
+                android:textColor="@color/primary"
+                android:textSize="32sp" />
+
+        </LinearLayout>
+
+        <!-- Bottom card (3/5 height) -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_alignParentBottom="true"
+            android:layout_marginTop="200dp"
+            app:cardCornerRadius="32dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="@dimen/space_xl"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Your intelligent workspace"
+                    android:textColor="@color/muted_foreground"
+                    android:textSize="@dimen/text_base"
+                    android:layout_marginBottom="@dimen/space_xl" />
+
+                <!-- Spacer -->
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <!-- Actions -->
+                <Button
+                    android:id="@+id/btnLogin"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/button_height"
+                    android:background="@drawable/button_primary"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="Log in"
+                    android:textAllCaps="false"
+                    android:textColor="@color/primary_foreground"
+                    android:textSize="@dimen/text_sm" />
+
+                <Button
+                    android:id="@+id/btnSignup"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/button_height"
+                    android:layout_marginTop="@dimen/space_md"
+                    android:background="@drawable/button_outline"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="Create account"
+                    android:textAllCaps="false"
+                    android:textColor="@color/foreground"
+                    android:textSize="@dimen/text_sm" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="@dimen/space_xl"
+                    android:text="By continuing, you agree to our Terms of Service"
+                    android:textColor="@color/text_muted"
+                    android:textSize="@dimen/text_xs" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+    </RelativeLayout>
 
     <!-- Drawer menu -->
     <com.google.android.material.navigation.NavigationView
