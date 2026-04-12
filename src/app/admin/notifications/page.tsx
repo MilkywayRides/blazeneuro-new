@@ -1,6 +1,17 @@
 'use client';
 
 import { useState } from 'react';
+import { AppSidebar } from "@/components/app-sidebar";
+import { SiteHeader } from "@/components/site-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Bell, CheckCircle2, XCircle } from "lucide-react";
 
 export default function AdminNotifications() {
   const [title, setTitle] = useState('');
@@ -12,7 +23,7 @@ export default function AdminNotifications() {
 
   const sendNotification = async () => {
     if (!title || !message) {
-      setResult('Please fill in all fields');
+      setResult('error:Please fill in all fields');
       return;
     }
 
@@ -29,87 +40,137 @@ export default function AdminNotifications() {
       const data = await res.json();
       
       if (res.ok) {
-        setResult(`✓ Notification sent successfully!`);
+        setResult('success:Notification sent successfully!');
         setTitle('');
         setMessage('');
         setLink('');
       } else {
-        setResult(`✗ Error: ${data.error}`);
+        setResult(`error:${data.error}`);
       }
     } catch (error: any) {
-      setResult(`✗ Error: ${error.message}`);
+      setResult(`error:${error.message}`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Push Notifications</h1>
-        
-        <div className="bg-card border rounded-lg p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Title</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 bg-background border rounded-md"
-              placeholder="Notification title"
-            />
+    <SidebarProvider
+      style={{
+        "--sidebar-width": "calc(var(--spacing) * 72)",
+        "--header-height": "calc(var(--spacing) * 12)",
+      } as React.CSSProperties}
+    >
+      <AppSidebar variant="inset" />
+      <SidebarInset>
+        <SiteHeader />
+        <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Send Push Notification</CardTitle>
+                <CardDescription>Send notifications to all mobile app users</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title</Label>
+                  <Input
+                    id="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Notification title"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="message">Message</Label>
+                  <Textarea
+                    id="message"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Notification message"
+                    rows={4}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="link">Link (Optional)</Label>
+                  <Input
+                    id="link"
+                    value={link}
+                    onChange={(e) => setLink(e.target.value)}
+                    placeholder="https://blazeneuro.com/blogs/example"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="type">Type</Label>
+                  <Select value={type} onValueChange={setType}>
+                    <SelectTrigger id="type">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="info">Info</SelectItem>
+                      <SelectItem value="mention">Mention</SelectItem>
+                      <SelectItem value="reply">Reply</SelectItem>
+                      <SelectItem value="like">Like</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button onClick={sendNotification} disabled={loading} className="w-full">
+                  {loading ? 'Sending...' : 'Send Notification'}
+                </Button>
+
+                {result && (
+                  <Alert variant={result.startsWith('success') ? 'default' : 'destructive'}>
+                    {result.startsWith('success') ? (
+                      <CheckCircle2 className="h-4 w-4" />
+                    ) : (
+                      <XCircle className="h-4 w-4" />
+                    )}
+                    <AlertDescription>{result.split(':')[1]}</AlertDescription>
+                  </Alert>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Preview</CardTitle>
+                <CardDescription>How the notification will appear on devices</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="rounded-lg border bg-card p-4 shadow-sm">
+                    <div className="flex items-start gap-3">
+                      <div className="rounded-full bg-primary/10 p-2">
+                        <Bell className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <p className="text-sm font-semibold">
+                          {title || 'Notification Title'}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {message || 'Your notification message will appear here'}
+                        </p>
+                        {link && (
+                          <p className="text-xs text-blue-500 truncate">{link}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    <p>• Appears in system notification tray</p>
+                    <p>• Shows badge on app icon</p>
+                    <p>• Tapping opens {link ? 'the link' : 'the app'}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Message</label>
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="w-full px-3 py-2 bg-background border rounded-md h-32"
-              placeholder="Notification message"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Link (Optional)</label>
-            <input
-              type="text"
-              value={link}
-              onChange={(e) => setLink(e.target.value)}
-              className="w-full px-3 py-2 bg-background border rounded-md"
-              placeholder="https://blazeneuro.com/blogs/example"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Type</label>
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              className="w-full px-3 py-2 bg-background border rounded-md"
-            >
-              <option value="info">Info</option>
-              <option value="mention">Mention</option>
-              <option value="reply">Reply</option>
-              <option value="like">Like</option>
-            </select>
-          </div>
-
-          <button
-            onClick={sendNotification}
-            disabled={loading}
-            className="w-full bg-primary text-primary-foreground py-2 rounded-md font-medium hover:opacity-90 disabled:opacity-50"
-          >
-            {loading ? 'Sending...' : 'Send Notification'}
-          </button>
-
-          {result && (
-            <div className={`p-3 rounded-md ${result.startsWith('✓') ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
-              {result}
-            </div>
-          )}
         </div>
-      </div>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

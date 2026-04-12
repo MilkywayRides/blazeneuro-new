@@ -15,7 +15,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { LayoutDashboardIcon, UsersIcon, Settings2Icon, CircleHelpIcon, SearchIcon, ShieldIcon, ActivityIcon, DatabaseIcon, FileTextIcon, MessageSquareIcon } from "lucide-react"
+import { LayoutDashboardIcon, UsersIcon, Settings2Icon, CircleHelpIcon, SearchIcon, ShieldIcon, ActivityIcon, DatabaseIcon, FileTextIcon, MessageSquareIcon, BellIcon } from "lucide-react"
 
 const data = {
   navMain: [
@@ -24,6 +24,13 @@ const data = {
       url: "/admin",
       icon: (
         <LayoutDashboardIcon className="h-4 w-4" />
+      ),
+    },
+    {
+      title: "Notifications",
+      url: "/admin/notifications",
+      icon: (
+        <BellIcon className="h-4 w-4" />
       ),
     },
     {
