@@ -74,7 +74,7 @@ object NotificationManager {
             .setAutoCancel(true)
         
         with(NotificationManagerCompat.from(context)) {
-            if (android.app.ActivityCompat.checkSelfPermission(
+            if (ActivityCompat.checkSelfPermission(
                     context,
                     android.Manifest.permission.POST_NOTIFICATIONS
                 ) == android.content.pm.PackageManager.PERMISSION_GRANTED
