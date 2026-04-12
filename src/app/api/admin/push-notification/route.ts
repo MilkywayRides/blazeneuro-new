@@ -1,16 +1,11 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { notification } from '@/lib/schema';
-import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
+import { requireAdmin } from '@/lib/auth-check';
 
 export async function POST(request: Request) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
-    
-    if (!session?.user || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    await requireAdmin();
 
     const { title, message, type, link } = await request.json();
 
@@ -34,7 +29,10 @@ export async function POST(request: Request) {
       notification: notificationData,
       message: 'Notification pushed successfully' 
     });
-  } catch (error) {
+  } catch (error: any) {
+    if (error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     console.error('Push notification error:', error);
     return NextResponse.json({ error: 'Failed to push notification' }, { status: 500 });
   }
