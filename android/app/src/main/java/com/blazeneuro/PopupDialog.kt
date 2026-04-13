@@ -84,10 +84,8 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         btnPlayPause.setOnClickListener {
             if (player?.isPlaying == true) {
                 player?.pause()
-                btnPlayPause.setImageResource(R.drawable.ic_play_circle)
             } else {
                 player?.play()
-                btnPlayPause.setImageResource(R.drawable.ic_pause_circle)
             }
         }
         
@@ -103,10 +101,12 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         
         player?.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
-                btnPlayPause.setImageResource(
-                    if (isPlaying) R.drawable.ic_pause_circle 
-                    else R.drawable.ic_play_circle
-                )
+                btnPlayPause.post {
+                    btnPlayPause.setImageResource(
+                        if (isPlaying) R.drawable.ic_pause_circle 
+                        else R.drawable.ic_play_circle
+                    )
+                }
             }
         })
     }

@@ -59,27 +59,35 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="24dp">
+                android:padding="20dp">
 
-                <!-- Close Button -->
-                <ImageButton
-                    android:id="@+id/btnClose"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_gravity="end"
-                    android:layout_marginBottom="16dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:src="@drawable/ic_cancel_circle"
-                    android:contentDescription="Close" />
-
-                <!-- Title -->
-                <TextView
-                    android:id="@+id/popupTitle"
+                <!-- Header with Title and Close -->
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="16dp" />
+                    android:layout_marginBottom="16dp">
+
+                    <!-- Title -->
+                    <TextView
+                        android:id="@+id/popupTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_toStartOf="@id/btnClose"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:layout_centerVertical="true" />
+
+                    <!-- Close Button -->
+                    <ImageButton
+                        android:id="@+id/btnClose"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_alignParentEnd="true"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_cancel_circle"
+                        android:contentDescription="Close" />
+                </RelativeLayout>
 
                 <!-- Content Container -->
                 <ScrollView
