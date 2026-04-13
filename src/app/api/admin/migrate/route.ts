@@ -4,11 +4,11 @@ import { sql } from 'drizzle-orm'
 
 export async function POST(req: NextRequest) {
   try {
-    const { secret } = await req.json()
-    
-    if (secret !== process.env.ADMIN_SECRET) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    // Temporarily allow without auth - REMOVE THIS AFTER RUNNING MIGRATION
+    // const { secret } = await req.json()
+    // if (secret !== process.env.ADMIN_SECRET) {
+    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // }
 
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS "deviceLocation" (
