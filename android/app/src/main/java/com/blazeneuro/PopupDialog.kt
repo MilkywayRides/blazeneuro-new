@@ -7,35 +7,107 @@ import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.*
+import androidx.cardview.widget.CardView
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.bumptech.glide.Glide
-import org.json.JSONArray
 import org.json.JSONObject
 
 class PopupDialog(private val context: Context, private val popupData: JSONObject) {
     
+    private var player: ExoPlayer? = null
+    
     fun show() {
-        val dialog = Dialog(context)
+        val dialog = Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_popup, null)
+        val card = view.findViewById<CardView>(R.id.popupCard)
         val container = view.findViewById<LinearLayout>(R.id.popupContainer)
         val btnClose = view.findViewById<ImageButton>(R.id.btnClose)
+        val videoContainer = view.findViewById<FrameLayout>(R.id.videoContainer)
+        val playerView = view.findViewById<PlayerView>(R.id.playerView)
+        val btnPlayPause = view.findViewById<ImageButton>(R.id.btnPlayPause)
+        val btnMute = view.findViewById<ImageButton>(R.id.btnMute)
         
-        btnClose.setOnClickListener { dialog.dismiss() }
+        btnClose.setOnClickListener { 
+            player?.release()
+            dialog.dismiss() 
+        }
         
         val components = popupData.getJSONArray("components")
+        var hasVideo = false
+        var videoUrl = ""
+        
+        // Check for video first
         for (i in 0 until components.length()) {
             val comp = components.getJSONObject(i)
-            addComponent(container, comp)
+            if (comp.getString("type") == "video") {
+                hasVideo = true
+                videoUrl = comp.getString("content")
+                break
+            }
+        }
+        
+        if (hasVideo) {
+            videoContainer.visibility = View.VISIBLE
+            setupVideo(playerView, videoUrl, btnPlayPause, btnMute)
+        }
+        
+        // Add other components
+        for (i in 0 until components.length()) {
+            val comp = components.getJSONObject(i)
+            if (comp.getString("type") != "video") {
+                addComponent(container, comp)
+            }
         }
         
         dialog.setContentView(view)
+        dialog.setOnDismissListener { player?.release() }
         dialog.show()
+    }
+    
+    private fun setupVideo(playerView: PlayerView, url: String, btnPlayPause: ImageButton, btnMute: ImageButton) {
+        player = ExoPlayer.Builder(context).build()
+        playerView.player = player
+        playerView.useController = false
+        
+        val mediaItem = MediaItem.fromUri(Uri.parse(url))
+        player?.setMediaItem(mediaItem)
+        player?.prepare()
+        player?.play()
+        
+        btnPlayPause.setOnClickListener {
+            if (player?.isPlaying == true) {
+                player?.pause()
+                btnPlayPause.setImageResource(android.R.drawable.ic_media_play)
+            } else {
+                player?.play()
+                btnPlayPause.setImageResource(android.R.drawable.ic_media_pause)
+            }
+        }
+        
+        var isMuted = false
+        btnMute.setOnClickListener {
+            isMuted = !isMuted
+            player?.volume = if (isMuted) 0f else 1f
+            btnMute.setImageResource(
+                if (isMuted) android.R.drawable.ic_lock_silent_mode 
+                else android.R.drawable.ic_lock_silent_mode_off
+            )
+        }
+        
+        player?.addListener(object : Player.Listener {
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                btnPlayPause.setImageResource(
+                    if (isPlaying) android.R.drawable.ic_media_pause 
+                    else android.R.drawable.ic_media_play
+                )
+            }
+        })
     }
     
     private fun addComponent(container: LinearLayout, comp: JSONObject) {
@@ -45,42 +117,32 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
                 tv.text = comp.getString("content")
                 tv.textSize = 20f
                 tv.setTypeface(null, android.graphics.Typeface.BOLD)
+                tv.setPadding(0, 16, 0, 8)
                 container.addView(tv)
             }
             "text" -> {
                 val tv = TextView(context)
                 tv.text = comp.getString("content")
                 tv.textSize = 14f
+                tv.setPadding(0, 8, 0, 8)
                 container.addView(tv)
             }
             "image" -> {
                 val iv = ImageView(context)
                 iv.layoutParams = LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
                 )
+                iv.setPadding(0, 8, 0, 8)
                 Glide.with(context).load(comp.getString("content")).into(iv)
                 container.addView(iv)
-            }
-            "video" -> {
-                val playerView = PlayerView(context)
-                playerView.layoutParams = LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    600
-                )
-                val player = ExoPlayer.Builder(context).build()
-                playerView.player = player
-                val mediaItem = MediaItem.fromUri(Uri.parse(comp.getString("content")))
-                player.setMediaItem(mediaItem)
-                player.prepare()
-                player.play()
-                container.addView(playerView)
             }
             "poll" -> {
                 val tv = TextView(context)
                 tv.text = comp.getString("content")
                 tv.textSize = 16f
                 tv.setTypeface(null, android.graphics.Typeface.BOLD)
+                tv.setPadding(0, 16, 0, 8)
                 container.addView(tv)
                 
                 val options = comp.getJSONArray("options")
@@ -88,6 +150,7 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
                 for (j in 0 until options.length()) {
                     val rb = RadioButton(context)
                     rb.text = options.getString(j)
+                    rb.setPadding(16, 8, 16, 8)
                     radioGroup.addView(rb)
                 }
                 container.addView(radioGroup)

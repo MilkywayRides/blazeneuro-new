@@ -1,37 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_margin="24dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="8dp">
+    android:layout_height="match_parent"
+    android:background="#80000000"
+    android:padding="24dp">
 
-    <RelativeLayout
+    <androidx.cardview.widget.CardView
+        android:id="@+id/popupCard"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp">
 
-        <ImageButton
-            android:id="@+id/btnClose"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_alignParentEnd="true"
-            android:layout_margin="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_close_clear_cancel" />
-
-        <ScrollView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/btnClose"
-            android:maxHeight="500dp"
-            android:padding="16dp">
+            android:orientation="vertical">
 
-            <LinearLayout
-                android:id="@+id/popupContainer"
+            <!-- Video Container -->
+            <FrameLayout
+                android:id="@+id/videoContainer"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:visibility="gone">
+
+                <androidx.media3.ui.PlayerView
+                    android:id="@+id/playerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <!-- Play/Pause Button -->
+                <ImageButton
+                    android:id="@+id/btnPlayPause"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_gravity="center"
+                    android:background="@android:drawable/dialog_holo_dark_frame"
+                    android:src="@android:drawable/ic_media_pause"
+                    android:contentDescription="Play/Pause" />
+
+                <!-- Mute Button -->
+                <ImageButton
+                    android:id="@+id/btnMute"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="bottom|end"
+                    android:layout_margin="12dp"
+                    android:background="@android:drawable/dialog_holo_dark_frame"
+                    android:src="@android:drawable/ic_lock_silent_mode_off"
+                    android:contentDescription="Mute" />
+            </FrameLayout>
+
+            <!-- Close Button -->
+            <ImageButton
+                android:id="@+id/btnClose"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="end"
+                android:layout_margin="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_cancel_circle"
+                android:contentDescription="Close" />
+
+            <!-- Content Container -->
+            <ScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical" />
-        </ScrollView>
-    </RelativeLayout>
-</androidx.cardview.widget.CardView>
+                android:maxHeight="400dp"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:id="@+id/popupContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </ScrollView>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+</FrameLayout>
