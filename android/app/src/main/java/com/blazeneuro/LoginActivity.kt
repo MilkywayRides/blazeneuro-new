@@ -267,8 +267,9 @@ class LoginActivity : AppCompatActivity() {
             val response = RetrofitClient.authService.verifyGitHubCode(
                 GitHubCodeRequest(code = code, state = state)
             )
-            sessionManager.saveToken(response.token)
             
+            // Save to both SessionManager and AuthApi
+            sessionManager.saveToken(response.token)
             AuthApi.saveSessionFromGoogle(
                 this,
                 response.token,
@@ -278,9 +279,11 @@ class LoginActivity : AppCompatActivity() {
                 response.user.id
             )
             
+            Log.d(TAG, "GitHub auth successful, token saved: ${response.token}")
             progressBar.visibility = View.GONE
             navigateToHome()
         } catch (e: Exception) {
+            Log.e(TAG, "GitHub auth failed", e)
             progressBar.visibility = View.GONE
             showError(tvError, "GitHub auth failed: ${e.message}")
         }
@@ -317,8 +320,9 @@ class LoginActivity : AppCompatActivity() {
             val response = RetrofitClient.authService.verifyGoogleToken(
                 GoogleIdTokenRequest(idToken = idToken)
             )
-            sessionManager.saveToken(response.token)
             
+            // Save to both SessionManager and AuthApi
+            sessionManager.saveToken(response.token)
             AuthApi.saveSessionFromGoogle(
                 this,
                 response.token,
@@ -328,9 +332,11 @@ class LoginActivity : AppCompatActivity() {
                 response.user.id
             )
             
+            Log.d(TAG, "Google auth successful, token saved: ${response.token}")
             progressBar.visibility = View.GONE
             navigateToHome()
         } catch (e: Exception) {
+            Log.e(TAG, "Google auth failed", e)
             progressBar.visibility = View.GONE
             showError(tvError, "Authentication failed: ${e.message}")
         }

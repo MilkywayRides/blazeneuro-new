@@ -435,6 +435,7 @@ object AuthApi {
             if (userId != null) putString(KEY_USER_ID, userId)
             apply()
         }
+        Log.d(TAG, "Session saved: token=$token, user=$userName, email=$userEmail, userId=$userId")
     }
     
     fun saveSessionFromGoogle(context: Context, token: String, userName: String, userEmail: String, userImage: String?, userId: String?) {
