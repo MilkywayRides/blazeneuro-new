@@ -1,53 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, readFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
-
-const DATA_DIR = path.join(process.cwd(), 'data')
-const POPUPS_FILE = path.join(DATA_DIR, 'popups.json')
+import { db } from '@/lib/db'
+import { popup } from '@/lib/schema'
 
 export async function POST(req: NextRequest) {
   try {
     const { title, components } = await req.json()
     
-    if (!existsSync(DATA_DIR)) {
-      await mkdir(DATA_DIR, { recursive: true })
-    }
-
-    let popups = []
-    if (existsSync(POPUPS_FILE)) {
-      const data = await readFile(POPUPS_FILE, 'utf-8')
-      popups = JSON.parse(data)
-    }
-
-    const newPopup = {
-      id: crypto.randomUUID(),
+    const id = crypto.randomUUID()
+    
+    await db.insert(popup).values({
+      id,
       title,
-      components,
+      components: JSON.stringify(components),
       active: true,
-      createdAt: new Date().toISOString()
-    }
+      createdAt: new Date(),
+      updatedAt: new Date()
+    })
 
-    popups.push(newPopup)
-    await writeFile(POPUPS_FILE, JSON.stringify(popups, null, 2))
-
-    return NextResponse.json({ success: true, id: newPopup.id })
+    return NextResponse.json({ success: true, id })
   } catch (error) {
+    console.error('Popup save error:', error)
     return NextResponse.json({ error: 'Failed to save' }, { status: 500 })
   }
 }
 
 export async function GET() {
   try {
-    if (!existsSync(POPUPS_FILE)) {
-      return NextResponse.json({ popups: [] })
-    }
+    const popups = await db.query.popup.findMany({
+      orderBy: (popup, { desc }) => [desc(popup.createdAt)]
+    })
 
-    const data = await readFile(POPUPS_FILE, 'utf-8')
-    const popups = JSON.parse(data)
-
-    return NextResponse.json({ popups })
+    return NextResponse.json({ 
+      popups: popups.map(p => ({
+        ...p,
+        components: JSON.parse(p.components)
+      }))
+    })
   } catch (error) {
+    console.error('Popup fetch error:', error)
     return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 })
   }
 }

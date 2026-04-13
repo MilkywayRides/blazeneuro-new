@@ -1,22 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { readFile } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
-
-const POPUPS_FILE = path.join(process.cwd(), 'data', 'popups.json')
+import { db } from '@/lib/db'
+import { popup } from '@/lib/schema'
+import { eq } from 'drizzle-orm'
 
 export async function GET() {
   try {
-    if (!existsSync(POPUPS_FILE)) {
-      return NextResponse.json({ popup: null })
-    }
+    const result = await db.query.popup.findFirst({
+      where: eq(popup.active, true),
+      orderBy: (popup, { desc }) => [desc(popup.createdAt)]
+    })
 
-    const data = await readFile(POPUPS_FILE, 'utf-8')
-    const popups = JSON.parse(data)
-    const activePopup = popups.find((p: any) => p.active)
-
-    return NextResponse.json({ popup: activePopup || null })
+    return NextResponse.json({ 
+      popup: result ? {
+        ...result,
+        components: JSON.parse(result.components)
+      } : null
+    })
   } catch (error) {
+    console.error('Popup fetch error:', error)
     return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 })
   }
 }
