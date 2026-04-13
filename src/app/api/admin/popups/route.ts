@@ -8,16 +8,24 @@ export async function POST(req: NextRequest) {
     
     const id = crypto.randomUUID()
     
-    await db.insert(popup).values({
-      id,
-      title,
-      components: JSON.stringify(components),
-      active: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    })
+    try {
+      await db.insert(popup).values({
+        id,
+        title,
+        components: JSON.stringify(components),
+        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
 
-    return NextResponse.json({ success: true, id })
+      return NextResponse.json({ success: true, id })
+    } catch (dbError) {
+      console.error('Database error:', dbError)
+      return NextResponse.json({ 
+        error: 'Database table not found. Please run migration first.',
+        details: dbError instanceof Error ? dbError.message : 'Unknown'
+      }, { status: 500 })
+    }
   } catch (error) {
     console.error('Popup save error:', error)
     return NextResponse.json({ error: 'Failed to save' }, { status: 500 })
