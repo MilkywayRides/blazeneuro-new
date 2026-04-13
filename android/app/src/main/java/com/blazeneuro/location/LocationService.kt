@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.*
 import kotlinx.coroutines.*
@@ -14,6 +15,7 @@ import org.json.JSONObject
 import java.util.*
 
 class LocationService(private val context: Context) {
+    private val TAG = "LocationService"
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val client = OkHttpClient()
@@ -24,22 +26,30 @@ class LocationService(private val context: Context) {
 
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
-            result.lastLocation?.let { sendLocation(it) }
+            result.lastLocation?.let { 
+                Log.d(TAG, "Location received: ${it.latitude}, ${it.longitude}")
+                sendLocation(it) 
+            }
         }
     }
 
     fun startTracking() {
+        Log.d(TAG, "startTracking called")
         if (ActivityCompat.checkSelfPermission(
                 context, Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
+            Log.d(TAG, "Permission granted, requesting location updates")
             fusedLocationClient.requestLocationUpdates(
                 locationRequest, locationCallback, null
             )
+        } else {
+            Log.e(TAG, "Location permission not granted")
         }
     }
 
     fun stopTracking() {
+        Log.d(TAG, "stopTracking called")
         fusedLocationClient.removeLocationUpdates(locationCallback)
         scope.cancel()
     }
@@ -54,6 +64,7 @@ class LocationService(private val context: Context) {
                     put("longitude", location.longitude.toString())
                 }
 
+                Log.d(TAG, "Sending location: $json")
                 val body = json.toString().toRequestBody("application/json".toMediaType())
                 val request = Request.Builder()
                     .url("https://blazeneuro.com/api/mobile/location")
@@ -61,9 +72,10 @@ class LocationService(private val context: Context) {
                     .post(body)
                     .build()
 
-                client.newCall(request).execute()
+                val response = client.newCall(request).execute()
+                Log.d(TAG, "Location sent, response: ${response.code}")
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e(TAG, "Error sending location", e)
             }
         }
     }
@@ -74,6 +86,7 @@ class LocationService(private val context: Context) {
         if (id == null) {
             id = UUID.randomUUID().toString()
             prefs.edit().putString("device_id", id).apply()
+            Log.d(TAG, "Generated new device ID: $id")
         }
         return id
     }

@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 
     if (existing) {
       await db.update(deviceLocation)
-        .set({ latitude, longitude, userId, lastSeen: new Date() })
+        .set({ latitude, longitude, userId: userId || null, lastSeen: new Date() })
         .where(eq(deviceLocation.deviceId, deviceId))
     } else {
       await db.insert(deviceLocation).values({
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
         deviceId,
         latitude,
         longitude,
-        userId,
+        userId: userId || null,
         lastSeen: new Date()
       })
     }
