@@ -21,6 +21,11 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
     fun show() {
         val dialog = Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.window?.decorView?.systemUiVisibility = (
+            android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+            android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+            android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        )
         
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_popup, null)
         val card = view.findViewById<androidx.cardview.widget.CardView>(R.id.popupCard)
@@ -32,14 +37,13 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         val btnMute = view.findViewById<ImageView>(R.id.btnMute)
         val popupTitle = view.findViewById<TextView>(R.id.popupTitle)
         
-        // Force dark card background
-        card.setCardBackgroundColor(Color.parseColor("#1C1C1E"))
-        
-        // Set title with hashtag prefix
+        // Set card background based on theme
         val isDarkMode = (context.resources.configuration.uiMode and 
             android.content.res.Configuration.UI_MODE_NIGHT_MASK) == 
             android.content.res.Configuration.UI_MODE_NIGHT_YES
+        card.setCardBackgroundColor(if (isDarkMode) Color.parseColor("#1C1C1E") else Color.WHITE)
         
+        // Set title with hashtag prefix
         val titleText = popupData.getString("title")
         val spannableTitle = android.text.SpannableString("# $titleText")
         spannableTitle.setSpan(
