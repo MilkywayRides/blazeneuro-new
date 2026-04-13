@@ -6,9 +6,7 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.view.LayoutInflater
-import android.view.View
 import android.widget.*
-import androidx.cardview.widget.CardView
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -25,13 +23,15 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_popup, null)
-        val card = view.findViewById<CardView>(R.id.popupCard)
         val container = view.findViewById<LinearLayout>(R.id.popupContainer)
         val btnClose = view.findViewById<ImageButton>(R.id.btnClose)
         val videoContainer = view.findViewById<FrameLayout>(R.id.videoContainer)
         val playerView = view.findViewById<PlayerView>(R.id.playerView)
         val btnPlayPause = view.findViewById<ImageButton>(R.id.btnPlayPause)
         val btnMute = view.findViewById<ImageButton>(R.id.btnMute)
+        val popupTitle = view.findViewById<TextView>(R.id.popupTitle)
+        
+        popupTitle.text = popupData.getString("title")
         
         btnClose.setOnClickListener { 
             player?.release()
@@ -53,7 +53,7 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         }
         
         if (hasVideo) {
-            videoContainer.visibility = View.VISIBLE
+            videoContainer.visibility = android.view.View.VISIBLE
             setupVideo(playerView, videoUrl, btnPlayPause, btnMute)
         }
         
@@ -74,6 +74,7 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         player = ExoPlayer.Builder(context).build()
         playerView.player = player
         playerView.useController = false
+        playerView.resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
         
         val mediaItem = MediaItem.fromUri(Uri.parse(url))
         player?.setMediaItem(mediaItem)
@@ -83,10 +84,10 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         btnPlayPause.setOnClickListener {
             if (player?.isPlaying == true) {
                 player?.pause()
-                btnPlayPause.setImageResource(android.R.drawable.ic_media_play)
+                btnPlayPause.setImageResource(R.drawable.ic_play_circle)
             } else {
                 player?.play()
-                btnPlayPause.setImageResource(android.R.drawable.ic_media_pause)
+                btnPlayPause.setImageResource(R.drawable.ic_pause_circle)
             }
         }
         
@@ -95,16 +96,16 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
             isMuted = !isMuted
             player?.volume = if (isMuted) 0f else 1f
             btnMute.setImageResource(
-                if (isMuted) android.R.drawable.ic_lock_silent_mode 
-                else android.R.drawable.ic_lock_silent_mode_off
+                if (isMuted) R.drawable.ic_volume_mute 
+                else R.drawable.ic_volume_high
             )
         }
         
         player?.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 btnPlayPause.setImageResource(
-                    if (isPlaying) android.R.drawable.ic_media_pause 
-                    else android.R.drawable.ic_media_play
+                    if (isPlaying) R.drawable.ic_pause_circle 
+                    else R.drawable.ic_play_circle
                 )
             }
         })
@@ -115,16 +116,16 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
             "title" -> {
                 val tv = TextView(context)
                 tv.text = comp.getString("content")
-                tv.textSize = 20f
+                tv.textSize = 18f
                 tv.setTypeface(null, android.graphics.Typeface.BOLD)
-                tv.setPadding(0, 16, 0, 8)
+                tv.setPadding(0, 0, 0, 16)
                 container.addView(tv)
             }
             "text" -> {
                 val tv = TextView(context)
                 tv.text = comp.getString("content")
                 tv.textSize = 14f
-                tv.setPadding(0, 8, 0, 8)
+                tv.setPadding(0, 0, 0, 16)
                 container.addView(tv)
             }
             "image" -> {
@@ -133,7 +134,7 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 )
-                iv.setPadding(0, 8, 0, 8)
+                iv.setPadding(0, 0, 0, 16)
                 Glide.with(context).load(comp.getString("content")).into(iv)
                 container.addView(iv)
             }
@@ -142,7 +143,7 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
                 tv.text = comp.getString("content")
                 tv.textSize = 16f
                 tv.setTypeface(null, android.graphics.Typeface.BOLD)
-                tv.setPadding(0, 16, 0, 8)
+                tv.setPadding(0, 0, 0, 12)
                 container.addView(tv)
                 
                 val options = comp.getJSONArray("options")
@@ -150,7 +151,7 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
                 for (j in 0 until options.length()) {
                     val rb = RadioButton(context)
                     rb.text = options.getString(j)
-                    rb.setPadding(16, 8, 16, 8)
+                    rb.setPadding(16, 12, 16, 12)
                     radioGroup.addView(rb)
                 }
                 container.addView(radioGroup)

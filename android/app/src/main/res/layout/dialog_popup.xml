@@ -5,17 +5,15 @@
     android:layout_height="match_parent"
     android:background="#CC000000"
     android:clickable="true"
-    android:padding="16dp">
+    android:padding="20dp">
 
     <androidx.cardview.widget.CardView
         android:id="@+id/popupCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        app:cardCornerRadius="24dp"
-        app:cardElevation="16dp">
+        app:cardCornerRadius="20dp"
+        app:cardElevation="24dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -26,61 +24,68 @@
             <FrameLayout
                 android:id="@+id/videoContainer"
                 android:layout_width="match_parent"
-                android:layout_height="280dp"
+                android:layout_height="wrap_content"
                 android:visibility="gone">
 
                 <androidx.media3.ui.PlayerView
                     android:id="@+id/playerView"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
+                    android:layout_height="wrap_content" />
 
                 <!-- Play/Pause Button -->
                 <ImageButton
                     android:id="@+id/btnPlayPause"
-                    android:layout_width="72dp"
-                    android:layout_height="72dp"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
                     android:layout_gravity="center"
                     android:background="@android:color/transparent"
-                    android:src="@android:drawable/ic_media_pause"
+                    android:src="@drawable/ic_pause_circle"
                     android:contentDescription="Play/Pause" />
 
                 <!-- Mute Button -->
                 <ImageButton
                     android:id="@+id/btnMute"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:layout_gravity="bottom|end"
                     android:layout_margin="16dp"
                     android:background="@android:color/transparent"
-                    android:src="@android:drawable/ic_lock_silent_mode_off"
+                    android:src="@drawable/ic_volume_high"
                     android:contentDescription="Mute" />
             </FrameLayout>
 
-            <!-- Content with Close Button -->
-            <RelativeLayout
+            <!-- Content -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
 
                 <!-- Close Button -->
                 <ImageButton
                     android:id="@+id/btnClose"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_alignParentEnd="true"
-                    android:layout_margin="12dp"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="end"
+                    android:layout_marginBottom="16dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@drawable/ic_cancel_circle"
                     android:contentDescription="Close" />
+
+                <!-- Title -->
+                <TextView
+                    android:id="@+id/popupTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="16dp" />
 
                 <!-- Content Container -->
                 <ScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@id/btnClose"
-                    android:maxHeight="400dp"
-                    android:paddingStart="24dp"
-                    android:paddingEnd="24dp"
-                    android:paddingBottom="24dp">
+                    android:maxHeight="300dp">
 
                     <LinearLayout
                         android:id="@+id/popupContainer"
@@ -88,7 +93,7 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical" />
                 </ScrollView>
-            </RelativeLayout>
+            </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 </FrameLayout>
