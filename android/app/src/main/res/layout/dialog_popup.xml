@@ -58,8 +58,8 @@
                     <!-- Mute Button -->
                     <ImageView
                         android:id="@+id/btnMute"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
                         android:layout_gravity="bottom|end"
                         android:layout_margin="12dp"
                         android:src="@drawable/ic_volume_high"
@@ -102,7 +102,7 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Close Button - Top Right of Card -->
+            <!-- Close Button - Top Right of Card (Outside Video) -->
             <ImageView
                 android:id="@+id/btnClose"
                 android:layout_width="24dp"
@@ -112,6 +112,7 @@
                 android:src="@drawable/ic_cancel_circle"
                 android:clickable="true"
                 android:focusable="true"
+                android:background="@android:color/transparent"
                 android:contentDescription="Close" />
         </FrameLayout>
     </androidx.cardview.widget.CardView>
