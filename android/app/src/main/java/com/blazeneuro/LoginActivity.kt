@@ -269,10 +269,8 @@ class LoginActivity : AppCompatActivity() {
                 GitHubCodeRequest(code = code, state = state)
             )
             
-            // Save to SessionManager
-            sessionManager.saveToken(response.token)
-            
-            // Save to AuthApi (this is what MainActivity checks!)
+            // Use AuthApi to save session (same as email login)
+            AuthApi.init(this)
             val prefs = getSharedPreferences("auth", Context.MODE_PRIVATE)
             prefs.edit().apply {
                 putString("token", response.token)
@@ -282,7 +280,9 @@ class LoginActivity : AppCompatActivity() {
                 apply()
             }
             
-            Log.d(TAG, "GitHub auth successful, token saved: ${response.token}")
+            sessionManager.saveToken(response.token)
+            
+            Log.d(TAG, "GitHub auth successful, session saved")
             progressBar.visibility = View.GONE
             navigateToHome()
         } catch (e: Exception) {
@@ -324,10 +324,8 @@ class LoginActivity : AppCompatActivity() {
                 GoogleIdTokenRequest(idToken = idToken)
             )
             
-            // Save to SessionManager
-            sessionManager.saveToken(response.token)
-            
-            // Save to AuthApi (this is what MainActivity checks!)
+            // Use AuthApi to save session (same as email login)
+            AuthApi.init(this)
             val prefs = getSharedPreferences("auth", Context.MODE_PRIVATE)
             prefs.edit().apply {
                 putString("token", response.token)
@@ -337,7 +335,9 @@ class LoginActivity : AppCompatActivity() {
                 apply()
             }
             
-            Log.d(TAG, "Google auth successful, token saved: ${response.token}")
+            sessionManager.saveToken(response.token)
+            
+            Log.d(TAG, "Google auth successful, session saved")
             progressBar.visibility = View.GONE
             navigateToHome()
         } catch (e: Exception) {
