@@ -58,8 +58,8 @@
                     <!-- Mute Button -->
                     <ImageView
                         android:id="@+id/btnMute"
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:layout_gravity="bottom|end"
                         android:layout_margin="12dp"
                         android:src="@drawable/ic_volume_high"
@@ -102,13 +102,13 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Close Button - Absolute Position -->
+            <!-- Close Button - Top Right of Card -->
             <ImageView
                 android:id="@+id/btnClose"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:layout_gravity="top|end"
-                android:layout_margin="16dp"
+                android:layout_margin="12dp"
                 android:src="@drawable/ic_cancel_circle"
                 android:clickable="true"
                 android:focusable="true"
