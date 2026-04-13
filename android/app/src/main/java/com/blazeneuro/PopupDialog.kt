@@ -23,6 +23,7 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_popup, null)
+        val card = view.findViewById<androidx.cardview.widget.CardView>(R.id.popupCard)
         val container = view.findViewById<LinearLayout>(R.id.popupContainer)
         val btnClose = view.findViewById<ImageView>(R.id.btnClose)
         val videoContainer = view.findViewById<FrameLayout>(R.id.videoContainer)
@@ -30,6 +31,12 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         val btnPlayPause = view.findViewById<ImageView>(R.id.btnPlayPause)
         val btnMute = view.findViewById<ImageView>(R.id.btnMute)
         val popupTitle = view.findViewById<TextView>(R.id.popupTitle)
+        
+        // Set card background based on theme
+        val isDarkMode = (context.resources.configuration.uiMode and 
+            android.content.res.Configuration.UI_MODE_NIGHT_MASK) == 
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        card.setCardBackgroundColor(if (isDarkMode) Color.parseColor("#1C1C1E") else Color.WHITE)
         
         popupTitle.text = popupData.getString("title")
         
