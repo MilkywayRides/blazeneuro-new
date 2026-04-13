@@ -21,7 +21,7 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
     private var player: ExoPlayer? = null
     
     fun show() {
-        val dialog = Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+        val dialog = Dialog(context, android.R.style.Theme_Translucent_NoTitleBar_Fullscreen)
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         dialog.window?.decorView?.systemUiVisibility = (
             android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE or

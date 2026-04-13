@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#09090b"
+    android:background="#CC000000"
     android:clickable="true">
 
     <androidx.cardview.widget.CardView
@@ -41,11 +41,11 @@
                 <!-- Play/Pause Button -->
                 <ImageView
                     android:id="@+id/btnPlayPause"
-                    android:layout_width="52dp"
-                    android:layout_height="52dp"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
                     android:layout_gravity="center"
                     android:background="@drawable/bg_play_button"
-                    android:padding="14dp"
+                    android:padding="16dp"
                     android:src="@drawable/ic_play_circle"
                     android:clickable="true"
                     android:focusable="true"
