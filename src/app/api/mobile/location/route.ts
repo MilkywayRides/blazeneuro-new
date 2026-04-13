@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    return NextResponse.json({ error: 'Server error' }, { status: 500 })
+    console.error('Location API error:', error)
+    return NextResponse.json({ error: 'Server error', details: error instanceof Error ? error.message : 'Unknown' }, { status: 500 })
   }
 }
