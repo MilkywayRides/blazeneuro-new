@@ -1,6 +1,8 @@
 package com.blazeneuro
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
@@ -14,6 +16,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -21,6 +24,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.blazeneuro.location.LocationService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -32,6 +36,7 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var navBlogs: View
     private lateinit var navProjects: View
     private lateinit var navProfile: View
+    private lateinit var locationService: LocationService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         applyTheme()
@@ -40,6 +45,12 @@ class HomeActivity : AppCompatActivity() {
         AuthApi.init(this)
         NotificationManager.init(this)
         checkNotificationPermission()
+        
+        // Initialize and start location tracking
+        locationService = LocationService(this)
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            locationService.startTracking()
+        }
         
         // Set status bar appearance based on theme
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
