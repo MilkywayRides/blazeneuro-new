@@ -3,10 +3,10 @@ package com.blazeneuro
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -187,6 +187,7 @@ class HomeActivity : AppCompatActivity() {
     }
     
     private fun checkForPopup() {
+        Log.d("HomeActivity", "checkForPopup called")
         lifecycleScope.launch {
             try {
                 val url = "https://blazeneuro.com/api/mobile/popup"
@@ -194,20 +195,31 @@ class HomeActivity : AppCompatActivity() {
                 val response = okhttp3.OkHttpClient().newCall(request).execute()
                 val json = org.json.JSONObject(response.body?.string() ?: "{}")
                 
+                Log.d("HomeActivity", "Popup response: $json")
+                
                 if (json.has("popup") && !json.isNull("popup")) {
                     val popup = json.getJSONObject("popup")
                     val popupId = popup.getString("id")
+                    
+                    Log.d("HomeActivity", "Found popup: $popupId")
                     
                     val prefs = getSharedPreferences("popups", MODE_PRIVATE)
                     val shown = prefs.getBoolean(popupId, false)
                     
                     if (!shown) {
-                        PopupDialog(this@HomeActivity, popup).show()
+                        Log.d("HomeActivity", "Showing popup")
+                        runOnUiThread {
+                            PopupDialog(this@HomeActivity, popup).show()
+                        }
                         prefs.edit().putBoolean(popupId, true).apply()
+                    } else {
+                        Log.d("HomeActivity", "Popup already shown")
                     }
+                } else {
+                    Log.d("HomeActivity", "No active popup")
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("HomeActivity", "Popup error", e)
             }
         }
     }

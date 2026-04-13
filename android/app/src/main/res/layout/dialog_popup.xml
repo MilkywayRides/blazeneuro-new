@@ -3,16 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#80000000"
-    android:padding="24dp">
+    android:background="#CC000000"
+    android:clickable="true"
+    android:padding="16dp">
 
     <androidx.cardview.widget.CardView
         android:id="@+id/popupCard"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="8dp">
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        app:cardBackgroundColor="?attr/colorSurface"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -23,7 +27,7 @@
             <FrameLayout
                 android:id="@+id/videoContainer"
                 android:layout_width="match_parent"
-                android:layout_height="250dp"
+                android:layout_height="280dp"
                 android:visibility="gone">
 
                 <androidx.media3.ui.PlayerView
@@ -34,49 +38,60 @@
                 <!-- Play/Pause Button -->
                 <ImageButton
                     android:id="@+id/btnPlayPause"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
                     android:layout_gravity="center"
-                    android:background="@android:drawable/dialog_holo_dark_frame"
+                    android:background="@android:color/transparent"
                     android:src="@android:drawable/ic_media_pause"
+                    android:tint="?attr/colorOnSurface"
                     android:contentDescription="Play/Pause" />
 
                 <!-- Mute Button -->
                 <ImageButton
                     android:id="@+id/btnMute"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:layout_gravity="bottom|end"
-                    android:layout_margin="12dp"
-                    android:background="@android:drawable/dialog_holo_dark_frame"
+                    android:layout_margin="16dp"
+                    android:background="@android:color/transparent"
                     android:src="@android:drawable/ic_lock_silent_mode_off"
+                    android:tint="?attr/colorOnSurface"
                     android:contentDescription="Mute" />
             </FrameLayout>
 
-            <!-- Close Button -->
-            <ImageButton
-                android:id="@+id/btnClose"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_gravity="end"
-                android:layout_margin="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_cancel_circle"
-                android:contentDescription="Close" />
-
-            <!-- Content Container -->
-            <ScrollView
+            <!-- Content with Close Button -->
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:maxHeight="400dp"
-                android:padding="16dp">
+                android:layout_height="wrap_content">
 
-                <LinearLayout
-                    android:id="@+id/popupContainer"
+                <!-- Close Button -->
+                <ImageButton
+                    android:id="@+id/btnClose"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_margin="12dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_cancel_circle"
+                    android:contentDescription="Close" />
+
+                <!-- Content Container -->
+                <ScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical" />
-            </ScrollView>
+                    android:layout_below="@id/btnClose"
+                    android:maxHeight="400dp"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="24dp"
+                    android:paddingBottom="24dp">
+
+                    <LinearLayout
+                        android:id="@+id/popupContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+                </ScrollView>
+            </RelativeLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 </FrameLayout>
