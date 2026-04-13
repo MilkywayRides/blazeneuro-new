@@ -23,9 +23,9 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         dialog.window?.decorView?.systemUiVisibility = (
             android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-            android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-            android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+            android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         )
+        dialog.window?.statusBarColor = Color.TRANSPARENT
         
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_popup, null)
         val card = view.findViewById<androidx.cardview.widget.CardView>(R.id.popupCard)
@@ -42,6 +42,9 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
             android.content.res.Configuration.UI_MODE_NIGHT_MASK) == 
             android.content.res.Configuration.UI_MODE_NIGHT_YES
         card.setCardBackgroundColor(if (isDarkMode) Color.parseColor("#1C1C1E") else Color.WHITE)
+        
+        // Set close button icon based on theme
+        btnClose.setImageResource(if (isDarkMode) R.drawable.ic_cancel_circle else R.drawable.ic_cancel_circle_dark)
         
         // Set title with hashtag prefix
         val titleText = popupData.getString("title")
