@@ -32,11 +32,8 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         val btnMute = view.findViewById<ImageView>(R.id.btnMute)
         val popupTitle = view.findViewById<TextView>(R.id.popupTitle)
         
-        // Set card background based on theme
-        val isDarkMode = (context.resources.configuration.uiMode and 
-            android.content.res.Configuration.UI_MODE_NIGHT_MASK) == 
-            android.content.res.Configuration.UI_MODE_NIGHT_YES
-        card.setCardBackgroundColor(if (isDarkMode) Color.parseColor("#1C1C1E") else Color.WHITE)
+        // Force dark card background
+        card.setCardBackgroundColor(Color.parseColor("#1C1C1E"))
         
         popupTitle.text = popupData.getString("title")
         
