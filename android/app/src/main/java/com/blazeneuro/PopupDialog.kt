@@ -30,7 +30,6 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         dialog.window?.statusBarColor = Color.TRANSPARENT
         
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_popup, null)
-        val card = view.findViewById<androidx.cardview.widget.CardView>(R.id.popupCard)
         val container = view.findViewById<LinearLayout>(R.id.popupContainer)
         val btnClose = view.findViewById<ImageView>(R.id.btnClose)
         val videoContainer = view.findViewById<FrameLayout>(R.id.videoContainer)
@@ -38,26 +37,22 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         val btnPlayPause = view.findViewById<ImageView>(R.id.btnPlayPause)
         val btnMute = view.findViewById<ImageView>(R.id.btnMute)
         val popupTitle = view.findViewById<TextView>(R.id.popupTitle)
+        val metadataText = view.findViewById<TextView>(R.id.metadataText)
         
-        // Set card background based on theme
-        val isDarkMode = (context.resources.configuration.uiMode and 
-            android.content.res.Configuration.UI_MODE_NIGHT_MASK) == 
-            android.content.res.Configuration.UI_MODE_NIGHT_YES
-        card.setCardBackgroundColor(if (isDarkMode) Color.parseColor("#1C1C1E") else Color.WHITE)
-        
-        // Set close button icon based on theme
-        btnClose.setImageResource(if (isDarkMode) R.drawable.ic_cancel_circle else R.drawable.ic_cancel_circle_dark)
-        
-        // Set title with hashtag prefix
+        // Set title with indigo # prefix
         val titleText = popupData.getString("title")
         val spannableTitle = SpannableString("# $titleText")
         spannableTitle.setSpan(
-            ForegroundColorSpan(Color.parseColor("#888888")),
+            ForegroundColorSpan(Color.parseColor("#6366f1")),
             0, 1,
             android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
         )
+        spannableTitle.setSpan(
+            ForegroundColorSpan(Color.parseColor("#EBFFFFFF")),
+            1, spannableTitle.length,
+            android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
         popupTitle.text = spannableTitle
-        popupTitle.setTextColor(if (isDarkMode) Color.WHITE else Color.BLACK)
         
         btnClose.setOnClickListener { 
             player?.release()
@@ -68,7 +63,6 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         var hasVideo = false
         var videoUrl = ""
         
-        // Check for video first
         for (i in 0 until components.length()) {
             val comp = components.getJSONObject(i)
             if (comp.getString("type") == "video") {
@@ -80,14 +74,13 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         
         if (hasVideo) {
             videoContainer.visibility = android.view.View.VISIBLE
-            setupVideo(playerView, videoUrl, btnPlayPause, btnMute)
+            setupVideo(playerView, videoUrl, btnPlayPause, btnMute, metadataText)
         }
         
-        // Add other components
         for (i in 0 until components.length()) {
             val comp = components.getJSONObject(i)
             if (comp.getString("type") != "video") {
-                addComponent(container, comp, isDarkMode)
+                addComponent(container, comp)
             }
         }
         
@@ -96,11 +89,11 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         dialog.show()
     }
     
-    private fun setupVideo(playerView: PlayerView, url: String, btnPlayPause: ImageView, btnMute: ImageView) {
+    private fun setupVideo(playerView: PlayerView, url: String, btnPlayPause: ImageView, btnMute: ImageView, metadataText: TextView) {
         player = ExoPlayer.Builder(context).build()
         playerView.player = player
         playerView.useController = false
-        playerView.resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
+        playerView.resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM
         
         val mediaItem = MediaItem.fromUri(Uri.parse(url))
         player?.setMediaItem(mediaItem)
@@ -134,28 +127,35 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
                     )
                 }
             }
+            
+            override fun onPlaybackStateChanged(state: Int) {
+                if (state == Player.STATE_READY) {
+                    val duration = player?.duration ?: 0
+                    val minutes = (duration / 1000 / 60).toInt()
+                    val seconds = (duration / 1000 % 60).toInt()
+                    metadataText.text = "Video · $minutes min $seconds sec"
+                }
+            }
         })
     }
     
-    private fun addComponent(container: LinearLayout, comp: JSONObject, isDarkMode: Boolean) {
-        val textColor = if (isDarkMode) Color.WHITE else Color.BLACK
-        
+    private fun addComponent(container: LinearLayout, comp: JSONObject) {
         when (comp.getString("type")) {
             "title" -> {
                 val tv = TextView(context)
                 tv.text = comp.getString("content")
-                tv.textSize = 18f
-                tv.setTextColor(textColor)
+                tv.textSize = 16f
+                tv.setTextColor(Color.parseColor("#EBFFFFFF"))
                 tv.setTypeface(null, android.graphics.Typeface.BOLD)
-                tv.setPadding(0, 0, 0, 16)
+                tv.setPadding(0, 0, 0, 12)
                 container.addView(tv)
             }
             "text" -> {
                 val tv = TextView(context)
                 tv.text = comp.getString("content")
-                tv.textSize = 14f
-                tv.setTextColor(textColor)
-                tv.setPadding(0, 0, 0, 16)
+                tv.textSize = 13f
+                tv.setTextColor(Color.parseColor("#61FFFFFF"))
+                tv.setPadding(0, 0, 0, 12)
                 container.addView(tv)
             }
             "image" -> {
@@ -164,17 +164,17 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 )
-                iv.setPadding(0, 0, 0, 16)
+                iv.setPadding(0, 0, 0, 12)
                 Glide.with(context).load(comp.getString("content")).into(iv)
                 container.addView(iv)
             }
             "poll" -> {
                 val tv = TextView(context)
                 tv.text = comp.getString("content")
-                tv.textSize = 16f
-                tv.setTextColor(textColor)
+                tv.textSize = 15f
+                tv.setTextColor(Color.parseColor("#EBFFFFFF"))
                 tv.setTypeface(null, android.graphics.Typeface.BOLD)
-                tv.setPadding(0, 0, 0, 12)
+                tv.setPadding(0, 0, 0, 10)
                 container.addView(tv)
                 
                 val options = comp.getJSONArray("options")
@@ -182,8 +182,8 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
                 for (j in 0 until options.length()) {
                     val rb = RadioButton(context)
                     rb.text = options.getString(j)
-                    rb.setTextColor(textColor)
-                    rb.setPadding(16, 12, 16, 12)
+                    rb.setTextColor(Color.parseColor("#EBFFFFFF"))
+                    rb.setPadding(16, 10, 16, 10)
                     radioGroup.addView(rb)
                 }
                 container.addView(radioGroup)
