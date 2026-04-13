@@ -24,11 +24,11 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_popup, null)
         val container = view.findViewById<LinearLayout>(R.id.popupContainer)
-        val btnClose = view.findViewById<ImageButton>(R.id.btnClose)
+        val btnClose = view.findViewById<ImageView>(R.id.btnClose)
         val videoContainer = view.findViewById<FrameLayout>(R.id.videoContainer)
         val playerView = view.findViewById<PlayerView>(R.id.playerView)
-        val btnPlayPause = view.findViewById<ImageButton>(R.id.btnPlayPause)
-        val btnMute = view.findViewById<ImageButton>(R.id.btnMute)
+        val btnPlayPause = view.findViewById<ImageView>(R.id.btnPlayPause)
+        val btnMute = view.findViewById<ImageView>(R.id.btnMute)
         val popupTitle = view.findViewById<TextView>(R.id.popupTitle)
         
         popupTitle.text = popupData.getString("title")
@@ -70,7 +70,7 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         dialog.show()
     }
     
-    private fun setupVideo(playerView: PlayerView, url: String, btnPlayPause: ImageButton, btnMute: ImageButton) {
+    private fun setupVideo(playerView: PlayerView, url: String, btnPlayPause: ImageView, btnMute: ImageView) {
         player = ExoPlayer.Builder(context).build()
         playerView.player = player
         playerView.useController = false

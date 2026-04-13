@@ -25,9 +25,7 @@
                 android:id="@+id/videoContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginEnd="20dp"
-                android:layout_marginTop="20dp"
+                android:layout_margin="20dp"
                 android:visibility="gone">
 
                 <androidx.cardview.widget.CardView
@@ -43,26 +41,26 @@
                 </androidx.cardview.widget.CardView>
 
                 <!-- Play/Pause Button -->
-                <ImageButton
+                <ImageView
                     android:id="@+id/btnPlayPause"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
                     android:layout_gravity="center"
-                    android:background="@android:color/transparent"
                     android:src="@drawable/ic_pause_circle"
-                    android:scaleType="fitCenter"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:contentDescription="Play/Pause" />
 
                 <!-- Mute Button -->
-                <ImageButton
+                <ImageView
                     android:id="@+id/btnMute"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:layout_gravity="bottom|end"
                     android:layout_margin="16dp"
-                    android:background="@android:color/transparent"
                     android:src="@drawable/ic_volume_high"
-                    android:scaleType="fitCenter"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:contentDescription="Mute" />
             </FrameLayout>
 
@@ -71,7 +69,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="20dp">
 
                 <!-- Header with Title and Close -->
                 <RelativeLayout
@@ -91,13 +91,14 @@
                         android:layout_centerVertical="true" />
 
                     <!-- Close Button -->
-                    <ImageButton
+                    <ImageView
                         android:id="@+id/btnClose"
                         android:layout_width="32dp"
                         android:layout_height="32dp"
                         android:layout_alignParentEnd="true"
-                        android:background="?attr/selectableItemBackgroundBorderless"
                         android:src="@drawable/ic_cancel_circle"
+                        android:clickable="true"
+                        android:focusable="true"
                         android:contentDescription="Close" />
                 </RelativeLayout>
 
