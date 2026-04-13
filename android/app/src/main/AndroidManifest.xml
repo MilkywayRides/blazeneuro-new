@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     
     <application
+        android:name=".BlazeNeuroApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="BlazeNeuro"
@@ -12,13 +13,16 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:usesCleartextTraffic="true"
         android:hardwareAccelerated="true"
-        android:largeHeap="false">
+        android:largeHeap="false"
+        android:supportsRtl="false"
+        android:extractNativeLibs="false">
         
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:configChanges="orientation|screenSize|keyboardHidden"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize"
+            android:hardwareAccelerated="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -28,7 +32,8 @@
         <activity
             android:name=".LoginActivity"
             android:exported="true"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:hardwareAccelerated="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -37,27 +42,39 @@
                     android:scheme="blazeneuro"
                     android:host="callback" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="blazeneuro"
+                    android:host="github-callback" />
+            </intent-filter>
         </activity>
             
         <activity
             android:name=".SignupActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:hardwareAccelerated="true" />
             
         <activity
             android:name=".HomeActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:windowSoftInputMode="adjustResize"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTop"
+            android:hardwareAccelerated="true" />
 
         <activity
             android:name=".ForgotPasswordActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:hardwareAccelerated="true" />
 
         <activity
             android:name=".BlogDetailActivity"
             android:exported="true"
-            android:launchMode="singleTask">
+            android:launchMode="singleTask"
+            android:hardwareAccelerated="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -71,6 +88,7 @@
 
         <activity
             android:name=".ChatActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:hardwareAccelerated="true" />
     </application>
 </manifest>

@@ -1,260 +1,272 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- shadcn-inspired Signup Screen -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
-    android:fillViewport="true">
+    android:fitsSystemWindows="false"
+    android:background="@drawable/gradient_background">
 
-    <LinearLayout
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
-        android:padding="@dimen/space_xl">
+        android:layout_alignParentBottom="true"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="@android:color/transparent">
 
-        <!-- Top bar -->
-        <LinearLayout
+        <ScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingTop="@dimen/space_sm"
-            android:paddingBottom="@dimen/space_lg">
+            android:fillViewport="true"
+            android:scrollbars="none">
 
-            <TextView
-                android:id="@+id/btnBack"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="@drawable/button_secondary"
-                android:gravity="center"
-                android:text="←"
-                android:textColor="@color/foreground"
-                android:textSize="@dimen/text_lg" />
-        </LinearLayout>
-
-        <!-- Card -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/card_background"
-            android:orientation="vertical"
-            android:padding="@dimen/space_xl">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-medium"
-                android:text="Create an account"
-                android:textColor="@color/foreground"
-                android:textSize="@dimen/text_2xl" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_xs"
-                android:text="Enter your details to get started"
-                android:textColor="@color/muted_foreground"
-                android:textSize="@dimen/text_sm" />
-
-            <!-- Error -->
-            <TextView
-                android:id="@+id/tvError"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_lg"
-                android:background="@drawable/error_background"
-                android:textColor="@color/destructive_foreground"
-                android:textSize="@dimen/text_sm"
-                android:visibility="gone" />
-
-            <!-- Name -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_xl"
-                android:fontFamily="sans-serif-medium"
-                android:text="Name"
-                android:textColor="@color/foreground"
-                android:textSize="@dimen/text_sm" />
-
-            <EditText
-                android:id="@+id/etName"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/input_height"
-                android:layout_marginTop="@dimen/space_sm"
-                android:background="@drawable/input_background"
-                android:fontFamily="sans-serif"
-                android:hint="John Doe"
-                android:inputType="textPersonName"
-                android:textColor="@color/foreground"
-                android:textColorHint="@color/text_muted"
-                android:textSize="@dimen/text_sm" />
-
-            <!-- Email -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_lg"
-                android:fontFamily="sans-serif-medium"
-                android:text="Email"
-                android:textColor="@color/foreground"
-                android:textSize="@dimen/text_sm" />
-
-            <EditText
-                android:id="@+id/etEmail"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/input_height"
-                android:layout_marginTop="@dimen/space_sm"
-                android:background="@drawable/input_background"
-                android:fontFamily="sans-serif"
-                android:hint="name@example.com"
-                android:inputType="textEmailAddress"
-                android:textColor="@color/foreground"
-                android:textColorHint="@color/text_muted"
-                android:textSize="@dimen/text_sm" />
-
-            <!-- Password -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_lg"
-                android:fontFamily="sans-serif-medium"
-                android:text="Password"
-                android:textColor="@color/foreground"
-                android:textSize="@dimen/text_sm" />
-
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_sm">
-
-                <EditText
-                    android:id="@+id/etPassword"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/input_height"
-                    android:background="@drawable/input_background"
-                    android:fontFamily="sans-serif"
-                    android:hint="Min. 8 characters"
-                    android:inputType="textPassword"
-                    android:paddingEnd="48dp"
-                    android:textColor="@color/foreground"
-                    android:textColorHint="@color/text_muted"
-                    android:textSize="@dimen/text_sm" />
-
-                <TextView
-                    android:id="@+id/btnTogglePassword"
-                    android:layout_width="40dp"
-                    android:layout_height="@dimen/input_height"
-                    android:layout_gravity="end|center_vertical"
-                    android:gravity="center"
-                    android:text="👁"
-                    android:textSize="16sp" />
-            </FrameLayout>
-
-            <!-- Signup button -->
-            <Button
-                android:id="@+id/btnSignup"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/button_height"
-                android:layout_marginTop="@dimen/space_xl"
-                android:background="@drawable/button_primary"
-                android:fontFamily="sans-serif-medium"
-                android:text="Create Account"
-                android:textAllCaps="false"
-                android:textColor="@color/primary_foreground"
-                android:textSize="@dimen/text_sm" />
-
-            <ProgressBar
-                android:id="@+id/progressBar"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_gravity="center"
-                android:layout_marginTop="@dimen/space_md"
-                android:indeterminateTint="@color/foreground"
-                android:visibility="gone" />
-
-            <!-- Divider -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/space_xl"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="vertical"
+                android:background="@drawable/welcome_card_bg"
+                android:paddingStart="32dp"
+                android:paddingEnd="32dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="32dp"
+                android:focusableInTouchMode="true">
 
                 <View
-                    android:layout_width="0dp"
-                    android:layout_height="1dp"
-                    android:layout_weight="1"
-                    android:background="@color/border" />
+                    android:layout_width="40dp"
+                    android:layout_height="4dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/drawer_handle"
+                    android:layout_marginBottom="16dp" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingStart="@dimen/space_lg"
-                    android:paddingEnd="@dimen/space_lg"
-                    android:text="or"
-                    android:textColor="@color/text_muted"
-                    android:textSize="@dimen/text_xs" />
+                    android:text="Sign Up"
+                    android:textColor="@color/foreground"
+                    android:textSize="24sp"
+                    android:fontFamily="@font/lexend_deca"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="24dp" />
 
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="1dp"
-                    android:layout_weight="1"
-                    android:background="@color/border" />
+                <TextView
+                    android:id="@+id/tvError"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:background="@drawable/error_background"
+                    android:textColor="@color/destructive_foreground"
+                    android:textSize="@dimen/text_sm"
+                    android:fontFamily="@font/lexend_deca"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Name"
+                    android:textColor="@color/foreground"
+                    android:textSize="@dimen/text_sm"
+                    android:fontFamily="@font/lexend_deca"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/etName"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/input_height"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/input_transparent"
+                    android:hint="John Doe"
+                    android:inputType="textPersonName"
+                    android:longClickable="true"
+                    android:textColor="@color/foreground"
+                    android:textColorHint="@color/muted_foreground"
+                    android:textSize="@dimen/text_sm"
+                    android:fontFamily="@font/lexend_deca" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Email"
+                    android:textColor="@color/foreground"
+                    android:textSize="@dimen/text_sm"
+                    android:fontFamily="@font/lexend_deca"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/etEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/input_height"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/input_transparent"
+                    android:hint="name@example.com"
+                    android:inputType="textEmailAddress"
+                    android:longClickable="true"
+                    android:textColor="@color/foreground"
+                    android:textColorHint="@color/muted_foreground"
+                    android:textSize="@dimen/text_sm"
+                    android:fontFamily="@font/lexend_deca" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="Password"
+                    android:textColor="@color/foreground"
+                    android:textSize="@dimen/text_sm"
+                    android:fontFamily="@font/lexend_deca"
+                    android:textStyle="bold" />
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+
+                    <EditText
+                        android:id="@+id/etPassword"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/input_height"
+                        android:background="@drawable/input_transparent"
+                        android:hint="••••••••"
+                        android:inputType="textPassword"
+                        android:longClickable="true"
+                        android:paddingEnd="48dp"
+                        android:textColor="@color/foreground"
+                        android:textColorHint="@color/muted_foreground"
+                        android:textSize="@dimen/text_sm"
+                        android:fontFamily="@font/lexend_deca" />
+
+                    <ImageView
+                        android:id="@+id/btnTogglePassword"
+                        android:layout_width="40dp"
+                        android:layout_height="@dimen/input_height"
+                        android:layout_gravity="end|center_vertical"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_eye_open"
+                        android:contentDescription="Toggle password visibility" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="24dp"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:background="@drawable/button_primary"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:id="@+id/btnSignup">
+
+                    <ProgressBar
+                        android:id="@+id/progressBar"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginEnd="8dp"
+                        android:indeterminateTint="@color/primary_foreground"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/btnSignupText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Create account"
+                        android:textColor="@color/primary_foreground"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/lexend_deca" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/termsTextSignup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="16dp"
+                    android:textAlignment="center"
+                    android:textColor="@color/muted_foreground"
+                    android:textSize="11sp"
+                    android:fontFamily="@font/lexend_deca" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1"
+                        android:background="@color/border" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:text="or"
+                        android:textColor="@color/muted_foreground"
+                        android:textSize="@dimen/text_xs"
+                        android:fontFamily="@font/lexend_deca" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1"
+                        android:background="@color/border" />
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btnGoogle"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/button_outline"
+                    android:text="Continue with Google"
+                    android:textAllCaps="false"
+                    android:textColor="@color/foreground"
+                    android:textSize="14sp"
+                    android:fontFamily="@font/lexend_deca" />
+
+                <Button
+                    android:id="@+id/btnGithub"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/button_outline"
+                    android:text="Continue with GitHub"
+                    android:textAllCaps="false"
+                    android:textColor="@color/foreground"
+                    android:textSize="14sp"
+                    android:fontFamily="@font/lexend_deca" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="24dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Already have an account? "
+                        android:textColor="@color/muted_foreground"
+                        android:textSize="@dimen/text_sm"
+                        android:fontFamily="@font/lexend_deca" />
+
+                    <TextView
+                        android:id="@+id/tvLoginLink"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sign in"
+                        android:textColor="@color/foreground"
+                        android:textSize="@dimen/text_sm"
+                        android:fontFamily="@font/lexend_deca"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
             </LinearLayout>
+        </ScrollView>
+    </androidx.cardview.widget.CardView>
 
-            <!-- Social -->
-            <Button
-                android:id="@+id/btnGoogle"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/button_height"
-                android:layout_marginTop="@dimen/space_lg"
-                android:background="@drawable/button_outline"
-                android:fontFamily="sans-serif-medium"
-                android:text="Continue with Google"
-                android:textAllCaps="false"
-                android:textColor="@color/foreground"
-                android:textSize="@dimen/text_sm" />
-
-            <Button
-                android:id="@+id/btnGithub"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/button_height"
-                android:layout_marginTop="@dimen/space_sm"
-                android:background="@drawable/button_outline"
-                android:fontFamily="sans-serif-medium"
-                android:text="Continue with GitHub"
-                android:textAllCaps="false"
-                android:textColor="@color/foreground"
-                android:textSize="@dimen/text_sm" />
-        </LinearLayout>
-
-        <!-- Bottom link -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="@dimen/space_xl"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Already have an account? "
-                android:textColor="@color/muted_foreground"
-                android:textSize="@dimen/text_sm" />
-
-            <TextView
-                android:id="@+id/tvLoginLink"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-medium"
-                android:text="Sign in"
-                android:textColor="@color/foreground"
-                android:textSize="@dimen/text_sm" />
-        </LinearLayout>
-
-    </LinearLayout>
-</ScrollView>
+</RelativeLayout>

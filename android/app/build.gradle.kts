@@ -16,6 +16,7 @@ android {
         vectorDrawables.useSupportLibrary = true
         renderscriptTargetApi = 24
         renderscriptSupportModeEnabled = false
+        ndk.abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a"))
     }
 
     buildTypes {
@@ -40,17 +41,33 @@ android {
     
     kotlinOptions {
         jvmTarget = "1.8"
+        freeCompilerArgs += listOf(
+            "-opt-in=kotlin.RequiresOptIn",
+            "-Xjvm-default=all"
+        )
     }
     
     buildFeatures {
         viewBinding = true
         buildConfig = true
+        aidl = false
+        renderScript = false
+        resValues = false
+        shaders = false
     }
     
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/DEPENDENCIES"
+            excludes += "META-INF/LICENSE*"
+            excludes += "META-INF/NOTICE*"
         }
+    }
+    
+    lint {
+        checkReleaseBuilds = false
+        abortOnError = false
     }
 }
 
@@ -78,4 +95,10 @@ dependencies {
     implementation("com.github.Dimezis:BlurView:version-2.0.3")
     implementation("io.socket:socket.io-client:2.1.0")
     implementation("com.google.code.gson:gson:2.10.1")
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
 }

@@ -130,7 +130,18 @@ class BlogDetailActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.tvLikeCount).text = formatCount(blog.likeCount)
             findViewById<TextView>(R.id.tvDislikeCount).text = formatCount(blog.dislikeCount)
             
-            markwon.setMarkdown(findViewById(R.id.tvContent), blog.content)
+            val contentView = findViewById<TextView>(R.id.tvContent)
+            contentView.setTextIsSelectable(true)
+            markwon.setMarkdown(contentView, blog.content)
+            
+            // Long click to copy
+            contentView.setOnLongClickListener {
+                val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newPlainText("blog_content", blog.content)
+                clipboard.setPrimaryClip(clip)
+                Toast.makeText(this, "Content copied", Toast.LENGTH_SHORT).show()
+                true
+            }
         } else {
             findViewById<TextView>(R.id.tvContent).text = "Failed to load blog content"
         }

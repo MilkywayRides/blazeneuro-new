@@ -436,6 +436,11 @@ object AuthApi {
             apply()
         }
     }
+    
+    fun saveSessionFromGoogle(context: Context, token: String, userName: String, userEmail: String, userImage: String?, userId: String?) {
+        init(context)
+        saveSession(token, userName, userEmail, userImage, userId)
+    }
 
     private fun clearSession() {
         prefs.edit().clear().apply()

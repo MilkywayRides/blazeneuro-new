@@ -83,7 +83,8 @@
                 android:text="Blog content..."
                 android:textColor="@color/foreground"
                 android:textSize="@dimen/text_base"
-                android:lineSpacingExtra="4dp" />
+                android:lineSpacingExtra="4dp"
+                android:textIsSelectable="true" />
 
             <View
                 android:layout_width="match_parent"

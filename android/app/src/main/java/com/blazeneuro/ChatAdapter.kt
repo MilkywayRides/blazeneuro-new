@@ -38,6 +38,15 @@ class ChatAdapter(
         holder.tvContent.text = message.content
         holder.tvTime.text = formatTime(message.createdAt)
         
+        // Long click to copy
+        holder.tvContent.setOnLongClickListener {
+            val clipboard = holder.itemView.context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            val clip = android.content.ClipData.newPlainText("message", message.content)
+            clipboard.setPrimaryClip(clip)
+            android.widget.Toast.makeText(holder.itemView.context, "Message copied", android.widget.Toast.LENGTH_SHORT).show()
+            true
+        }
+        
         if (message.userImage != null) {
             Glide.with(holder.ivAvatar)
                 .load(message.userImage)

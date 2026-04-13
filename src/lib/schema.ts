@@ -49,6 +49,15 @@ export const verification = pgTable("verification", {
   updatedAt: timestamp("updatedAt").defaultNow()
 })
 
+export const deviceLocation = pgTable("deviceLocation", {
+  id: text("id").primaryKey(),
+  userId: text("userId").references(() => user.id),
+  deviceId: text("deviceId").notNull(),
+  latitude: text("latitude").notNull(),
+  longitude: text("longitude").notNull(),
+  lastSeen: timestamp("lastSeen").notNull().defaultNow()
+})
+
 export const oauthApp = pgTable("oauthApp", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -257,6 +266,7 @@ export const schema = {
   session,
   account,
   verification,
+  deviceLocation,
   oauthApp,
   oauthAuthorization,
   oauthToken,
@@ -271,6 +281,9 @@ export const schema = {
   adminChatMessage,
   blogSearchCache,
   searchQuery,
-  communityPost
+  communityPost,
+  chatMessage,
+  chatMention,
+  pushToken
 }
 

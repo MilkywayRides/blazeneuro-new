@@ -23,9 +23,11 @@
     public static *** i(...);
 }
 
-# Optimize
--optimizationpasses 5
+# Optimize aggressively
+-optimizationpasses 7
 -dontusemixedcaseclassnames
 -dontskipnonpubliclibraryclasses
 -verbose
--optimizations !code/simplification/arithmetic,!field/*,!class/merging/*
+-optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*
+-allowaccessmodification
+-repackageclasses ''

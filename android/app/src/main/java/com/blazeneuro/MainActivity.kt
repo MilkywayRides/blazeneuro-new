@@ -13,7 +13,6 @@ class MainActivity : AppCompatActivity() {
         applyTheme()
         super.onCreate(savedInstanceState)
 
-        // Make status bar transparent
         window.decorView.systemUiVisibility = (
             android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE
             or android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
@@ -22,15 +21,18 @@ class MainActivity : AppCompatActivity() {
 
         AuthApi.init(this)
         
-        // Set status bar appearance based on theme
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             val nightMode = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
-            if (nightMode == android.content.res.Configuration.UI_MODE_NIGHT_NO) {
-                // Light mode - dark status bar icons
+            if (nightMode == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
                 window.decorView.systemUiVisibility = (
                     android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                     or android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                     or android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                )
+            } else {
+                window.decorView.systemUiVisibility = (
+                    android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    or android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 )
             }
         }
@@ -66,15 +68,13 @@ class MainActivity : AppCompatActivity() {
     private fun showWelcomeScreen() {
         setContentView(R.layout.activity_main)
 
-        // Animate circles with hardware layers for better performance
         val circle1 = findViewById<android.view.View>(R.id.circle1)
         val circle2 = findViewById<android.view.View>(R.id.circle2)
         
-        circle1.setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
-        circle2.setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
-        
         animateCircle1(circle1)
         animateCircle2(circle2)
+        
+        setupTermsText()
 
         findViewById<android.widget.Button>(R.id.btnLogin).setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
@@ -85,15 +85,61 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
+    private fun setupTermsText() {
+        val termsText = findViewById<android.widget.TextView>(R.id.termsText)
+        val text = "By continuing, you agree to our Terms of Service\nand Privacy Policy"
+        val spannableString = android.text.SpannableString(text)
+        
+        val termsStart = text.indexOf("Terms of Service")
+        val termsEnd = termsStart + "Terms of Service".length
+        val privacyStart = text.indexOf("Privacy Policy")
+        val privacyEnd = privacyStart + "Privacy Policy".length
+        
+        val termsClickable = object : android.text.style.ClickableSpan() {
+            override fun onClick(widget: android.view.View) {
+                openUrl("https://blazeneuro.com/terms")
+            }
+            override fun updateDrawState(ds: android.text.TextPaint) {
+                super.updateDrawState(ds)
+                ds.isUnderlineText = true
+                ds.color = android.graphics.Color.parseColor("#71717A")
+            }
+        }
+        
+        val privacyClickable = object : android.text.style.ClickableSpan() {
+            override fun onClick(widget: android.view.View) {
+                openUrl("https://blazeneuro.com/privacy")
+            }
+            override fun updateDrawState(ds: android.text.TextPaint) {
+                super.updateDrawState(ds)
+                ds.isUnderlineText = true
+                ds.color = android.graphics.Color.parseColor("#71717A")
+            }
+        }
+        
+        spannableString.setSpan(termsClickable, termsStart, termsEnd, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannableString.setSpan(privacyClickable, privacyStart, privacyEnd, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        
+        termsText.text = spannableString
+        termsText.movementMethod = android.text.method.LinkMovementMethod.getInstance()
+        termsText.highlightColor = android.graphics.Color.TRANSPARENT
+    }
+    
+    private fun openUrl(url: String) {
+        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))
+        startActivity(intent)
+    }
+    
     private fun animateCircle1(view: android.view.View) {
         view.animate()
-            .translationY(100f)
-            .setDuration(3000)
-            .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator())
+            .translationY(80f)
+            .setDuration(8000)
+            .setInterpolator(android.view.animation.LinearInterpolator())
             .withEndAction {
                 view.animate()
                     .translationY(0f)
-                    .setDuration(3000)
+                    .setDuration(8000)
+                    .setInterpolator(android.view.animation.LinearInterpolator())
                     .withEndAction { animateCircle1(view) }
                     .start()
             }
@@ -102,13 +148,14 @@ class MainActivity : AppCompatActivity() {
     
     private fun animateCircle2(view: android.view.View) {
         view.animate()
-            .translationX(50f)
-            .setDuration(4000)
-            .setInterpolator(android.view.animation.AccelerateDecelerateInterpolator())
+            .translationX(40f)
+            .setDuration(10000)
+            .setInterpolator(android.view.animation.LinearInterpolator())
             .withEndAction {
                 view.animate()
                     .translationX(0f)
-                    .setDuration(4000)
+                    .setDuration(10000)
+                    .setInterpolator(android.view.animation.LinearInterpolator())
                     .withEndAction { animateCircle2(view) }
                     .start()
             }

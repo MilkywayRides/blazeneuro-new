@@ -8,5 +8,11 @@
         <item name="android:colorAccent">@color/ring</item>
         <item name="android:textColorPrimary">@color/foreground</item>
         <item name="android:textColorSecondary">@color/muted_foreground</item>
+        <item name="android:windowIsTranslucent">false</item>
+        <item name="android:windowDisablePreview">false</item>
+        <item name="android:windowContentTransitions">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:fontFamily">@font/lexend_deca</item>
+        <item name="fontFamily">@font/lexend_deca</item>
     </style>
 </resources>

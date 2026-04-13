@@ -64,6 +64,8 @@ class HomeActivity : AppCompatActivity() {
         navProjects.setOnClickListener { showFragment(ProjectsFragment(), 3) }
         navProfile.setOnClickListener { showFragment(ProfileFragment(), 4) }
 
+        setupMenuDrawer()
+        
         showFragment(HomeFragment(), 0)
         
         // Fetch notifications immediately on start
@@ -131,6 +133,31 @@ class HomeActivity : AppCompatActivity() {
     
     fun openNotificationDrawer() {
         drawerLayout.openDrawer(android.view.Gravity.END)
+    }
+    
+    private fun setupMenuDrawer() {
+        val drawerMenu = findViewById<View>(R.id.drawerMenu)
+        val menuHelp = drawerMenu.findViewById<View>(R.id.menuHelp)
+        val menuFeedback = drawerMenu.findViewById<View>(R.id.menuFeedback)
+        val menuReport = drawerMenu.findViewById<View>(R.id.menuReport)
+        val appVersion = drawerMenu.findViewById<TextView>(R.id.appVersion)
+        
+        appVersion.text = "Version ${BuildConfig.VERSION_NAME}"
+        
+        menuHelp.setOnClickListener {
+            drawerLayout.closeDrawer(android.view.Gravity.START)
+            android.widget.Toast.makeText(this, "Help", android.widget.Toast.LENGTH_SHORT).show()
+        }
+        
+        menuFeedback.setOnClickListener {
+            drawerLayout.closeDrawer(android.view.Gravity.START)
+            android.widget.Toast.makeText(this, "Feedback", android.widget.Toast.LENGTH_SHORT).show()
+        }
+        
+        menuReport.setOnClickListener {
+            drawerLayout.closeDrawer(android.view.Gravity.START)
+            android.widget.Toast.makeText(this, "Report", android.widget.Toast.LENGTH_SHORT).show()
+        }
     }
     
     private fun checkNotificationPermission() {

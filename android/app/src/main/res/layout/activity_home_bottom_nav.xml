@@ -173,6 +173,7 @@
     </FrameLayout>
 
     <include layout="@layout/drawer_menu"
+        android:id="@+id/drawerMenu"
         android:layout_width="280dp"
         android:layout_height="match_parent"
         android:layout_gravity="start" />
