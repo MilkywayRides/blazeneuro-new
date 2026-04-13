@@ -429,34 +429,21 @@ class CarouselAdapter(
         holder.tvTitle.background = null
         holder.tvLikes.background = null
         
-        val titleWithPrefix = android.text.SpannableStringBuilder()
-        val hashSpan = android.text.SpannableString("# ")
-        hashSpan.setSpan(
-            android.text.style.ForegroundColorSpan(
-                ContextCompat.getColor(holder.itemView.context, R.color.muted_foreground)
-            ),
-            0,
-            2,
-            android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-        hashSpan.setSpan(
-            android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+        // Title with indigo # prefix
+        val titleWithPrefix = android.text.SpannableString("# ${blog.title}")
+        titleWithPrefix.setSpan(
+            android.text.style.ForegroundColorSpan(android.graphics.Color.parseColor("#6366f1")),
             0,
             1,
             android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
         )
-        titleWithPrefix.append(hashSpan)
-        titleWithPrefix.append(blog.title)
         holder.tvTitle.text = titleWithPrefix
-        holder.tvLikes.text = formatCount(blog.likeCount)
+        holder.tvLikes.text = "${formatCount(blog.likeCount)} likes"
         
         if (!blog.coverImage.isNullOrEmpty()) {
             com.bumptech.glide.Glide.with(holder.ivCover)
                 .load(blog.coverImage)
-                .transform(
-                    com.bumptech.glide.load.resource.bitmap.CenterCrop(),
-                    com.bumptech.glide.load.resource.bitmap.RoundedCorners(32)
-                )
+                .centerCrop()
                 .into(holder.ivCover)
         } else {
             holder.ivCover.setImageDrawable(null)
