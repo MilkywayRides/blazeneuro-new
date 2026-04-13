@@ -261,6 +261,23 @@ export const communityPost = pgTable("community_post", {
   updatedAt: timestamp("updated_at").notNull().defaultNow()
 })
 
+export const popup = pgTable("popup", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  components: text("components").notNull(), // JSON string of components
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow()
+})
+
+export const popupResponse = pgTable("popup_response", {
+  id: text("id").primaryKey(),
+  popupId: text("popup_id").notNull().references(() => popup.id),
+  deviceId: text("device_id").notNull(),
+  response: text("response").notNull(), // JSON string
+  createdAt: timestamp("created_at").notNull().defaultNow()
+})
+
 export const schema = {
   user,
   session,
@@ -278,6 +295,8 @@ export const schema = {
   deployment,
   database,
   databaseBranch,
+  popup,
+  popupResponse,
   adminChatMessage,
   blogSearchCache,
   searchQuery,
