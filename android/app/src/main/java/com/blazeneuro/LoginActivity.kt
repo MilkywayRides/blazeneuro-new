@@ -1,5 +1,6 @@
 package com.blazeneuro
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -268,16 +269,18 @@ class LoginActivity : AppCompatActivity() {
                 GitHubCodeRequest(code = code, state = state)
             )
             
-            // Save to both SessionManager and AuthApi
+            // Save to SessionManager
             sessionManager.saveToken(response.token)
-            AuthApi.saveSessionFromGoogle(
-                this,
-                response.token,
-                response.user.name ?: "",
-                response.user.email,
-                null,
-                response.user.id
-            )
+            
+            // Save to AuthApi (this is what MainActivity checks!)
+            val prefs = getSharedPreferences("auth", Context.MODE_PRIVATE)
+            prefs.edit().apply {
+                putString("token", response.token)
+                putString("userId", response.user.id)
+                putString("userName", response.user.name ?: "User")
+                putString("userEmail", response.user.email)
+                apply()
+            }
             
             Log.d(TAG, "GitHub auth successful, token saved: ${response.token}")
             progressBar.visibility = View.GONE
@@ -321,16 +324,18 @@ class LoginActivity : AppCompatActivity() {
                 GoogleIdTokenRequest(idToken = idToken)
             )
             
-            // Save to both SessionManager and AuthApi
+            // Save to SessionManager
             sessionManager.saveToken(response.token)
-            AuthApi.saveSessionFromGoogle(
-                this,
-                response.token,
-                response.user.name ?: "",
-                response.user.email,
-                null,
-                response.user.id
-            )
+            
+            // Save to AuthApi (this is what MainActivity checks!)
+            val prefs = getSharedPreferences("auth", Context.MODE_PRIVATE)
+            prefs.edit().apply {
+                putString("token", response.token)
+                putString("userId", response.user.id)
+                putString("userName", response.user.name ?: "User")
+                putString("userEmail", response.user.email)
+                apply()
+            }
             
             Log.d(TAG, "Google auth successful, token saved: ${response.token}")
             progressBar.visibility = View.GONE
