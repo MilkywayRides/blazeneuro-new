@@ -35,7 +35,20 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         // Force dark card background
         card.setCardBackgroundColor(Color.parseColor("#1C1C1E"))
         
-        popupTitle.text = popupData.getString("title")
+        // Set title with hashtag prefix
+        val isDarkMode = (context.resources.configuration.uiMode and 
+            android.content.res.Configuration.UI_MODE_NIGHT_MASK) == 
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        
+        val titleText = popupData.getString("title")
+        val spannableTitle = android.text.SpannableString("# $titleText")
+        spannableTitle.setSpan(
+            android.text.style.ForegroundColorSpan(Color.parseColor("#888888")),
+            0, 1,
+            android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        popupTitle.text = spannableTitle
+        popupTitle.setTextColor(if (isDarkMode) Color.WHITE else Color.BLACK)
         
         btnClose.setOnClickListener { 
             player?.release()
@@ -116,11 +129,17 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
     }
     
     private fun addComponent(container: LinearLayout, comp: JSONObject) {
+        val isDarkMode = (context.resources.configuration.uiMode and 
+            android.content.res.Configuration.UI_MODE_NIGHT_MASK) == 
+            android.content.res.Configuration.UI_MODE_NIGHT_YES
+        val textColor = if (isDarkMode) Color.WHITE else Color.BLACK
+        
         when (comp.getString("type")) {
             "title" -> {
                 val tv = TextView(context)
                 tv.text = comp.getString("content")
                 tv.textSize = 18f
+                tv.setTextColor(textColor)
                 tv.setTypeface(null, android.graphics.Typeface.BOLD)
                 tv.setPadding(0, 0, 0, 16)
                 container.addView(tv)
@@ -129,6 +148,7 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
                 val tv = TextView(context)
                 tv.text = comp.getString("content")
                 tv.textSize = 14f
+                tv.setTextColor(textColor)
                 tv.setPadding(0, 0, 0, 16)
                 container.addView(tv)
             }
@@ -146,6 +166,7 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
                 val tv = TextView(context)
                 tv.text = comp.getString("content")
                 tv.textSize = 16f
+                tv.setTextColor(textColor)
                 tv.setTypeface(null, android.graphics.Typeface.BOLD)
                 tv.setPadding(0, 0, 0, 12)
                 container.addView(tv)
@@ -155,6 +176,7 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
                 for (j in 0 until options.length()) {
                     val rb = RadioButton(context)
                     rb.text = options.getString(j)
+                    rb.setTextColor(textColor)
                     rb.setPadding(16, 12, 16, 12)
                     radioGroup.addView(rb)
                 }
