@@ -4,8 +4,9 @@ import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import PopupDetail from "./popup-detail"
 
-export default async function PopupPage({ params }: { params: { id: string } }) {
+export default async function PopupPage({ params }: { params: Promise<{ id: string }> }) {
   await requireAdmin()
+  const { id } = await params
 
   return (
     <SidebarProvider
@@ -17,7 +18,7 @@ export default async function PopupPage({ params }: { params: { id: string } }) 
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader />
-        <PopupDetail id={params.id} />
+        <PopupDetail id={id} />
       </SidebarInset>
     </SidebarProvider>
   )
