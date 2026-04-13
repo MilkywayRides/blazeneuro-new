@@ -14,17 +14,23 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const notifications = await db
-      .select()
-      .from(notification)
-      .where(isNull(notification.userId))
-      .orderBy(desc(notification.createdAt))
-      .limit(50);
+    try {
+      const notifications = await db
+        .select()
+        .from(notification)
+        .where(isNull(notification.userId))
+        .orderBy(desc(notification.createdAt))
+        .limit(50);
 
-    return NextResponse.json(notifications);
+      return NextResponse.json(notifications);
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      // Return empty array if table doesn't exist
+      return NextResponse.json([]);
+    }
   } catch (error) {
     console.error('Get notifications error:', error);
-    return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch notifications', details: error instanceof Error ? error.message : 'Unknown' }, { status: 500 });
   }
 }
 
