@@ -29,6 +29,11 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
         )
         dialog.window?.statusBarColor = Color.TRANSPARENT
         
+        // Enable blur effect (API 31+)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            dialog.window?.setBackgroundBlurRadius(80)
+        }
+        
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_popup, null)
         val container = view.findViewById<LinearLayout>(R.id.popupContainer)
         val btnClose = view.findViewById<ImageView>(R.id.btnClose)
@@ -134,6 +139,9 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
                     val minutes = (duration / 1000 / 60).toInt()
                     val seconds = (duration / 1000 % 60).toInt()
                     metadataText.text = "Video · $minutes min $seconds sec"
+                } else if (state == Player.STATE_ENDED) {
+                    player?.seekTo(0)
+                    player?.play()
                 }
             }
         })
