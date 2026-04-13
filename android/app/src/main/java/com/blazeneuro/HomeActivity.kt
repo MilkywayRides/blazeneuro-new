@@ -52,6 +52,9 @@ class HomeActivity : AppCompatActivity() {
             locationService.startTracking()
         }
         
+        // Check for popup
+        checkForPopup()
+        
         // Set status bar appearance based on theme
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             val nightMode = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
@@ -183,6 +186,32 @@ class HomeActivity : AppCompatActivity() {
         }
     }
     
+    private fun checkForPopup() {
+        lifecycleScope.launch {
+            try {
+                val url = "https://blazeneuro.com/api/mobile/popup"
+                val request = okhttp3.Request.Builder().url(url).build()
+                val response = okhttp3.OkHttpClient().newCall(request).execute()
+                val json = org.json.JSONObject(response.body?.string() ?: "{}")
+                
+                if (json.has("popup") && !json.isNull("popup")) {
+                    val popup = json.getJSONObject("popup")
+                    val popupId = popup.getString("id")
+                    
+                    val prefs = getSharedPreferences("popups", MODE_PRIVATE)
+                    val shown = prefs.getBoolean(popupId, false)
+                    
+                    if (!shown) {
+                        PopupDialog(this@HomeActivity, popup).show()
+                        prefs.edit().putBoolean(popupId, true).apply()
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     private fun applyTheme() {
         val prefs = getSharedPreferences("settings", MODE_PRIVATE)
         val theme = prefs.getString("theme", "system")

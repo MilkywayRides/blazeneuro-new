@@ -101,10 +101,10 @@ export default function PopupBuilder() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: popupTitle, components })
       })
+      const data = await res.json()
       if (res.ok) {
         alert('Popup saved!')
-        setComponents([])
-        setPopupTitle('')
+        window.location.href = `/admin/notifications/popup/${data.id}`
       }
     } catch (error) {
       alert('Failed to save')
