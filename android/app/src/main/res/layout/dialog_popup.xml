@@ -14,7 +14,6 @@
         android:layout_gravity="center"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        app:cardBackgroundColor="?attr/colorSurface"
         app:cardCornerRadius="24dp"
         app:cardElevation="16dp">
 
@@ -43,7 +42,6 @@
                     android:layout_gravity="center"
                     android:background="@android:color/transparent"
                     android:src="@android:drawable/ic_media_pause"
-                    android:tint="?attr/colorOnSurface"
                     android:contentDescription="Play/Pause" />
 
                 <!-- Mute Button -->
@@ -55,7 +53,6 @@
                     android:layout_margin="16dp"
                     android:background="@android:color/transparent"
                     android:src="@android:drawable/ic_lock_silent_mode_off"
-                    android:tint="?attr/colorOnSurface"
                     android:contentDescription="Mute" />
             </FrameLayout>
 

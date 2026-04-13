@@ -145,33 +145,6 @@ export default function PopupBuilder() {
 
   return (
     <div className="space-y-6">
-      {/* Existing Popups */}
-      {popups.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {popups.map((popup) => (
-            <Card key={popup.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = `/admin/notifications/popup/${popup.id}`}>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <CardTitle className="text-lg">{popup.title}</CardTitle>
-                  <Badge variant={popup.active ? 'default' : 'secondary'}>{popup.active ? 'Active' : 'Inactive'}</Badge>
-                </div>
-                <p className="text-xs text-muted-foreground">{new Date(popup.createdAt).toLocaleDateString()}</p>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); repushPopup(popup.id) }}>
-                    <Send className="h-4 w-4 mr-1" /> Repush
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={(e) => { e.stopPropagation(); deletePopup(popup.id) }}>
-                    <Trash2 className="h-4 w-4 mr-1" /> Delete
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
       {/* Builder */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-1">
@@ -199,7 +172,7 @@ export default function PopupBuilder() {
 
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Popup Builder</CardTitle>
+            <CardTitle>Create Popup</CardTitle>
             <div className="mt-4">
               <Label>Popup Title</Label>
               <Input value={popupTitle} onChange={(e) => setPopupTitle(e.target.value)} placeholder="Enter popup title" />
@@ -233,6 +206,36 @@ export default function PopupBuilder() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Existing Popups */}
+      {popups.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold mb-4">Saved Popups</h3>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {popups.map((popup) => (
+              <Card key={popup.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => window.location.href = `/admin/notifications/popup/${popup.id}`}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <CardTitle className="text-lg">{popup.title}</CardTitle>
+                    <Badge variant={popup.active ? 'default' : 'secondary'}>{popup.active ? 'Active' : 'Inactive'}</Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{new Date(popup.createdAt).toLocaleDateString()}</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); repushPopup(popup.id) }}>
+                      <Send className="h-4 w-4 mr-1" /> Repush
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={(e) => { e.stopPropagation(); deletePopup(popup.id) }}>
+                      <Trash2 className="h-4 w-4 mr-1" /> Delete
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
