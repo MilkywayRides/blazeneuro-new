@@ -22,14 +22,27 @@ export async function POST(req: NextRequest) {
     `)
 
     await db.execute(sql`
-      CREATE INDEX IF NOT EXISTS "deviceLocation_deviceId_idx" ON "deviceLocation" ("deviceId")
+      CREATE TABLE IF NOT EXISTS "popup" (
+        "id" text PRIMARY KEY NOT NULL,
+        "title" text NOT NULL,
+        "components" text NOT NULL,
+        "active" boolean DEFAULT true NOT NULL,
+        "created_at" timestamp DEFAULT now() NOT NULL,
+        "updated_at" timestamp DEFAULT now() NOT NULL
+      )
     `)
 
     await db.execute(sql`
-      CREATE INDEX IF NOT EXISTS "deviceLocation_lastSeen_idx" ON "deviceLocation" ("lastSeen")
+      CREATE TABLE IF NOT EXISTS "popup_response" (
+        "id" text PRIMARY KEY NOT NULL,
+        "popup_id" text NOT NULL,
+        "device_id" text NOT NULL,
+        "response" text NOT NULL,
+        "created_at" timestamp DEFAULT now() NOT NULL
+      )
     `)
 
-    return NextResponse.json({ success: true, message: 'Table created' })
+    return NextResponse.json({ success: true, message: 'Tables created' })
   } catch (error) {
     console.error('Migration error:', error)
     return NextResponse.json({ error: 'Failed', details: error instanceof Error ? error.message : 'Unknown' }, { status: 500 })
