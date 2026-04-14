@@ -70,6 +70,7 @@ class BlogDetailActivity : AppCompatActivity() {
 
         // Handle deep link
         val slug = intent.data?.lastPathSegment ?: intent.getStringExtra("slug") ?: return finish()
+        val isOffline = intent.getBooleanExtra("offline", false)
         
         val title = intent.getStringExtra("title") ?: "Blog Post"
         
@@ -77,6 +78,10 @@ class BlogDetailActivity : AppCompatActivity() {
         
         findViewById<ImageView>(R.id.btnBack).setOnClickListener {
             finish()
+        }
+        
+        findViewById<ImageView>(R.id.btnShare).setOnClickListener {
+            shareBlog(slug)
         }
         
         findViewById<ImageView>(R.id.btnDownload).setOnClickListener {
@@ -93,8 +98,12 @@ class BlogDetailActivity : AppCompatActivity() {
             submitFeedback(false)
         }
         
-        lifecycleScope.launch {
-            loadBlog(slug)
+        if (isOffline) {
+            loadOfflineBlog(slug)
+        } else {
+            lifecycleScope.launch {
+                loadBlog(slug)
+            }
         }
     }
 
@@ -159,11 +168,66 @@ class BlogDetailActivity : AppCompatActivity() {
         currentBlog?.let { blog ->
             try {
                 val file = File(filesDir, "blog_${blog.id}.txt")
-                file.writeText("${blog.title}\n\nBy ${blog.authorName}\n\n${blog.content}")
+                file.writeText("${blog.title}\n${blog.authorImage ?: ""}\nBy ${blog.authorName}\n\n${blog.content}")
                 Toast.makeText(this, "Blog saved to app storage", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Toast.makeText(this, "Failed to save blog", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun shareBlog(slug: String) {
+        val shareIntent = android.content.Intent().apply {
+            action = android.content.Intent.ACTION_SEND
+            type = "text/plain"
+            putExtra(android.content.Intent.EXTRA_TEXT, "https://blazeneuro.com/blogs/$slug")
+        }
+        startActivity(android.content.Intent.createChooser(shareIntent, "Share blog via"))
+    }
+
+    private fun loadOfflineBlog(blogId: String) {
+        try {
+            val file = File(filesDir, "blog_$blogId.txt")
+            if (!file.exists()) {
+                Toast.makeText(this, "Blog not found", Toast.LENGTH_SHORT).show()
+                finish()
+                return
+            }
+            
+            val content = file.readText()
+            val lines = content.split("\n")
+            
+            if (lines.size >= 5) {
+                val title = lines[0]
+                val avatarUrl = lines[1]
+                val author = lines[2].removePrefix("By ")
+                val blogContent = lines.drop(4).joinToString("\n")
+                
+                findViewById<TextView>(R.id.tvTitle).text = title
+                findViewById<TextView>(R.id.tvAuthor).text = author
+                
+                // Load avatar if URL exists
+                if (avatarUrl.isNotEmpty()) {
+                    val avatarView = findViewById<ImageView>(R.id.ivAuthor)
+                    com.bumptech.glide.Glide.with(this)
+                        .load(avatarUrl)
+                        .circleCrop()
+                        .into(avatarView)
+                }
+                
+                val contentView = findViewById<TextView>(R.id.tvContent)
+                markwon.setMarkdown(contentView, blogContent)
+                
+                // Hide feedback card for offline
+                findViewById<eightbitlab.com.blurview.BlurView>(R.id.feedbackCard).visibility = android.view.View.GONE
+                
+                // Hide loading, show content
+                findViewById<android.view.View>(R.id.loadingSpinner).visibility = android.view.View.GONE
+                findViewById<android.widget.ScrollView>(R.id.scrollView).visibility = android.view.View.VISIBLE
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Failed to load offline blog", Toast.LENGTH_SHORT).show()
+            finish()
         }
     }
 
