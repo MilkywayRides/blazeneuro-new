@@ -399,12 +399,32 @@ class CarouselAdapter(
         val ivCover: ImageView = view.findViewById(R.id.ivCover)
         val tvTitle: TextView = view.findViewById(R.id.tvTitle)
         val tvLikes: TextView = view.findViewById(R.id.tvLikes)
+        val blurLikes: eightbitlab.com.blurview.BlurView = view.findViewById(R.id.blurLikes)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_carousel, parent, false)
-        return ViewHolder(view)
+        val holder = ViewHolder(view)
+        
+        // Setup blur effect once
+        val decorView = (parent.context as? android.app.Activity)?.window?.decorView
+        val rootView = decorView?.findViewById<ViewGroup>(android.R.id.content)
+        if (rootView != null) {
+            holder.blurLikes.setupWith(rootView, eightbitlab.com.blurview.RenderScriptBlur(parent.context))
+                .setBlurRadius(20f)
+                .setBlurAutoUpdate(true)
+            
+            // Clip to rounded corners
+            holder.blurLikes.outlineProvider = object : android.view.ViewOutlineProvider() {
+                override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
+                    outline.setRoundRect(0, 0, view.width, view.height, 100f * view.resources.displayMetrics.density)
+                }
+            }
+            holder.blurLikes.clipToOutline = true
+        }
+        
+        return holder
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -429,15 +449,7 @@ class CarouselAdapter(
         holder.tvTitle.background = null
         holder.tvLikes.background = null
         
-        // Title with indigo # prefix
-        val titleWithPrefix = android.text.SpannableString("# ${blog.title}")
-        titleWithPrefix.setSpan(
-            android.text.style.ForegroundColorSpan(android.graphics.Color.parseColor("#6366f1")),
-            0,
-            1,
-            android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-        holder.tvTitle.text = titleWithPrefix
+        holder.tvTitle.text = blog.title
         holder.tvLikes.text = "${formatCount(blog.likeCount)} likes"
         
         if (!blog.coverImage.isNullOrEmpty()) {
