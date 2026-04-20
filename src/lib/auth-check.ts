@@ -41,7 +41,7 @@ async function getSession() {
       email: data?.user?.email 
     });
     
-    return data.session || data.user ? data : null;
+    return data?.session || data?.user ? data : null;
   } catch (error) {
     console.error("[Auth] Session fetch error:", error);
     return null;

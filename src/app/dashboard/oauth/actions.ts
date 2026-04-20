@@ -3,7 +3,7 @@
 import { requireAuth } from "@/lib/auth-check";
 import { db } from "@/lib/db";
 import { oauthApp } from "@/lib/schema";
-import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { randomBytes } from "crypto";
 
 export async function createUserOAuthApp(formData: FormData) {
@@ -30,5 +30,5 @@ export async function createUserOAuthApp(formData: FormData) {
     updatedAt: new Date(),
   });
 
-  redirect("/dashboard");
+  revalidatePath("/dashboard/oauth");
 }

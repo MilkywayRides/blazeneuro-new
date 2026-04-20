@@ -7,9 +7,8 @@ import { db } from "@/lib/db";
 import { oauthApp } from "@/lib/schema";
 import { eq } from "drizzle-orm";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus } from "lucide-react";
+import { NewOAuthAppDialog } from "@/components/new-oauth-app-dialog";
 
 export const metadata: Metadata = {
   title: "OAuth Apps - Dashboard",
@@ -37,9 +36,7 @@ export default async function OAuthPage() {
               <h1 className="text-2xl md:text-3xl font-bold">OAuth Applications</h1>
               <p className="text-sm md:text-base text-muted-foreground">Manage your OAuth apps</p>
             </div>
-            <Link href="/dashboard/oauth/new">
-              <Button><Plus className="h-4 w-4 mr-2" />New App</Button>
-            </Link>
+            <NewOAuthAppDialog />
           </div>
 
           {userApps.length === 0 ? (
@@ -48,9 +45,7 @@ export default async function OAuthPage() {
                 <div className="text-center py-8">
                   <h3 className="text-lg font-semibold mb-2">No OAuth apps yet</h3>
                   <p className="text-muted-foreground mb-4">Create your first OAuth application to get started</p>
-                  <Link href="/dashboard/oauth/new">
-                    <Button><Plus className="h-4 w-4 mr-2" />Create App</Button>
-                  </Link>
+                  <NewOAuthAppDialog />
                 </div>
               </CardContent>
             </Card>
