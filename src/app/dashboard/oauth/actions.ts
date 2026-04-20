@@ -4,7 +4,9 @@ import { requireAuth } from "@/lib/auth-check";
 import { db } from "@/lib/db";
 import { oauthApp } from "@/lib/schema";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { randomBytes } from "crypto";
+import { eq, and } from "drizzle-orm";
 
 export async function createUserOAuthApp(formData: FormData) {
   const session = await requireAuth();
@@ -31,4 +33,14 @@ export async function createUserOAuthApp(formData: FormData) {
   });
 
   revalidatePath("/dashboard/oauth");
+}
+
+export async function deleteUserOAuthApp(appId: string) {
+  const session = await requireAuth();
+  
+  await db.delete(oauthApp).where(
+    and(eq(oauthApp.id, appId), eq(oauthApp.userId, session.user.id))
+  );
+
+  redirect("/dashboard/oauth");
 }
