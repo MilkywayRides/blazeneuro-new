@@ -10,7 +10,7 @@ import { eq, and } from "drizzle-orm";
 import Link from "next/link";
 import { ArrowLeft, Copy, Trash2 } from "lucide-react";
 import { notFound } from "next/navigation";
-import { deleteUserOAuthApp } from "../actions";
+import { DeleteButton } from "./delete-button";
 
 export default async function OAuthAppDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -30,11 +30,6 @@ export default async function OAuthAppDetailPage({ params }: { params: Promise<{
     email: session.user.email || "",
     avatar: session.user.image || "/avatars/default.jpg",
   };
-
-  async function handleDelete() {
-    "use server";
-    await deleteUserOAuthApp(id);
-  }
 
   return (
     <SidebarProvider
@@ -61,11 +56,7 @@ export default async function OAuthAppDetailPage({ params }: { params: Promise<{
                 <p className="text-muted-foreground">{appData.description}</p>
               </div>
             </div>
-            <form action={handleDelete}>
-              <Button variant="destructive" size="sm">
-                <Trash2 className="h-4 w-4 mr-2" />Delete
-              </Button>
-            </form>
+            <DeleteButton appId={id} />
           </div>
 
           <Card>
