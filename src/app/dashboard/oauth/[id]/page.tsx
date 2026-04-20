@@ -25,6 +25,12 @@ export default async function OAuthAppDetailPage({ params }: { params: Promise<{
 
   const appData = app[0];
 
+  const userData = {
+    name: session.user.name || "User",
+    email: session.user.email || "",
+    avatar: session.user.image || "/avatars/default.jpg",
+  };
+
   async function handleDelete() {
     "use server";
     await deleteUserOAuthApp(id);
@@ -39,7 +45,7 @@ export default async function OAuthAppDetailPage({ params }: { params: Promise<{
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" isAdmin={false} />
+      <AppSidebar variant="inset" isAdmin={false} userData={userData} />
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6 max-w-4xl">

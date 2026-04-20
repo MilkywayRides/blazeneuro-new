@@ -18,6 +18,12 @@ export default async function OAuthPage() {
   const session = await requireAuth();
   const userApps = await db.select().from(oauthApp).where(eq(oauthApp.userId, session.user.id));
 
+  const userData = {
+    name: session.user.name || "User",
+    email: session.user.email || "",
+    avatar: session.user.image || "/avatars/default.jpg",
+  };
+
   return (
     <SidebarProvider
       style={
@@ -27,7 +33,7 @@ export default async function OAuthPage() {
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" isAdmin={false} />
+      <AppSidebar variant="inset" isAdmin={false} userData={userData} />
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">

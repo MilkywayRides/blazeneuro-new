@@ -13,6 +13,12 @@ export const metadata: Metadata = {
 export default async function Page() {
   const session = await requireAuth();
 
+  const userData = {
+    name: session.user.name || "User",
+    email: session.user.email || "",
+    avatar: session.user.image || "/avatars/default.jpg",
+  };
+
   return (
     <SidebarProvider
       style={
@@ -22,7 +28,7 @@ export default async function Page() {
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" isAdmin={false} />
+      <AppSidebar variant="inset" isAdmin={false} userData={userData} />
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
