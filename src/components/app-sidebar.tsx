@@ -143,7 +143,7 @@ const userDashboardData = {
     },
     {
       title: "OAuth Apps",
-      url: "/dashboard",
+      url: "/dashboard/oauth",
       icon: (
         <ShieldIcon className="h-4 w-4" />
       ),
