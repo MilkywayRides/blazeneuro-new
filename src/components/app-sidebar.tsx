@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/sidebar"
 import { LayoutDashboardIcon, UsersIcon, Settings2Icon, CircleHelpIcon, SearchIcon, ShieldIcon, ActivityIcon, DatabaseIcon, FileTextIcon, MessageSquareIcon, BellIcon } from "lucide-react"
 
-const data = {
+const adminData = {
   navMain: [
     {
       title: "Dashboard",
@@ -132,12 +132,45 @@ const data = {
   documents: [],
 }
 
-export function AppSidebar({ userData, ...props }: React.ComponentProps<typeof Sidebar> & { userData?: { name: string; email: string; avatar: string } }) {
+const userDashboardData = {
+  navMain: [
+    {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: (
+        <LayoutDashboardIcon className="h-4 w-4" />
+      ),
+    },
+    {
+      title: "OAuth Apps",
+      url: "/dashboard",
+      icon: (
+        <ShieldIcon className="h-4 w-4" />
+      ),
+    },
+  ],
+  navSecondary: [
+    {
+      title: "Settings",
+      url: "/dashboard/settings",
+      icon: (
+        <Settings2Icon className="h-4 w-4" />
+      ),
+    },
+  ],
+  documents: [],
+}
+
+export function AppSidebar({ userData, isAdmin = true, ...props }: React.ComponentProps<typeof Sidebar> & { userData?: { name: string; email: string; avatar: string }, isAdmin?: boolean }) {
   const user = userData || {
     name: "Admin",
     email: "admin@blazeneuro.com",
     avatar: "/avatars/admin.jpg",
   };
+
+  const data = isAdmin ? adminData : userDashboardData;
+  const homeUrl = isAdmin ? "/admin" : "/dashboard";
+  const title = isAdmin ? "BlazeNeuro Admin" : "BlazeNeuro";
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -146,10 +179,10 @@ export function AppSidebar({ userData, ...props }: React.ComponentProps<typeof S
           <SidebarMenuItem>
             <SidebarMenuButton
               className="data-[slot=sidebar-menu-button]:p-1.5!"
-              render={<a href="/admin" />}
+              render={<a href={homeUrl} />}
             >
               <ShieldIcon className="size-5!" />
-              <span className="text-base font-semibold">BlazeNeuro Admin</span>
+              <span className="text-base font-semibold">{title}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
