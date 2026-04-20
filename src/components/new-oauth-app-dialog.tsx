@@ -26,7 +26,7 @@ export function NewOAuthAppDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger>
         <Button><Plus className="h-4 w-4 mr-2" />New App</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px]">
