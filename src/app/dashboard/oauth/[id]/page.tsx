@@ -11,10 +11,11 @@ import Link from "next/link";
 import { ArrowLeft, Copy } from "lucide-react";
 import { notFound } from "next/navigation";
 
-export default async function OAuthAppDetailPage({ params }: { params: { id: string } }) {
+export default async function OAuthAppDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await requireAuth();
   const app = await db.select().from(oauthApp).where(
-    and(eq(oauthApp.id, params.id), eq(oauthApp.userId, session.user.id))
+    and(eq(oauthApp.id, id), eq(oauthApp.userId, session.user.id))
   ).limit(1);
 
   if (!app || app.length === 0) {
