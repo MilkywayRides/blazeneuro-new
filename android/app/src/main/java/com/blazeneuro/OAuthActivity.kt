@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -11,12 +12,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.launch
 
 class OAuthActivity : AppCompatActivity() {
     private lateinit var rvApps: RecyclerView
     private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var tvEmpty: TextView
+    private lateinit var fabCreate: FloatingActionButton
     private val apps = mutableListOf<OAuthApp>()
     private lateinit var adapter: OAuthAdapter
 
@@ -29,13 +32,20 @@ class OAuthActivity : AppCompatActivity() {
         rvApps = findViewById(R.id.rvApps)
         swipeRefresh = findViewById(R.id.swipeRefresh)
         tvEmpty = findViewById(R.id.tvEmpty)
+        fabCreate = findViewById(R.id.fabCreate)
         
         adapter = OAuthAdapter(apps)
         rvApps.layoutManager = LinearLayoutManager(this)
         rvApps.adapter = adapter
         
         swipeRefresh.setOnRefreshListener { loadApps() }
+        fabCreate.setOnClickListener { showCreateDialog() }
+        
         loadApps()
+    }
+
+    private fun showCreateDialog() {
+        CreateOAuthBottomSheet { loadApps() }.show(supportFragmentManager, "create_oauth")
     }
 
     private fun loadApps() {
@@ -91,4 +101,47 @@ class OAuthAdapter(private val apps: List<OAuthApp>) : RecyclerView.Adapter<OAut
     }
 
     override fun getItemCount() = apps.size
+}
+
+class CreateOAuthBottomSheet(private val onCreated: () -> Unit) : com.google.android.material.bottomsheet.BottomSheetDialogFragment() {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        return inflater.inflate(R.layout.bottom_sheet_create_oauth, container, false)
+    }
+    
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        
+        val etName = view.findViewById<EditText>(R.id.etAppName)
+        val etDesc = view.findViewById<EditText>(R.id.etAppDesc)
+        val etHomepage = view.findViewById<EditText>(R.id.etHomepage)
+        val etCallback = view.findViewById<EditText>(R.id.etCallback)
+        val btnCreate = view.findViewById<View>(R.id.btnCreate)
+        
+        btnCreate.setOnClickListener {
+            val name = etName.text.toString().trim()
+            val desc = etDesc.text.toString().trim()
+            val homepage = etHomepage.text.toString().trim()
+            val callback = etCallback.text.toString().trim()
+            
+            if (name.isEmpty() || homepage.isEmpty() || callback.isEmpty()) {
+                android.widget.Toast.makeText(context, "Fill all required fields", android.widget.Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            
+            lifecycleScope.launch {
+                try {
+                    val success = AuthApi.createOAuthApp(name, desc, homepage, callback)
+                    if (success) {
+                        android.widget.Toast.makeText(context, "App created", android.widget.Toast.LENGTH_SHORT).show()
+                        dismiss()
+                        onCreated()
+                    } else {
+                        android.widget.Toast.makeText(context, "Failed to create app", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    android.widget.Toast.makeText(context, "Error: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 }

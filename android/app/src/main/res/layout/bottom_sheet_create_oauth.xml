@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/card"
+    android:padding="@dimen/space_lg">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create OAuth App"
+        android:textColor="@color/foreground"
+        android:textSize="@dimen/text_xl"
+        android:textStyle="bold"
+        android:layout_marginBottom="@dimen/space_md" />
+
+    <EditText
+        android:id="@+id/etAppName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="App Name *"
+        android:textColor="@color/foreground"
+        android:textColorHint="@color/muted_foreground"
+        android:background="@drawable/input_background"
+        android:padding="12dp"
+        android:layout_marginBottom="@dimen/space_sm" />
+
+    <EditText
+        android:id="@+id/etAppDesc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Description"
+        android:textColor="@color/foreground"
+        android:textColorHint="@color/muted_foreground"
+        android:background="@drawable/input_background"
+        android:padding="12dp"
+        android:layout_marginBottom="@dimen/space_sm" />
+
+    <EditText
+        android:id="@+id/etHomepage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Homepage URL *"
+        android:textColor="@color/foreground"
+        android:textColorHint="@color/muted_foreground"
+        android:background="@drawable/input_background"
+        android:padding="12dp"
+        android:inputType="textUri"
+        android:layout_marginBottom="@dimen/space_sm" />
+
+    <EditText
+        android:id="@+id/etCallback"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Callback URL *"
+        android:textColor="@color/foreground"
+        android:textColorHint="@color/muted_foreground"
+        android:background="@drawable/input_background"
+        android:padding="12dp"
+        android:inputType="textUri"
+        android:layout_marginBottom="@dimen/space_md" />
+
+    <TextView
+        android:id="@+id/btnCreate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create App"
+        android:textColor="@color/primary_foreground"
+        android:background="@drawable/button_primary"
+        android:gravity="center"
+        android:padding="12dp"
+        android:textStyle="bold"
+        android:clickable="true"
+        android:focusable="true" />
+
+</LinearLayout>

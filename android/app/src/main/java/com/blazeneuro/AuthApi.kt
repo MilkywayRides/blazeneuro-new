@@ -388,6 +388,39 @@ object AuthApi {
         }
     }
 
+    suspend fun createOAuthApp(name: String, description: String, homepageUrl: String, callbackUrl: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val userId = getSavedUserId()
+            if (userId == null) {
+                Log.e(TAG, "No user ID found")
+                return@withContext false
+            }
+
+            val json = JSONObject().apply {
+                put("userId", userId)
+                put("name", name)
+                put("description", description)
+                put("homepageUrl", homepageUrl)
+                put("callbackUrl", callbackUrl)
+            }
+
+            val body = json.toString().toRequestBody("application/json".toMediaType())
+            val request = Request.Builder()
+                .url("$AUTH_BASE_URL/api/oauth/apps")
+                .post(body)
+                .build()
+
+            Log.d(TAG, "Creating OAuth app: $name")
+            val response = client.newCall(request).execute()
+            Log.d(TAG, "Create OAuth response: ${response.code}")
+
+            response.isSuccessful
+        } catch (e: Exception) {
+            Log.e(TAG, "Create OAuth app error", e)
+            false
+        }
+    }
+
     suspend fun searchBlogs(query: String): List<SearchResult> = withContext(Dispatchers.IO) {
         try {
             val encodedQuery = java.net.URLEncoder.encode(query, "UTF-8")
