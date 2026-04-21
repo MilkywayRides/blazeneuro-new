@@ -171,6 +171,21 @@ object AuthApi {
 
     suspend fun getSession(): AuthResult = withContext(Dispatchers.IO) {
         try {
+            // First check if we have local session data
+            val localToken = prefs.getString(KEY_TOKEN, null)
+            val localUserId = prefs.getString(KEY_USER_ID, null)
+            val localUserName = prefs.getString(KEY_USER_NAME, null)
+            val localUserEmail = prefs.getString(KEY_USER_EMAIL, null)
+            
+            Log.d(TAG, "getSession - local data exists: token=${localToken != null}, userId=${localUserId != null}")
+            
+            // If we have local session, trust it (for social auth)
+            if (localToken != null && localUserId != null && localUserName != null && localUserEmail != null) {
+                Log.d(TAG, "Using local session data")
+                return@withContext AuthResult(true, localToken, localUserName, localUserEmail, null)
+            }
+            
+            // Otherwise verify with backend
             val request = Request.Builder()
                 .url("$AUTH_BASE_URL/api/auth/get-session")
                 .get()
@@ -255,7 +270,10 @@ object AuthApi {
     // ---- Session Management ----
 
     fun hasSession(): Boolean {
-        return prefs.getString(KEY_TOKEN, null) != null
+        val token = prefs.getString(KEY_TOKEN, null)
+        val userId = prefs.getString(KEY_USER_ID, null)
+        Log.d(TAG, "hasSession check - token: ${token != null}, userId: ${userId != null}")
+        return token != null && userId != null
     }
 
     fun getSavedUserName(): String {
