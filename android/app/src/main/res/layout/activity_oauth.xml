@@ -1,74 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/background">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="@dimen/space_md"
-        android:background="@color/card"
-        android:elevation="2dp">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <ImageView
-            android:id="@+id/ivBack"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_back"
-            android:clickable="true"
-            android:focusable="true" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="@dimen/space_md"
+            android:background="@color/card"
+            android:elevation="2dp">
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="OAuth Apps"
-            android:textColor="@color/foreground"
-            android:textSize="@dimen/text_xl"
-            android:textStyle="bold"
-            android:layout_marginStart="@dimen/space_md" />
-    </LinearLayout>
+            <ImageView
+                android:id="@+id/ivBack"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_back"
+                android:clickable="true"
+                android:focusable="true" />
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipeRefresh"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="OAuth Apps"
+                android:textColor="@color/foreground"
+                android:textSize="@dimen/text_xl"
+                android:textStyle="bold"
+                android:layout_marginStart="@dimen/space_md" />
+        </LinearLayout>
 
-        <FrameLayout
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefresh"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvApps"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="@dimen/space_md" />
+                android:layout_height="match_parent">
 
-            <TextView
-                android:id="@+id/tvEmpty"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="No OAuth apps yet\nCreate one on dashboard"
-                android:textColor="@color/muted_foreground"
-                android:textSize="@dimen/text_base"
-                android:gravity="center"
-                android:visibility="gone" />
-        </FrameLayout>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvApps"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:padding="@dimen/space_md" />
 
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+                <TextView
+                    android:id="@+id/tvEmpty"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="No OAuth apps yet\nTap + to create one"
+                    android:textColor="@color/muted_foreground"
+                    android:textSize="@dimen/text_base"
+                    android:gravity="center"
+                    android:visibility="gone" />
+            </FrameLayout>
+
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabCreate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/space_lg"
+        android:layout_margin="16dp"
         android:src="@android:drawable/ic_input_add"
+        app:tint="@color/primary_foreground"
+        app:backgroundTint="@color/primary"
         android:contentDescription="Create OAuth App" />
 
-</LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
