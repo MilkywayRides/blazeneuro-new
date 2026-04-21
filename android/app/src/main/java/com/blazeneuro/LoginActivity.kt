@@ -269,16 +269,15 @@ class LoginActivity : AppCompatActivity() {
                 GitHubCodeRequest(code = code, state = state)
             )
             
-            // Use AuthApi to save session (same as email login)
-            AuthApi.init(this)
-            val prefs = getSharedPreferences("auth", Context.MODE_PRIVATE)
-            prefs.edit().apply {
-                putString("token", response.token)
-                putString("userId", response.user.id)
-                putString("userName", response.user.name ?: "User")
-                putString("userEmail", response.user.email)
-                apply()
-            }
+            // Save session using AuthApi
+            AuthApi.saveSessionFromGoogle(
+                this,
+                response.token,
+                response.user.name ?: "User",
+                response.user.email,
+                null,
+                response.user.id
+            )
             
             sessionManager.saveToken(response.token)
             
@@ -324,16 +323,15 @@ class LoginActivity : AppCompatActivity() {
                 GoogleIdTokenRequest(idToken = idToken)
             )
             
-            // Use AuthApi to save session (same as email login)
-            AuthApi.init(this)
-            val prefs = getSharedPreferences("auth", Context.MODE_PRIVATE)
-            prefs.edit().apply {
-                putString("token", response.token)
-                putString("userId", response.user.id)
-                putString("userName", response.user.name ?: "User")
-                putString("userEmail", response.user.email)
-                apply()
-            }
+            // Save session using AuthApi
+            AuthApi.saveSessionFromGoogle(
+                this,
+                response.token,
+                response.user.name ?: "User",
+                response.user.email,
+                null,
+                response.user.id
+            )
             
             sessionManager.saveToken(response.token)
             
