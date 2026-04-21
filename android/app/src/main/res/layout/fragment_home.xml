@@ -82,7 +82,7 @@
                     android:textColor="@color/muted_foreground"
                     android:textSize="@dimen/text_base"
                     android:layout_marginTop="@dimen/space_xs"
-                    android:layout_marginBottom="@dimen/space_lg" />
+                    android:layout_marginBottom="24dp" />
 
                 <androidx.viewpager2.widget.ViewPager2
                     android:id="@+id/vpCarousel"

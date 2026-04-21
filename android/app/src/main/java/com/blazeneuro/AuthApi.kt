@@ -347,6 +347,47 @@ object AuthApi {
         }
     }
 
+    suspend fun getOAuthApps(): List<OAuthApp> = withContext(Dispatchers.IO) {
+        try {
+            val userId = getSavedUserId()
+            if (userId == null) {
+                Log.e(TAG, "No user ID found")
+                return@withContext emptyList()
+            }
+
+            val request = Request.Builder()
+                .url("$AUTH_BASE_URL/api/oauth/apps?userId=$userId")
+                .get()
+                .build()
+
+            Log.d(TAG, "Fetching OAuth apps for user: $userId")
+            val response = client.newCall(request).execute()
+            val responseBody = response.body?.string() ?: "[]"
+            Log.d(TAG, "OAuth response: ${response.code} - $responseBody")
+
+            if (!response.isSuccessful) {
+                Log.e(TAG, "OAuth apps API failed: ${response.code}")
+                return@withContext emptyList()
+            }
+
+            val jsonArray = JSONArray(responseBody)
+            (0 until jsonArray.length()).map { i ->
+                val app = jsonArray.getJSONObject(i)
+                OAuthApp(
+                    id = app.getString("id"),
+                    name = app.getString("name"),
+                    description = app.optString("description", null),
+                    clientId = app.getString("clientId"),
+                    redirectUri = app.getString("redirectUri"),
+                    createdAt = app.getString("createdAt")
+                )
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Get OAuth apps error", e)
+            emptyList()
+        }
+    }
+
     suspend fun searchBlogs(query: String): List<SearchResult> = withContext(Dispatchers.IO) {
         try {
             val encodedQuery = java.net.URLEncoder.encode(query, "UTF-8")

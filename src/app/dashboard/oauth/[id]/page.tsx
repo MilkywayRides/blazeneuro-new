@@ -4,13 +4,15 @@ import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { db } from "@/lib/db";
-import { oauthApp } from "@/lib/schema";
-import { eq, and } from "drizzle-orm";
+import { oauthApp, oauthToken } from "@/lib/schema";
+import { eq, and, sql } from "drizzle-orm";
 import Link from "next/link";
-import { ArrowLeft, Copy, Trash2 } from "lucide-react";
+import { ArrowLeft, Copy, Trash2, BarChart3 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { DeleteButton } from "./delete-button";
+import { AnalyticsChart } from "./analytics-chart";
 
 export default async function OAuthAppDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -24,6 +26,20 @@ export default async function OAuthAppDetailPage({ params }: { params: Promise<{
   }
 
   const appData = app[0];
+
+  // Get analytics data
+  const tokens = await db.select({
+    date: sql<string>`DATE(${oauthToken.createdAt})`,
+    count: sql<number>`COUNT(*)::int`
+  })
+  .from(oauthToken)
+  .where(eq(oauthToken.appId, id))
+  .groupBy(sql`DATE(${oauthToken.createdAt})`)
+  .orderBy(sql`DATE(${oauthToken.createdAt})`);
+
+  const totalLogins = await db.select({ count: sql<number>`COUNT(*)::int` })
+    .from(oauthToken)
+    .where(eq(oauthToken.appId, id));
 
   const userData = {
     name: session.user.name || "User",
@@ -59,39 +75,82 @@ export default async function OAuthAppDetailPage({ params }: { params: Promise<{
             <DeleteButton appId={id} />
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Application Details</CardTitle>
-              <CardDescription>OAuth credentials and configuration</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Client ID</label>
-                <div className="flex items-center gap-2 mt-1">
-                  <code className="flex-1 p-2 bg-muted rounded text-sm">{appData.clientId}</code>
-                  <Button variant="outline" size="icon"><Copy className="h-4 w-4" /></Button>
-                </div>
+          <Tabs defaultValue="details">
+            <TabsList>
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="details" className="mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Application Details</CardTitle>
+                  <CardDescription>OAuth credentials and configuration</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Client ID</label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <code className="flex-1 p-2 bg-muted rounded text-sm">{appData.clientId}</code>
+                      <Button variant="outline" size="icon"><Copy className="h-4 w-4" /></Button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Client Secret</label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <code className="flex-1 p-2 bg-muted rounded text-sm">{appData.clientSecret}</code>
+                      <Button variant="outline" size="icon"><Copy className="h-4 w-4" /></Button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Homepage URL</label>
+                    <p className="mt-1 text-sm">{appData.homepageUrl}</p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Callback URL</label>
+                    <p className="mt-1 text-sm">{appData.callbackUrl}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="analytics" className="mt-4 space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Total Logins</CardTitle>
+                    <CardDescription>All-time OAuth authentications</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">{totalLogins[0]?.count || 0}</div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Active Days</CardTitle>
+                    <CardDescription>Days with login activity</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">{tokens.length}</div>
+                  </CardContent>
+                </Card>
               </div>
 
-              <div>
-                <label className="text-sm font-medium">Client Secret</label>
-                <div className="flex items-center gap-2 mt-1">
-                  <code className="flex-1 p-2 bg-muted rounded text-sm">{appData.clientSecret}</code>
-                  <Button variant="outline" size="icon"><Copy className="h-4 w-4" /></Button>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">Homepage URL</label>
-                <p className="mt-1 text-sm">{appData.homepageUrl}</p>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">Callback URL</label>
-                <p className="mt-1 text-sm">{appData.callbackUrl}</p>
-              </div>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Login Frequency</CardTitle>
+                  <CardDescription>Daily OAuth authentication activity</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <AnalyticsChart data={tokens} />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </SidebarInset>
     </SidebarProvider>

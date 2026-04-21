@@ -152,6 +152,7 @@ class HomeActivity : AppCompatActivity() {
     private fun setupMenuDrawer() {
         val drawerMenu = findViewById<View>(R.id.drawerMenu)
         val menuHelp = drawerMenu.findViewById<View>(R.id.menuHelp)
+        val menuOAuth = drawerMenu.findViewById<View>(R.id.menuOAuth)
         val menuFeedback = drawerMenu.findViewById<View>(R.id.menuFeedback)
         val menuReport = drawerMenu.findViewById<View>(R.id.menuReport)
         val appVersion = drawerMenu.findViewById<TextView>(R.id.appVersion)
@@ -161,6 +162,11 @@ class HomeActivity : AppCompatActivity() {
         menuHelp.setOnClickListener {
             drawerLayout.closeDrawer(android.view.Gravity.START)
             android.widget.Toast.makeText(this, "Help", android.widget.Toast.LENGTH_SHORT).show()
+        }
+        
+        menuOAuth.setOnClickListener {
+            drawerLayout.closeDrawer(android.view.Gravity.START)
+            startActivity(Intent(this, OAuthActivity::class.java))
         }
         
         menuFeedback.setOnClickListener {

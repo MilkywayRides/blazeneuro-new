@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/card_background"
+    android:padding="@dimen/space_md"
+    android:layout_marginBottom="@dimen/space_sm">
+
+    <TextView
+        android:id="@+id/tvAppName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="App Name"
+        android:textColor="@color/foreground"
+        android:textSize="@dimen/text_lg"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvAppDesc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Description"
+        android:textColor="@color/muted_foreground"
+        android:textSize="@dimen/text_sm"
+        android:layout_marginTop="4dp" />
+
+    <TextView
+        android:id="@+id/tvClientId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Client ID: xxx"
+        android:textColor="@color/muted_foreground"
+        android:textSize="@dimen/text_xs"
+        android:fontFamily="monospace"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>

@@ -92,5 +92,10 @@
             android:name=".ChatActivity"
             android:exported="false"
             android:hardwareAccelerated="true" />
+
+        <activity
+            android:name=".OAuthActivity"
+            android:exported="false"
+            android:hardwareAccelerated="true" />
     </application>
 </manifest>
