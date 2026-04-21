@@ -41,7 +41,6 @@ export async function POST(req: NextRequest) {
     const clientSecret = nanoid(64);
 
     const [app] = await db.insert(oauthApp).values({
-      id: nanoid(),
       userId,
       name,
       description: description || null,
