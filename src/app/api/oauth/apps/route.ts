@@ -37,19 +37,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    const id = nanoid();
     const clientId = nanoid(32);
     const clientSecret = nanoid(64);
 
     const [app] = await db.insert(oauthApp).values({
+      id,
       userId,
       name,
       description: description || null,
       clientId,
       clientSecret,
       homepageUrl,
-      callbackUrl,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      callbackUrl
     }).returning();
 
     return NextResponse.json({ success: true, app });
