@@ -356,7 +356,7 @@ object AuthApi {
             }
 
             val request = Request.Builder()
-                .url("$AUTH_BASE_URL/api/oauth/apps?userId=$userId")
+                .url("$SITE_URL/api/oauth/apps?userId=$userId")
                 .get()
                 .build()
 
@@ -406,7 +406,7 @@ object AuthApi {
 
             val body = json.toString().toRequestBody("application/json".toMediaType())
             val request = Request.Builder()
-                .url("$AUTH_BASE_URL/api/oauth/apps")
+                .url("$SITE_URL/api/oauth/apps")
                 .post(body)
                 .build()
 
