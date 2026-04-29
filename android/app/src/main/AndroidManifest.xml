@@ -97,5 +97,10 @@
             android:name=".OAuthActivity"
             android:exported="false"
             android:hardwareAccelerated="true" />
+
+        <activity
+            android:name=".OAuthAppDetailActivity"
+            android:exported="false"
+            android:hardwareAccelerated="true" />
     </application>
 </manifest>
