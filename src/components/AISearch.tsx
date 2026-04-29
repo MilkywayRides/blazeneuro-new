@@ -15,15 +15,7 @@ export default function AISearch() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [dataStatus, setDataStatus] = useState({ collected: 0, remaining: 10 });
-
-  // Fetch current count on mount
-  useEffect(() => {
-    fetch('/api/ai-search/count')
-      .then(r => r.json())
-      .then(data => setDataStatus({ collected: data.count, remaining: Math.max(0, 10 - data.count) }))
-      .catch(console.error);
-  }, []);
+  const [collected, setCollected] = useState(0);
 
   useEffect(() => {
     if (!query) {
@@ -50,8 +42,6 @@ export default function AISearch() {
 
   const handleClick = async (result: SearchResult, position: number) => {
     try {
-      console.log('Tracking click:', { query, resultId: result.id, title: result.title });
-      
       const res = await fetch('/api/ai-search', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -66,33 +56,25 @@ export default function AISearch() {
       });
       
       const data = await res.json();
-      console.log('Tracking response:', data);
-      
       if (data.success) {
-        setDataStatus({ collected: data.collected, remaining: data.remaining });
-        alert(`✅ Recorded! ${data.collected}/10 interactions collected`);
-      } else {
-        alert(`❌ Error: ${data.error}`);
+        setCollected(data.collected);
       }
       
-      // Navigate to blog
-      setTimeout(() => {
-        window.location.href = `/blogs/${result.id}`;
-      }, 1000);
+      window.location.href = `/blogs/${result.id}`;
     } catch (error) {
-      console.error('Click tracking error:', error);
-      alert('Error tracking click. Check console.');
+      console.error('Error:', error);
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-        <p className="text-sm text-blue-700">
-          📊 Data Collection: {dataStatus.collected}/10 interactions recorded
-          {dataStatus.remaining > 0 && ` (${dataStatus.remaining} more needed for AI training)`}
-        </p>
-      </div>
+      {collected > 0 && (
+        <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+          <p className="text-sm text-blue-700">
+            📊 Collected: {collected}/10 interactions
+          </p>
+        </div>
+      )}
 
       <Input
         placeholder="Search blogs..."
