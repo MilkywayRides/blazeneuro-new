@@ -7,7 +7,8 @@ import { Card } from '@/components/ui/card';
 interface SearchResult {
   id: string;
   title: string;
-  description?: string;
+  excerpt?: string;
+  content?: string;
   ai_score?: number;
 }
 
@@ -25,25 +26,30 @@ export default function AISearch() {
     const timer = setTimeout(async () => {
       setLoading(true);
       
-      // Mock results - replace with your actual search
-      const mockResults = [
-        { id: '1', title: 'Neural Networks Basics', description: 'Deep learning fundamentals' },
-        { id: '2', title: 'Machine Learning Guide', description: 'ML introduction' },
-        { id: '3', title: 'AI Research Papers', description: 'Latest AI research' }
-      ];
-
       try {
+        // Fetch actual blog results
+        const blogRes = await fetch(`/api/blogs/search?q=${encodeURIComponent(query)}`);
+        const blogs = await blogRes.json();
+        
+        // Format for AI ranking
+        const formattedResults = blogs.map((blog: any) => ({
+          id: blog.id,
+          title: blog.title,
+          description: blog.excerpt || blog.content?.substring(0, 150),
+          views: blog.views || 0
+        }));
+
+        // Get AI rankings
         const res = await fetch('/api/ai-search', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query, results: mockResults })
+          body: JSON.stringify({ query, results: formattedResults })
         });
 
         const data = await res.json();
         setResults(data.results || []);
       } catch (error) {
         console.error('Search error:', error);
-        setResults(mockResults);
       }
       
       setLoading(false);
@@ -61,12 +67,15 @@ export default function AISearch() {
           query,
           resultId: result.id,
           title: result.title,
-          description: result.description || '',
+          description: result.excerpt || '',
           clicked: true,
           position,
           aiScore: result.ai_score || 0
         })
       });
+      
+      // Navigate to blog
+      window.location.href = `/blogs/${result.id}`;
     } catch (error) {
       console.error('Click tracking error:', error);
     }
@@ -75,30 +84,34 @@ export default function AISearch() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <Input
-        placeholder="Search with AI..."
+        placeholder="Search blogs with AI..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         className="mb-6"
       />
 
-      {loading && <div>Loading...</div>}
+      {loading && <div className="text-gray-500">Searching...</div>}
 
       <div className="space-y-2">
         {results.map((result, idx) => (
           <Card
             key={result.id}
-            className="p-4 cursor-pointer hover:shadow-lg transition"
+            className="p-4 cursor-pointer hover:shadow-lg hover:bg-gray-50 transition"
             onClick={() => handleClick(result, idx)}
           >
             <div className="flex justify-between items-center">
-              <h3 className="font-semibold text-lg">{result.title}</h3>
-              <div className="ml-4 text-sm font-mono bg-blue-100 px-3 py-1 rounded">
+              <h3 className="font-semibold text-lg text-left flex-1">{result.title}</h3>
+              <div className="ml-4 text-sm font-mono bg-blue-100 text-blue-700 px-3 py-1 rounded whitespace-nowrap">
                 {((result.ai_score || 0) * 100).toFixed(1)}%
               </div>
             </div>
           </Card>
         ))}
       </div>
+      
+      {!loading && query && results.length === 0 && (
+        <div className="text-center text-gray-500 mt-8">No results found</div>
+      )}
     </div>
   );
 }
