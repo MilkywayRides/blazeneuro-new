@@ -98,6 +98,17 @@ class OAuthAdapter(private val apps: List<OAuthApp>) : RecyclerView.Adapter<OAut
         holder.tvName.text = app.name
         holder.tvDesc.text = app.description ?: "No description"
         holder.tvClientId.text = "Client ID: ${app.clientId}"
+        
+        holder.itemView.setOnClickListener {
+            val intent = Intent(holder.itemView.context, OAuthAppDetailActivity::class.java).apply {
+                putExtra("appId", app.id)
+                putExtra("appName", app.name)
+                putExtra("appDesc", app.description)
+                putExtra("clientId", app.clientId)
+                putExtra("redirectUri", app.redirectUri)
+            }
+            holder.itemView.context.startActivity(intent)
+        }
     }
 
     override fun getItemCount() = apps.size

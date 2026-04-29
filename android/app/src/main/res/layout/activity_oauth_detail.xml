@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="@dimen/space_md"
+        android:background="@color/card"
+        android:elevation="2dp">
+
+        <ImageView
+            android:id="@+id/ivBack"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_back"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="App Details"
+            android:textColor="@color/foreground"
+            android:textSize="@dimen/text_xl"
+            android:textStyle="bold"
+            android:layout_marginStart="@dimen/space_md" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="@dimen/space_lg">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvAppName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="App Name"
+                android:textColor="@color/foreground"
+                android:textSize="@dimen/text_2xl"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvAppDesc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Description"
+                android:textColor="@color/muted_foreground"
+                android:textSize="@dimen/text_base"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="@dimen/space_lg" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Client ID"
+                android:textColor="@color/foreground"
+                android:textSize="@dimen/text_sm"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="@drawable/card_background"
+                android:padding="@dimen/space_md"
+                android:layout_marginBottom="@dimen/space_md">
+
+                <TextView
+                    android:id="@+id/tvClientId"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="client_id_here"
+                    android:textColor="@color/foreground"
+                    android:textSize="@dimen/text_sm"
+                    android:fontFamily="monospace" />
+
+                <ImageView
+                    android:id="@+id/btnCopyClientId"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_copy"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Redirect URI"
+                android:textColor="@color/foreground"
+                android:textSize="@dimen/text_sm"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="@drawable/card_background"
+                android:padding="@dimen/space_md">
+
+                <TextView
+                    android:id="@+id/tvRedirectUri"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="https://example.com/callback"
+                    android:textColor="@color/foreground"
+                    android:textSize="@dimen/text_sm"
+                    android:fontFamily="monospace" />
+
+                <ImageView
+                    android:id="@+id/btnCopyRedirectUri"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_copy"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>
