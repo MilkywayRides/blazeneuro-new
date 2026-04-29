@@ -8,7 +8,6 @@ const BATCH_SIZE = 10;
 export async function POST(req: NextRequest) {
   const { query, results } = await req.json();
 
-  // Get AI rankings
   const ranked = await fetch(`${MODAL_ENDPOINT}/rank_results`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -26,13 +25,14 @@ export async function PUT(req: NextRequest) {
     VALUES (${query}, ${resultId}, ${title}, ${description}, ${clicked}, ${position}, ${aiScore})
   `);
 
-  // Check if we have 10 interactions, then train
-  const count = await db.execute(sql`
+  const countResult = await db.execute(sql`
     SELECT COUNT(*) as cnt FROM search_interactions WHERE created_at > NOW() - INTERVAL '1 hour'
   `);
 
-  if (count.rows[0].cnt >= BATCH_SIZE) {
-    const batch = await db.execute(sql`
+  const count = (countResult as any)[0]?.cnt || 0;
+
+  if (count >= BATCH_SIZE) {
+    const batchResult = await db.execute(sql`
       SELECT query, result_id, result_title as title, result_description as description, clicked::int as clicked
       FROM search_interactions
       ORDER BY created_at DESC
@@ -43,7 +43,7 @@ export async function PUT(req: NextRequest) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
-        batch: batch.rows.map(r => ({
+        batch: (batchResult as any[]).map((r: any) => ({
           query: r.query,
           result: { title: r.title, description: r.description },
           clicked: r.clicked
