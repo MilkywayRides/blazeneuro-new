@@ -17,7 +17,8 @@ export default function AISearch() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [untrained, setUntrained] = useState(0);
-  const [source, setSource] = useState<'cache' | 'none'>('none');
+  const [source, setSource] = useState<'cache' | 'learning' | 'none'>('none');
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     if (!query) {
@@ -29,25 +30,16 @@ export default function AISearch() {
       setLoading(true);
       
       try {
-        const blogRes = await fetch(`/api/blogs/search?q=${encodeURIComponent(query)}`);
-        const blogs = await blogRes.json();
-        
-        const formattedResults = blogs.map((blog: any) => ({
-          id: blog.id,
-          title: blog.title,
-          description: blog.excerpt || blog.content?.substring(0, 150),
-          views: blog.views || 0
-        }));
-
         const res = await fetch('/api/ai-search', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query, results: formattedResults })
+          body: JSON.stringify({ query, results: [] })
         });
 
         const data = await res.json();
         setResults(data.results || []);
         setSource(data.source);
+        setMessage(data.message || '');
       } catch (error) {
         console.error('Search error:', error);
       }
@@ -78,7 +70,11 @@ export default function AISearch() {
       if (data.success) {
         setUntrained(data.untrained || 0);
         if (data.trained) {
-          alert('🎉 AI retrained! Scores updated with latest user behavior.');
+          if (source === 'learning') {
+            alert('🎉 Learned new keyword! AI now knows what you like for this search.');
+          } else {
+            alert('🎉 AI retrained! Scores updated with latest user behavior.');
+          }
         }
       }
       
@@ -90,7 +86,15 @@ export default function AISearch() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      {untrained > 0 && (
+      {message && source === 'learning' && (
+        <div className="mb-4 p-4 rounded-lg bg-purple-50 border border-purple-200">
+          <p className="text-sm text-purple-700 font-medium">
+            🎓 {message}
+          </p>
+        </div>
+      )}
+
+      {untrained > 0 && source !== 'learning' && (
         <div className={`mb-4 p-4 rounded-lg ${source === 'cache' ? 'bg-green-50' : 'bg-blue-50'}`}>
           <p className={`text-sm ${source === 'cache' ? 'text-green-700' : 'text-blue-700'}`}>
             {source === 'cache' 

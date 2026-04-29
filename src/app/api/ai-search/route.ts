@@ -30,7 +30,34 @@ export async function POST(req: NextRequest) {
     console.error('Cache lookup failed:', error);
   }
   
-  // No cache, return unranked
+  // NEW QUERY - Show all blogs to learn from user
+  try {
+    const allBlogs = await db.execute(sql`
+      SELECT id, title, excerpt, content, views
+      FROM blog
+      ORDER BY created_at DESC
+      LIMIT 50
+    `);
+    
+    const formattedBlogs = (allBlogs as any[]).map((b: any) => ({
+      id: b.id,
+      title: b.title,
+      excerpt: b.excerpt,
+      content: b.content,
+      views: b.views || 0,
+      ai_score: 0.5 // Neutral score for new query
+    }));
+    
+    return NextResponse.json({ 
+      results: formattedBlogs, 
+      source: 'learning',
+      message: 'New search! Showing all blogs - click what you like to teach the AI.'
+    });
+  } catch (error) {
+    console.error('Failed to fetch all blogs:', error);
+  }
+  
+  // Fallback to provided results
   return NextResponse.json({ results, source: 'none' });
 }
 
