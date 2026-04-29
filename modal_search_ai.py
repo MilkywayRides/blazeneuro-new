@@ -61,7 +61,9 @@ class SearchRanker:
         ]
         return features + [0.0] * (384 - len(features))
 
-@app.function()
+web_image = modal.Image.debian_slim().pip_install("fastapi[standard]")
+
+@app.function(image=web_image)
 @modal.asgi_app()
 def fastapi_app():
     from fastapi import FastAPI
