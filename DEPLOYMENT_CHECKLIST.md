@@ -1,103 +1,68 @@
-# Deployment Checklist
+# 🚀 DEPLOYMENT CHECKLIST
 
-## Pre-Deployment
+## ✅ What's Ready
 
-- [ ] Node.js >= 20.9.0 installed
-- [ ] PostgreSQL database provisioned
-- [ ] Domain DNS configured (auth.blazeneuro.com)
-- [ ] SSL/TLS certificates configured
-- [ ] Environment variables prepared
+**Commit**: `c6bfc5c` on `main` branch
 
-## Environment Setup
+### Files:
+- ✅ `src/components/AISearch.tsx` - Search UI with data collection
+- ✅ `src/app/api/ai-search/route.ts` - API to store clicks
+- ✅ `src/app/api/blogs/search/route.ts` - Blog search endpoint
+- ✅ `src/app/ai-search/page.tsx` - Demo page
+- ✅ `migrations/create_search_interactions.sql` - Database table
 
-### Required Variables
+## 📋 Deploy to Production
+
+### 1. Redeploy on Vercel/Your Host
 ```bash
-NEXT_PUBLIC_AUTH_URL=https://auth.blazeneuro.com
-DATABASE_URL=postgresql://user:password@host:5432/database
-BETTER_AUTH_SECRET=<generate-with-openssl-rand-base64-32>
-BLAZENEURO_API_KEY=<generate-with-openssl-rand-base64-32>
+git push origin main
 ```
 
-### Optional OAuth Variables
+Your hosting platform should auto-deploy.
+
+### 2. Verify Database Migration
 ```bash
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-GITHUB_CLIENT_ID=
-GITHUB_CLIENT_SECRET=
-RESEND_API_KEY=
-DOMAIN=blazeneuro.com
+# Run this on your production database
+psql $PRODUCTION_DATABASE_URL < migrations/create_search_interactions.sql
 ```
 
-## OAuth Provider Configuration
+### 3. Test Production
+Visit: https://blazeneuro.com/ai-search
 
-### Google OAuth
-1. Go to Google Cloud Console
-2. Update authorized redirect URIs:
-   - `https://auth.blazeneuro.com/api/auth/callback/google`
-3. Update authorized JavaScript origins:
-   - `https://auth.blazeneuro.com`
+- Search for something
+- Click a result
+- Should see counter: "📊 Collected: 1/10"
 
-### GitHub OAuth
-1. Go to GitHub Developer Settings
-2. Update callback URL:
-   - `https://auth.blazeneuro.com/api/auth/callback/github`
-3. Update homepage URL:
-   - `https://auth.blazeneuro.com`
+## 🔍 How It Works
 
-## Database Migration
+1. User visits `/ai-search`
+2. Searches for blogs
+3. Clicks a result
+4. Data saved to `search_interactions` table
+5. Counter shows: "Collected: X/10"
+6. After 10 clicks, ready for AI training
 
-```bash
-npm run db:push
+## 📊 Check Data Collection
+
+```sql
+SELECT COUNT(*) FROM search_interactions;
+SELECT query, result_title, created_at 
+FROM search_interactions 
+ORDER BY created_at DESC 
+LIMIT 10;
 ```
 
-## Build & Test
+## ⚠️ Important
 
-```bash
-npm install
-npm run build
-npm start
-```
+- **No AI ranking yet** - Just collecting data
+- **Counter shows after first click** - Not on page load
+- **Simple display** - Just blog titles
+- **Navigates to blog** - After recording click
 
-## Deployment Steps
+## 🎯 After 10 Interactions
 
-### Vercel (Recommended)
-1. Connect GitHub repository
-2. Set environment variables in Vercel dashboard
-3. Configure custom domain: auth.blazeneuro.com
-4. Deploy
+You'll have real user data to train the AI model. Then we can enable AI ranking with percentages.
 
-### Manual Deployment
-1. Build the application: `npm run build`
-2. Start the server: `npm start`
-3. Configure reverse proxy (nginx/caddy)
-4. Set up SSL certificates
-5. Configure process manager (PM2)
+---
 
-## Post-Deployment
-
-- [ ] Verify auth.blazeneuro.com is accessible
-- [ ] Test user registration
-- [ ] Test user login
-- [ ] Test OAuth providers (Google, GitHub)
-- [ ] Verify cross-subdomain cookies work
-- [ ] Test admin panel access
-- [ ] Monitor logs for errors
-- [ ] Set up monitoring/alerting
-
-## Security Checklist
-
-- [ ] HTTPS enabled
-- [ ] Secure cookies configured
-- [ ] CORS properly configured
-- [ ] Rate limiting enabled
-- [ ] Database credentials secured
-- [ ] API keys rotated from defaults
-- [ ] Security headers configured
-
-## Rollback Plan
-
-If issues occur:
-1. Revert to previous deployment
-2. Check logs: `npm run logs`
-3. Verify environment variables
-4. Test database connectivity
+**Status**: 🟢 Code pushed to main, ready for deployment
