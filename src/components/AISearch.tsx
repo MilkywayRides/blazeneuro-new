@@ -88,9 +88,11 @@ export default function AISearch() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       {collected > 0 && (
-        <div className={`mb-4 p-4 rounded-lg ${aiEnabled ? 'bg-green-50' : 'bg-blue-50'}`}>
-          <p className={`text-sm ${aiEnabled ? 'text-green-700' : 'text-blue-700'}`}>
-            {aiEnabled ? '🤖 AI Ranking Active!' : `📊 Collected: ${collected}/10 interactions`}
+        <div className={`mb-4 p-4 rounded-lg ${aiEnabled ? 'bg-green-50' : 'bg-yellow-50'}`}>
+          <p className={`text-sm ${aiEnabled ? 'text-green-700' : 'text-yellow-700'}`}>
+            {aiEnabled 
+              ? '🤖 AI Ranking Active!' 
+              : `⏳ AI Ready (${collected} interactions) - Modal warming up...`}
           </p>
         </div>
       )}

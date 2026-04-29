@@ -14,15 +14,21 @@ export async function POST(req: NextRequest) {
   
   if (count >= BATCH_SIZE && MODAL_ENDPOINT) {
     try {
+      // 5 second timeout for Modal
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
       const ranked = await fetch(`${MODAL_ENDPOINT}/rank_results`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, results })
+        body: JSON.stringify({ query, results }),
+        signal: controller.signal
       }).then(r => r.json());
       
+      clearTimeout(timeoutId);
       return NextResponse.json({ results: ranked, aiEnabled: true });
     } catch (error) {
-      console.error('AI ranking failed:', error);
+      console.error('AI ranking timeout/failed:', error);
     }
   }
   
