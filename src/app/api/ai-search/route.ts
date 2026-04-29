@@ -12,25 +12,40 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  const { query, resultId, title, description, clicked, position } = await req.json();
+  try {
+    const { query, resultId, title, description, clicked, position } = await req.json();
 
-  // Store user interaction
-  await db.execute(sql`
-    INSERT INTO search_interactions (query, result_id, result_title, result_description, clicked, position, ai_score)
-    VALUES (${query}, ${resultId}, ${title}, ${description}, ${clicked}, ${position}, 0)
-  `);
+    console.log('Recording interaction:', { query, resultId, title });
 
-  // Check how many interactions we have
-  const countResult = await db.execute(sql`
-    SELECT COUNT(*) as cnt FROM search_interactions
-  `);
+    // Store user interaction
+    await db.execute(sql`
+      INSERT INTO search_interactions (query, result_id, result_title, result_description, clicked, position, ai_score)
+      VALUES (${query}, ${resultId}, ${title}, ${description || ''}, ${clicked}, ${position}, 0)
+    `);
 
-  const count = (countResult as any)[0]?.cnt || 0;
+    console.log('Interaction saved successfully');
 
-  return NextResponse.json({ 
-    success: true, 
-    collected: count,
-    remaining: Math.max(0, BATCH_SIZE - count),
-    message: count >= BATCH_SIZE ? 'Ready for AI training!' : `Collecting data: ${count}/${BATCH_SIZE}`
-  });
+    // Check how many interactions we have
+    const countResult = await db.execute(sql`
+      SELECT COUNT(*) as cnt FROM search_interactions
+    `);
+
+    const count = (countResult as any)[0]?.cnt || 0;
+    console.log('Total interactions:', count);
+
+    return NextResponse.json({ 
+      success: true, 
+      collected: count,
+      remaining: Math.max(0, BATCH_SIZE - count),
+      message: count >= BATCH_SIZE ? 'Ready for AI training!' : `Collecting data: ${count}/${BATCH_SIZE}`
+    });
+  } catch (error) {
+    console.error('Error saving interaction:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: String(error),
+      collected: 0,
+      remaining: BATCH_SIZE
+    }, { status: 500 });
+  }
 }

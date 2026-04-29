@@ -42,6 +42,8 @@ export default function AISearch() {
 
   const handleClick = async (result: SearchResult, position: number) => {
     try {
+      console.log('Tracking click:', { query, resultId: result.id, title: result.title });
+      
       const res = await fetch('/api/ai-search', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -56,11 +58,22 @@ export default function AISearch() {
       });
       
       const data = await res.json();
-      setDataStatus({ collected: data.collected, remaining: data.remaining });
+      console.log('Tracking response:', data);
       
-      window.location.href = `/blogs/${result.id}`;
+      if (data.success) {
+        setDataStatus({ collected: data.collected, remaining: data.remaining });
+        alert(`✅ Recorded! ${data.collected}/10 interactions collected`);
+      } else {
+        alert(`❌ Error: ${data.error}`);
+      }
+      
+      // Navigate to blog
+      setTimeout(() => {
+        window.location.href = `/blogs/${result.id}`;
+      }, 1000);
     } catch (error) {
       console.error('Click tracking error:', error);
+      alert('Error tracking click. Check console.');
     }
   };
 
