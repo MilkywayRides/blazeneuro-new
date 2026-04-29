@@ -29,7 +29,7 @@ function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
-function buildWordBoundaryRegex(term: string): string {
+function buildWholeWordRegex(term: string): string {
   const normalized = term.trim().toLowerCase().replace(/\s+/g, " ")
   return `\\m${escapeRegex(normalized).replace(/ /g, "\\s+")}\\M`
 }
@@ -46,15 +46,19 @@ function extractQueryTerms(query: string): string[] {
 function buildSearchWhereClause(searchInput: string) {
   const normalized = searchInput.toLowerCase().trim()
   const terms = extractQueryTerms(normalized)
-  const patterns = [buildWordBoundaryRegex(normalized), ...terms.map(buildWordBoundaryRegex)]
+  const patterns = [buildWholeWordRegex(normalized), ...terms.map(buildWholeWordRegex)]
 
-  return sql.join(
+  const tsvectorDoc = sql`to_tsvector('simple', COALESCE(${blog.title}, '') || ' ' || COALESCE(${blog.excerpt}, '') || ' ' || COALESCE(${blog.content}, ''))`
+  const tsQuery = sql`websearch_to_tsquery('simple', ${normalized})`
+  const regexMatches = sql.join(
     patterns.map(
       (pattern) =>
         sql`(LOWER(${blog.title}) ~ ${pattern} OR LOWER(${blog.excerpt}) ~ ${pattern} OR LOWER(${blog.content}) ~ ${pattern})`
     ),
     sql` OR `
   )
+
+  return sql`(${tsvectorDoc} @@ ${tsQuery}) OR (${regexMatches})`
 }
 
 export async function GET(req: NextRequest) {
@@ -93,7 +97,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const normalized = query.toLowerCase().trim()
-    const phrasePattern = buildWordBoundaryRegex(normalized)
+    const phrasePattern = buildWholeWordRegex(normalized)
 
     const results = await db
       .select({

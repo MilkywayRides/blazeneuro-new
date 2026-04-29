@@ -105,9 +105,10 @@ function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function buildWordBoundaryRegex(term: string): string {
+function buildWholeWordRegex(term: string): string {
   const normalized = term.trim().toLowerCase().replace(/\s+/g, " ");
-  return `\\m${escapeRegex(normalized).replace(/ /g, "\\s+")}\\M`;
+  const escaped = escapeRegex(normalized).replace(/ /g, "\\s+");
+  return `(^|[^a-z0-9_])${escaped}([^a-z0-9_]|$)`;
 }
 
 function extractQueryTerms(query: string): string[] {
@@ -122,8 +123,12 @@ function extractQueryTerms(query: string): string[] {
 function buildSearchPredicate(searchInput: string) {
   const normalized = searchInput.toLowerCase().trim();
   const terms = extractQueryTerms(normalized);
-  const patterns = [buildWordBoundaryRegex(normalized), ...terms.map(buildWordBoundaryRegex)];
+  const patterns = [buildWholeWordRegex(normalized), ...terms.map(buildWholeWordRegex)];
+  const tsvectorDoc = sql`to_tsvector('simple', COALESCE(${blog.title}, '') || ' ' || COALESCE(${blog.excerpt}, '') || ' ' || COALESCE(${blog.content}, ''))`;
+  const tsQuery = sql`websearch_to_tsquery('simple', ${normalized})`;
+
   return or(
+    sql`${tsvectorDoc} @@ ${tsQuery}`,
     ...patterns.map((pattern) =>
       or(
         sql`LOWER(${blog.title}) ~ ${pattern}`,
