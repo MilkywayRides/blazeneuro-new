@@ -81,10 +81,10 @@ def fastapi_app():
     
     @web_app.post("/rank_results")
     async def rank_results(req: RankRequest):
-        return ranker.rank.remote(req.query, req.results)
+        return await ranker.rank.remote.aio(req.query, req.results)
     
     @web_app.post("/train_model")
     async def train_model(req: TrainRequest):
-        return ranker.train.remote(req.batch)
+        return await ranker.train.remote.aio(req.batch)
     
     return web_app
