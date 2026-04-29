@@ -16,8 +16,8 @@ export default function AISearch() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [collected, setCollected] = useState(0);
-  const [aiEnabled, setAiEnabled] = useState(false);
+  const [untrained, setUntrained] = useState(0);
+  const [source, setSource] = useState<'cache' | 'none'>('none');
 
   useEffect(() => {
     if (!query) {
@@ -47,7 +47,7 @@ export default function AISearch() {
 
         const data = await res.json();
         setResults(data.results || []);
-        setAiEnabled(data.aiEnabled);
+        setSource(data.source);
       } catch (error) {
         console.error('Search error:', error);
       }
@@ -76,7 +76,10 @@ export default function AISearch() {
       
       const data = await res.json();
       if (data.success) {
-        setCollected(data.collected);
+        setUntrained(data.untrained || 0);
+        if (data.trained) {
+          alert('🎉 AI trained! Scores cached for future searches.');
+        }
       }
       
       window.location.href = `/blogs/${result.id}`;
@@ -87,12 +90,12 @@ export default function AISearch() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      {collected > 0 && (
-        <div className={`mb-4 p-4 rounded-lg ${aiEnabled ? 'bg-green-50' : 'bg-yellow-50'}`}>
-          <p className={`text-sm ${aiEnabled ? 'text-green-700' : 'text-yellow-700'}`}>
-            {aiEnabled 
-              ? '🤖 AI Ranking Active!' 
-              : `⏳ AI Ready (${collected} interactions) - Modal warming up...`}
+      {untrained > 0 && (
+        <div className={`mb-4 p-4 rounded-lg ${source === 'cache' ? 'bg-green-50' : 'bg-blue-50'}`}>
+          <p className={`text-sm ${source === 'cache' ? 'text-green-700' : 'text-blue-700'}`}>
+            {source === 'cache' 
+              ? '✨ AI Scores (from cache)' 
+              : `📊 Collecting: ${untrained}/10 for next training`}
           </p>
         </div>
       )}
