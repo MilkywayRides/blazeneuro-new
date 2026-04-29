@@ -4,6 +4,16 @@ import { sql } from 'drizzle-orm';
 
 const BATCH_SIZE = 10;
 
+export async function GET(req: NextRequest) {
+  try {
+    const countResult = await db.execute(sql`SELECT COUNT(*) as cnt FROM search_interactions`);
+    const count = (countResult as any)[0]?.cnt || 0;
+    return NextResponse.json({ count });
+  } catch (error) {
+    return NextResponse.json({ count: 0 });
+  }
+}
+
 export async function POST(req: NextRequest) {
   const { query, results } = await req.json();
   

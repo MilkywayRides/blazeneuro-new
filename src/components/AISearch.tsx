@@ -17,6 +17,14 @@ export default function AISearch() {
   const [loading, setLoading] = useState(false);
   const [dataStatus, setDataStatus] = useState({ collected: 0, remaining: 10 });
 
+  // Fetch current count on mount
+  useEffect(() => {
+    fetch('/api/ai-search/count')
+      .then(r => r.json())
+      .then(data => setDataStatus({ collected: data.count, remaining: Math.max(0, 10 - data.count) }))
+      .catch(console.error);
+  }, []);
+
   useEffect(() => {
     if (!query) {
       setResults([]);
