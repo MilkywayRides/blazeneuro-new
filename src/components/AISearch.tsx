@@ -9,6 +9,7 @@ interface SearchResult {
   title: string;
   excerpt?: string;
   content?: string;
+  ai_score?: number;
 }
 
 export default function AISearch() {
@@ -16,6 +17,7 @@ export default function AISearch() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [collected, setCollected] = useState(0);
+  const [aiEnabled, setAiEnabled] = useState(false);
 
   useEffect(() => {
     if (!query) {
@@ -29,7 +31,23 @@ export default function AISearch() {
       try {
         const blogRes = await fetch(`/api/blogs/search?q=${encodeURIComponent(query)}`);
         const blogs = await blogRes.json();
-        setResults(blogs || []);
+        
+        const formattedResults = blogs.map((blog: any) => ({
+          id: blog.id,
+          title: blog.title,
+          description: blog.excerpt || blog.content?.substring(0, 150),
+          views: blog.views || 0
+        }));
+
+        const res = await fetch('/api/ai-search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query, results: formattedResults })
+        });
+
+        const data = await res.json();
+        setResults(data.results || []);
+        setAiEnabled(data.aiEnabled);
       } catch (error) {
         console.error('Search error:', error);
       }
@@ -51,7 +69,8 @@ export default function AISearch() {
           title: result.title,
           description: result.excerpt || '',
           clicked: true,
-          position
+          position,
+          aiScore: result.ai_score || 0
         })
       });
       
@@ -69,9 +88,9 @@ export default function AISearch() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       {collected > 0 && (
-        <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-          <p className="text-sm text-blue-700">
-            📊 Collected: {collected}/10 interactions
+        <div className={`mb-4 p-4 rounded-lg ${aiEnabled ? 'bg-green-50' : 'bg-blue-50'}`}>
+          <p className={`text-sm ${aiEnabled ? 'text-green-700' : 'text-blue-700'}`}>
+            {aiEnabled ? '🤖 AI Ranking Active!' : `📊 Collected: ${collected}/10 interactions`}
           </p>
         </div>
       )}
@@ -92,7 +111,14 @@ export default function AISearch() {
             className="p-4 cursor-pointer hover:shadow-lg hover:bg-gray-50 transition"
             onClick={() => handleClick(result, idx)}
           >
-            <h3 className="font-semibold text-lg">{result.title}</h3>
+            <div className="flex justify-between items-center gap-4">
+              <h3 className="font-semibold text-lg flex-1">{result.title}</h3>
+              {result.ai_score !== undefined && (
+                <div className="flex-shrink-0 text-sm font-mono bg-blue-100 text-blue-700 px-3 py-1 rounded">
+                  {(result.ai_score * 100).toFixed(1)}%
+                </div>
+              )}
+            </div>
           </Card>
         ))}
       </div>
