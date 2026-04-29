@@ -22,3 +22,15 @@ export async function searchBlogs(query: string): Promise<any[]> {
 
   return results;
 }
+
+// Stub function - no longer generates keywords
+export async function updateBlogKeywords(blogId: string) {
+  // No-op: AI keyword generation disabled
+  return;
+}
+
+// Stub function - no longer generates keywords
+export async function generateAllBlogKeywords() {
+  // No-op: AI keyword generation disabled
+  return;
+}
