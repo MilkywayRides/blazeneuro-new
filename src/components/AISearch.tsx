@@ -78,7 +78,7 @@ export default function AISearch() {
       if (data.success) {
         setUntrained(data.untrained || 0);
         if (data.trained) {
-          alert('🎉 AI trained! Scores cached for future searches.');
+          alert('🎉 AI retrained! Scores updated with latest user behavior.');
         }
       }
       

@@ -38,19 +38,20 @@ export async function PUT(req: NextRequest) {
   try {
     const { query, resultId, title, description, clicked, position, aiScore } = await req.json();
 
+    // Always store new interaction (even if we have cached scores)
     await db.execute(sql`
       INSERT INTO search_interactions (query, result_id, result_title, result_description, clicked, position, ai_score)
-      VALUES (${query}, ${resultId}, ${title}, ${description || ''}, ${clicked}, ${position}, ${aiScore || 0})
+      VALUES (${query}, ${resultId}, ${title}, ${description || ''}, ${clicked}, ${position}, 0)
     `);
 
-    // Count untrained interactions
+    // Count ALL untrained interactions (not just recent ones)
     const countResult = await db.execute(sql`
       SELECT COUNT(*) as cnt FROM search_interactions 
       WHERE ai_score = 0
     `);
     const untrainedCount = (countResult as any)[0]?.cnt || 0;
 
-    // If we have 10 untrained, trigger training
+    // If we have 10 untrained, trigger retraining
     if (untrainedCount >= BATCH_SIZE && MODAL_ENDPOINT) {
       // Get batch for training
       const batch = await db.execute(sql`
@@ -61,7 +62,7 @@ export async function PUT(req: NextRequest) {
         LIMIT ${BATCH_SIZE}
       `);
 
-      // Train model
+      // Train model (this improves the model with new data)
       try {
         await fetch(`${MODAL_ENDPOINT}/train_model`, {
           method: 'POST',
@@ -75,7 +76,7 @@ export async function PUT(req: NextRequest) {
           })
         });
 
-        // Get AI scores for all queries in batch
+        // Get updated AI scores for queries in this batch
         const uniqueQueries = [...new Set((batch as any[]).map((r: any) => r.query))];
         
         for (const q of uniqueQueries) {
@@ -93,7 +94,7 @@ export async function PUT(req: NextRequest) {
             body: JSON.stringify({ query: q, results: queryResults })
           }).then(r => r.json());
 
-          // Cache scores
+          // Update cache with new scores (overwrites old scores)
           for (const result of ranked) {
             await db.execute(sql`
               INSERT INTO ai_score_cache (query, result_id, ai_score)
@@ -104,7 +105,7 @@ export async function PUT(req: NextRequest) {
           }
         }
 
-        // Mark interactions as trained
+        // Mark these interactions as trained
         await db.execute(sql`
           UPDATE search_interactions 
           SET ai_score = 1 
@@ -117,7 +118,7 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ 
           success: true, 
           trained: true,
-          message: 'Batch trained and cached!'
+          message: 'Model retrained! Cache updated with improved scores.'
         });
       } catch (error) {
         console.error('Training failed:', error);
