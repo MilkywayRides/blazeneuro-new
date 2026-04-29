@@ -165,7 +165,7 @@ export default function Home() {
               </div>
               
               {searchQuery && (
-                <div className="absolute top-full mt-2 w-full bg-black/90 backdrop-blur-lg border border-white/20 rounded-2xl shadow-2xl max-h-96 overflow-y-auto">
+                <div className="absolute top-full left-0 mt-2 w-full bg-black/90 backdrop-blur-lg border border-white/20 rounded-2xl shadow-2xl max-h-96 overflow-y-auto text-left">
                   {searching ? (
                     <div className="p-4 text-center text-white/60">Searching...</div>
                   ) : searchResults.length > 0 ? (
@@ -177,9 +177,7 @@ export default function Home() {
                           className="block p-3 hover:bg-white/10 rounded-lg transition-colors"
                         >
                           <h3 className="text-white font-medium">{result.title}</h3>
-                          {result.excerpt && (
-                            <p className="text-white/60 text-sm mt-1 line-clamp-2">{result.excerpt}</p>
-                          )}
+                          
                         </a>
                       ))}
                     </div>

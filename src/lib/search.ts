@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { blog, blogSearchCache } from "./schema";
-import { sql, or, ilike, inArray } from "drizzle-orm";
+import { sql, or, inArray } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { memoryCache } from "./cache";
 
@@ -100,8 +100,42 @@ Generate 5-8 related search keywords that match available content. Return ONLY a
   }
 }
 
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function buildWordBoundaryRegex(term: string): string {
+  const normalized = term.trim().toLowerCase().replace(/\s+/g, " ");
+  return `\\m${escapeRegex(normalized).replace(/ /g, "\\s+")}\\M`;
+}
+
+function extractQueryTerms(query: string): string[] {
+  return query
+    .toLowerCase()
+    .trim()
+    .split(/\s+/)
+    .map((token) => token.replace(/[^a-z0-9_-]/g, ""))
+    .filter((token) => token.length >= 2);
+}
+
+function buildSearchPredicate(searchInput: string) {
+  const normalized = searchInput.toLowerCase().trim();
+  const terms = extractQueryTerms(normalized);
+  const patterns = [buildWordBoundaryRegex(normalized), ...terms.map(buildWordBoundaryRegex)];
+  return or(
+    ...patterns.map((pattern) =>
+      or(
+        sql`LOWER(${blog.title}) ~ ${pattern}`,
+        sql`LOWER(${blog.excerpt}) ~ ${pattern}`,
+        sql`LOWER(${blog.content}) ~ ${pattern}`,
+        sql`EXISTS (SELECT 1 FROM unnest(COALESCE(${blog.searchKeywords}, ARRAY[]::text[])) kw WHERE LOWER(kw) ~ ${pattern})`
+      )
+    )
+  );
+}
 // Search blogs with AI-powered keyword matching
-export async function searchBlogs(query: string): Promise<any[]> {
+export async function searchBlogs(query: string): Promise<(typeof blog.$inferSelect)[]> {
   const normalizedQuery = query.toLowerCase().trim();
   
   // Check memory cache first (fastest)
@@ -127,14 +161,7 @@ export async function searchBlogs(query: string): Promise<any[]> {
   // Step 2: Direct search (title, content, excerpt, keywords)
   const directResults = await db.select()
     .from(blog)
-    .where(
-      or(
-        ilike(blog.title, `%${normalizedQuery}%`),
-        ilike(blog.content, `%${normalizedQuery}%`),
-        ilike(blog.excerpt, `%${normalizedQuery}%`),
-        sql`${blog.searchKeywords} && ARRAY[${normalizedQuery}]::text[]`
-      )
-    );
+    .where(buildSearchPredicate(normalizedQuery));
 
   if (directResults.length > 0) {
     // Cache the results
@@ -156,14 +183,7 @@ export async function searchBlogs(query: string): Promise<any[]> {
     .from(blog)
     .where(
       or(
-        ...expandedKeywords.map(keyword => 
-          or(
-            ilike(blog.title, `%${keyword}%`),
-            ilike(blog.content, `%${keyword}%`),
-            ilike(blog.excerpt, `%${keyword}%`),
-            sql`${blog.searchKeywords} && ARRAY[${keyword}]::text[]`
-          )
-        )
+        ...expandedKeywords.map((keyword) => buildSearchPredicate(keyword))
       )
     );
 
