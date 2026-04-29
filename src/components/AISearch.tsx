@@ -9,13 +9,13 @@ interface SearchResult {
   title: string;
   excerpt?: string;
   content?: string;
-  ai_score?: number;
 }
 
 export default function AISearch() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dataStatus, setDataStatus] = useState({ collected: 0, remaining: 10 });
 
   useEffect(() => {
     if (!query) {
@@ -27,28 +27,9 @@ export default function AISearch() {
       setLoading(true);
       
       try {
-        // Fetch actual blog results
         const blogRes = await fetch(`/api/blogs/search?q=${encodeURIComponent(query)}`);
         const blogs = await blogRes.json();
-        
-        // Format for AI ranking
-        const formattedResults = blogs.map((blog: any) => ({
-          id: blog.id,
-          title: blog.title,
-          description: blog.excerpt || blog.content?.substring(0, 150),
-          views: blog.views || 0
-        }));
-
-        // Get AI rankings
-        const res = await fetch('/api/ai-search', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query, results: formattedResults })
-        });
-
-        const data = await res.json();
-        console.log('AI Search Response:', data);
-        setResults(data.results || []);
+        setResults(blogs || []);
       } catch (error) {
         console.error('Search error:', error);
       }
@@ -61,7 +42,7 @@ export default function AISearch() {
 
   const handleClick = async (result: SearchResult, position: number) => {
     try {
-      await fetch('/api/ai-search', {
+      const res = await fetch('/api/ai-search', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -70,12 +51,13 @@ export default function AISearch() {
           title: result.title,
           description: result.excerpt || '',
           clicked: true,
-          position,
-          aiScore: result.ai_score || 0
+          position
         })
       });
       
-      // Navigate to blog
+      const data = await res.json();
+      setDataStatus({ collected: data.collected, remaining: data.remaining });
+      
       window.location.href = `/blogs/${result.id}`;
     } catch (error) {
       console.error('Click tracking error:', error);
@@ -84,8 +66,15 @@ export default function AISearch() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+        <p className="text-sm text-blue-700">
+          📊 Data Collection: {dataStatus.collected}/10 interactions recorded
+          {dataStatus.remaining > 0 && ` (${dataStatus.remaining} more needed for AI training)`}
+        </p>
+      </div>
+
       <Input
-        placeholder="Search blogs with AI..."
+        placeholder="Search blogs..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         className="mb-6"
@@ -100,14 +89,7 @@ export default function AISearch() {
             className="p-4 cursor-pointer hover:shadow-lg hover:bg-gray-50 transition"
             onClick={() => handleClick(result, idx)}
           >
-            <div className="flex justify-between items-center gap-4">
-              <h3 className="font-semibold text-lg text-left flex-1 truncate">{result.title}</h3>
-              {result.ai_score !== undefined && (
-                <div className="flex-shrink-0 text-sm font-mono bg-blue-100 text-blue-700 px-3 py-1 rounded">
-                  {(result.ai_score * 100).toFixed(1)}%
-                </div>
-              )}
-            </div>
+            <h3 className="font-semibold text-lg">{result.title}</h3>
           </Card>
         ))}
       </div>
