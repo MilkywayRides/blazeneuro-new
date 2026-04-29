@@ -47,6 +47,7 @@ export default function AISearch() {
         });
 
         const data = await res.json();
+        console.log('AI Search Response:', data);
         setResults(data.results || []);
       } catch (error) {
         console.error('Search error:', error);
@@ -99,11 +100,13 @@ export default function AISearch() {
             className="p-4 cursor-pointer hover:shadow-lg hover:bg-gray-50 transition"
             onClick={() => handleClick(result, idx)}
           >
-            <div className="flex justify-between items-center">
-              <h3 className="font-semibold text-lg text-left flex-1">{result.title}</h3>
-              <div className="ml-4 text-sm font-mono bg-blue-100 text-blue-700 px-3 py-1 rounded whitespace-nowrap">
-                {((result.ai_score || 0) * 100).toFixed(1)}%
-              </div>
+            <div className="flex justify-between items-center gap-4">
+              <h3 className="font-semibold text-lg text-left flex-1 truncate">{result.title}</h3>
+              {result.ai_score !== undefined && (
+                <div className="flex-shrink-0 text-sm font-mono bg-blue-100 text-blue-700 px-3 py-1 rounded">
+                  {(result.ai_score * 100).toFixed(1)}%
+                </div>
+              )}
             </div>
           </Card>
         ))}
