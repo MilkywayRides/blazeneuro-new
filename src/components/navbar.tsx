@@ -38,6 +38,7 @@ export function Navbar() {
   const [scrolled, setScrolled] = React.useState(false)
   const pathname = usePathname()
   const authUrl = process.env.NEXT_PUBLIC_AUTH_URL || "https://auth.blazeneuro.com"
+  const isDashboardRoute = pathname === "/dashboard" || pathname.startsWith("/dashboard/")
 
   const isAdmin = React.useMemo(() => {
     return session?.user?.email === 'admin@blazeneuro.com' ||
@@ -94,6 +95,10 @@ export function Navbar() {
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/"
     return pathname.startsWith(href)
+  }
+
+  if (isDashboardRoute) {
+    return null
   }
 
   return (
