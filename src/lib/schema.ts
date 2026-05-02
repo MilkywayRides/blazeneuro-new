@@ -278,6 +278,19 @@ export const popupResponse = pgTable("popup_response", {
   createdAt: timestamp("created_at").notNull().defaultNow()
 })
 
+export const userContribution = pgTable("user_contribution", {
+  id: text("id").primaryKey(),
+  query: text("query").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  links: text("links"),
+  tags: text("tags").array(),
+  contributorId: text("contributor_id"),
+  upvotes: integer("upvotes").notNull().default(0),
+  verified: boolean("verified").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+})
+
 export const schema = {
   user,
   session,
@@ -303,6 +316,7 @@ export const schema = {
   communityPost,
   chatMessage,
   chatMention,
-  pushToken
+  pushToken,
+  userContribution
 }
 

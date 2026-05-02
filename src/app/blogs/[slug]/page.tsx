@@ -116,18 +116,13 @@ export default async function BlogPostPage({
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-6">
-          <Link href="/blogs">
-            <Button variant="ghost" size="sm">
-              <ChevronLeft className="h-4 w-4" />
-              Back to Blogs
-            </Button>
-          </Link>
-        </div>
-      </header>
-
       <main className="container mx-auto px-4 py-8 max-w-4xl flex-1">
+        <Link href="/blogs" className="inline-block mb-6">
+          <Button variant="ghost" size="sm">
+            <ChevronLeft className="h-4 w-4" />
+            Back to Blogs
+          </Button>
+        </Link>
         <article>
           <header className="mb-8">
             <h1 className="text-4xl font-bold mb-4">{post.title}</h1>

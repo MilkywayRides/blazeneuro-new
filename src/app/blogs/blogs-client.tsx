@@ -1,69 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar } from "lucide-react";
-import { ModeToggle } from "@/components/mode-toggle";
-import { MainNav } from "@/components/main-nav";
 import { Footer } from "@/components/footer";
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 
 export default function BlogsPageClient({ blogs: initialBlogs }: { blogs: any[] }) {
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   const heroBlog = initialBlogs[0];
   const otherBlogs = initialBlogs.slice(1);
 
   return (
     <div className="relative min-h-screen">
-      <header className={`fixed left-0 right-0 z-50 transition-all duration-700 ${
-        isScrolled ? 'top-0' : 'top-2 md:top-6'
-      }`}>
-        <div className={`mx-auto transition-all duration-700 ${
-          isScrolled ? 'w-full' : 'w-[95%] md:w-[91%]'
-        }`}>
-          <div className={`relative flex justify-between items-center p-3 md:p-4 transition-all duration-700 ${
-            isScrolled ? 'rounded-none' : 'rounded-full'
-          } overflow-hidden`}>
-            <div className="absolute inset-0 pointer-events-none">
-              <span className="absolute inset-0" style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', opacity: 1, maskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)' }}></span>
-              <span className="absolute inset-0" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', opacity: 0.8, maskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)' }}></span>
-              <span className="absolute inset-0" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', opacity: 0.6, maskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)' }}></span>
-              <span className="absolute inset-0" style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', opacity: 0.4, maskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)' }}></span>
-              <span className="absolute inset-0" style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', opacity: 0.2, maskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)' }}></span>
-            </div>
-            <div className="absolute inset-0" style={{
-              background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent)'
-            }}></div>
-            <h2 className="relative text-lg md:text-2xl font-bold ml-2 md:ml-8">BlazeNeuro</h2>
-            <div className="relative flex items-center gap-2 md:gap-4 mr-2 md:mr-8">
-              <MainNav />
-              <ModeToggle />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8 pt-24 md:pt-32">
+      <main className="container mx-auto px-4 py-8 pt-8">
         {heroBlog && (
           <Link href={`/blogs/${heroBlog.blog.slug}`}>
             <Card className="overflow-hidden mb-12 group cursor-pointer border-none shadow-lg h-[45vh] min-h-[350px]">

@@ -3,10 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ModeToggle } from "@/components/mode-toggle";
-import { MainNav } from "@/components/main-nav";
 import { MeshGradient } from '@paper-design/shaders-react';
 import { Play, Pause, Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function Home() {
   const [isPaused, setIsPaused] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
@@ -30,14 +26,6 @@ export default function Home() {
       localStorage.setItem('bgPaused', String(isPaused));
     }
   }, [isPaused, mounted]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -80,35 +68,7 @@ export default function Home() {
   return (
     <div className="relative">
       <div className="relative min-h-screen flex flex-col">
-        <header className={`fixed left-0 right-0 z-50 transition-all duration-700 ${
-          isScrolled ? 'top-0' : 'top-2 md:top-6'
-        }`}>
-          <div className={`mx-auto transition-all duration-700 ${
-            isScrolled ? 'w-full' : 'w-[95%] md:w-[91%]'
-          }`}>
-            <div className={`relative flex justify-between items-center p-3 md:p-4 transition-all duration-700 ${
-              isScrolled ? 'rounded-none' : 'rounded-full'
-            } overflow-hidden`}>
-              <div className="absolute inset-0 pointer-events-none">
-                <span className="absolute inset-0" style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', opacity: 1, maskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)' }}></span>
-                <span className="absolute inset-0" style={{ backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', opacity: 0.8, maskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)' }}></span>
-                <span className="absolute inset-0" style={{ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', opacity: 0.6, maskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)' }}></span>
-                <span className="absolute inset-0" style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', opacity: 0.4, maskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)' }}></span>
-                <span className="absolute inset-0" style={{ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)', opacity: 0.2, maskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 0%, transparent 100%)' }}></span>
-              </div>
-              <div className="absolute inset-0" style={{
-                background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent)'
-              }}></div>
-              <h2 className="relative text-lg md:text-2xl font-bold ml-2 md:ml-8">BlazeNeuro</h2>
-              <div className="relative flex items-center gap-2 md:gap-4 mr-2 md:mr-8">
-                <MainNav />
-                <ModeToggle />
-              </div>
-            </div>
-          </div>
-        </header>
-        
-        <section className={`relative min-h-screen flex items-center justify-center px-4`}>
+        <section className="relative min-h-screen flex items-center justify-center px-4">
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative w-[95%] md:w-[90%] h-[70%] md:h-[80%] rounded-2xl md:rounded-3xl overflow-hidden">
               {!mounted ? (
@@ -177,7 +137,6 @@ export default function Home() {
                           className="block p-3 hover:bg-white/10 rounded-lg transition-colors"
                         >
                           <h3 className="text-white font-medium">{result.title}</h3>
-                          
                         </a>
                       ))}
                     </div>

@@ -1,42 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ModeToggle } from "@/components/mode-toggle";
-import { MainNav } from "@/components/main-nav";
 import { Footer } from "@/components/footer";
 
 export default function TermsOfServicePage() {
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   return (
     <div className="relative min-h-screen">
-      <header className={`fixed left-0 right-0 z-50 transition-all duration-700 ${
-        isScrolled ? 'top-0' : 'top-2 md:top-6'
-      }`}>
-        <div className={`mx-auto transition-all duration-700 ${
-          isScrolled ? 'w-full' : 'w-[95%] md:w-[91%]'
-        }`}>
-          <div className={`flex justify-between items-center border p-3 md:p-4 bg-background/80 backdrop-blur-md transition-all duration-700 ${
-            isScrolled ? 'rounded-none' : 'rounded-full'
-          }`}>
-            <h2 className="text-lg md:text-2xl font-bold ml-2 md:ml-8">BlazeNeuro</h2>
-            <div className="flex items-center gap-2 md:gap-4 mr-2 md:mr-8">
-              <MainNav />
-              <ModeToggle />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8 pt-24 md:pt-32 max-w-4xl mb-16">
+      <main className="container mx-auto px-4 py-8 pt-8 max-w-4xl mb-16">
         <div className="mb-8">
           <h1 className="text-4xl md:text-5xl font-bold mb-3">Terms of Service</h1>
           <p className="text-muted-foreground text-lg">Last updated: April 2, 2026</p>
