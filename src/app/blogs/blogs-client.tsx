@@ -6,15 +6,12 @@ import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar, Grid3X3, List } from "lucide-react";
 import { Footer } from "@/components/footer";
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuList,
-} from "@/components/ui/navigation-menu";
 
 export default function BlogsPageClient({ blogs: initialBlogs }: { blogs: any[] }) {
+  const [view, setView] = useState<"grid" | "list">("grid");
   const heroBlog = initialBlogs[0];
   const otherBlogs = initialBlogs.slice(1);
 
@@ -90,58 +87,52 @@ export default function BlogsPageClient({ blogs: initialBlogs }: { blogs: any[] 
         ) : (
           <>
             <div className="mb-12">
-              <h2 className="text-2xl font-bold mb-6">Recent Posts</h2>
-              <NavigationMenu className="max-w-full">
-                <NavigationMenuList className="flex-nowrap overflow-x-auto gap-4 pb-4">
-                  {otherBlogs.slice(0, 5).map(({ blog: post, author }) => (
-                    <NavigationMenuItem key={post.id} className="flex-shrink-0">
-                      <Link href={`/blogs/${post.slug}`} className="block">
-                        <Card className="w-[320px] hover:shadow-xl transition-all overflow-hidden group cursor-pointer border">
-                          {post.coverImage ? (
-                            <div className="relative h-44 overflow-hidden">
-                              <Image
-                                src={post.coverImage}
-                                alt={post.title}
-                                fill
-                                className="object-cover group-hover:scale-105 transition-transform duration-300"
-                                  unoptimized
-                                />
-                              </div>
-                            ) : (
-                              <div className="h-44 bg-gradient-to-br from-blue-500 to-purple-500" />
-                            )}
-                            <CardHeader className="pb-3">
-                              <CardTitle className="line-clamp-2 text-lg">{post.title}</CardTitle>
-                              <CardDescription className="flex items-center gap-2 text-xs">
-                                <Calendar className="h-3 w-3" />
-                                {new Date(post.createdAt).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                })}
-                              </CardDescription>
-                            </CardHeader>
-                            {post.excerpt && (
-                              <CardContent className="pt-0">
-                                <p className="text-sm text-muted-foreground line-clamp-2">
-                                  {post.excerpt}
-                                </p>
-                              </CardContent>
-                            )}
-                          </Card>
-                        </Link>
-                    </NavigationMenuItem>
-                  ))}
-                </NavigationMenuList>
-              </NavigationMenu>
-            </div>
+              <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-2xl font-bold">Recent Posts</h2>
+                <div className="flex w-fit rounded-md border bg-background p-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={view === "grid" ? "default" : "ghost"}
+                    className="h-8 gap-2"
+                    onClick={() => setView("grid")}
+                    aria-pressed={view === "grid"}
+                  >
+                    <Grid3X3 className="h-4 w-4" />
+                    Grid
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={view === "list" ? "default" : "ghost"}
+                    className="h-8 gap-2"
+                    onClick={() => setView("list")}
+                    aria-pressed={view === "list"}
+                  >
+                    <List className="h-4 w-4" />
+                    List
+                  </Button>
+                </div>
+              </div>
 
-            {otherBlogs.length > 5 && (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {otherBlogs.slice(5).map(({ blog: post, author }) => (
-                  <Link key={post.id} href={`/blogs/${post.slug}`}>
-                    <Card className="h-full hover:shadow-lg transition-shadow overflow-hidden group cursor-pointer p-0 mb-4">
+              <div className={view === "grid" ? "grid gap-6 md:grid-cols-2 lg:grid-cols-3" : "space-y-4"}>
+                {otherBlogs.map(({ blog: post, author }) => (
+                  <Link key={post.id} href={`/blogs/${post.slug}`} className="block">
+                    <Card
+                      className={
+                        view === "grid"
+                          ? "h-full overflow-hidden p-0 transition-shadow hover:shadow-lg group cursor-pointer"
+                          : "overflow-hidden p-0 transition-shadow hover:shadow-lg group cursor-pointer sm:flex"
+                      }
+                    >
                       {post.coverImage ? (
-                        <div className="relative h-56 overflow-hidden rounded-lg m-4">
+                        <div
+                          className={
+                            view === "grid"
+                              ? "relative h-56 overflow-hidden rounded-lg m-4"
+                              : "relative h-48 overflow-hidden sm:h-auto sm:w-72 sm:shrink-0"
+                          }
+                        >
                           <Image
                             src={post.coverImage}
                             alt={post.title}
@@ -151,40 +142,48 @@ export default function BlogsPageClient({ blogs: initialBlogs }: { blogs: any[] 
                           />
                         </div>
                       ) : (
-                        <div className="h-56 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg m-4" />
+                        <div
+                          className={
+                            view === "grid"
+                              ? "h-56 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg m-4"
+                              : "h-48 bg-gradient-to-br from-blue-500 to-purple-500 sm:h-auto sm:w-72 sm:shrink-0"
+                          }
+                        />
                       )}
-                      <CardHeader>
-                        <CardTitle className="line-clamp-2">{post.title}</CardTitle>
-                        <CardDescription className="flex items-center gap-2">
-                          <Calendar className="h-3 w-3" />
-                          {new Date(post.createdAt).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          })}
-                        </CardDescription>
-                      </CardHeader>
-                      {post.excerpt && (
-                        <CardContent>
-                          <p className="text-sm text-muted-foreground line-clamp-3">
-                            {post.excerpt}
-                          </p>
-                          {author && (
-                            <div className="flex items-center gap-2 mt-4">
-                              <Avatar className="h-6 w-6">
-                                <AvatarImage src={author.image || undefined} />
-                                <AvatarFallback className="text-xs">{author.name.charAt(0)}</AvatarFallback>
-                              </Avatar>
-                              <span className="text-xs text-muted-foreground">{author.name}</span>
-                            </div>
-                          )}
-                        </CardContent>
-                      )}
+                      <div className="flex flex-1 flex-col">
+                        <CardHeader>
+                          <CardTitle className="line-clamp-2">{post.title}</CardTitle>
+                          <CardDescription className="flex items-center gap-2">
+                            <Calendar className="h-3 w-3" />
+                            {new Date(post.createdAt).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })}
+                          </CardDescription>
+                        </CardHeader>
+                        {post.excerpt && (
+                          <CardContent className={view === "grid" ? undefined : "flex flex-1 flex-col justify-between"}>
+                            <p className={`text-sm text-muted-foreground ${view === "grid" ? "line-clamp-3" : "line-clamp-2"}`}>
+                              {post.excerpt}
+                            </p>
+                            {author && (
+                              <div className="flex items-center gap-2 mt-4">
+                                <Avatar className="h-6 w-6">
+                                  <AvatarImage src={author.image || undefined} />
+                                  <AvatarFallback className="text-xs">{author.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <span className="text-xs text-muted-foreground">{author.name}</span>
+                              </div>
+                            )}
+                          </CardContent>
+                        )}
+                      </div>
                     </Card>
                   </Link>
                 ))}
               </div>
-            )}
+            </div>
           </>
         )}
       </main>
