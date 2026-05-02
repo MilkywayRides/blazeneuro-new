@@ -36,9 +36,12 @@ export function Navbar() {
   const { data: session } = authClient.useSession()
   const [open, setOpen] = React.useState(false)
   const [scrolled, setScrolled] = React.useState(false)
+  const [activePill, setActivePill] = React.useState({ left: 0, width: 0 })
   const pathname = usePathname()
   const authUrl = process.env.NEXT_PUBLIC_AUTH_URL || "https://auth.blazeneuro.com"
   const isDashboardRoute = pathname === "/dashboard" || pathname.startsWith("/dashboard/")
+  const navRef = React.useRef<HTMLElement>(null)
+  const linkRefs = React.useRef<(HTMLAnchorElement | null)[]>([])
 
   const isAdmin = React.useMemo(() => {
     return session?.user?.email === 'admin@blazeneuro.com' ||
@@ -88,14 +91,39 @@ export function Navbar() {
     })
   }
 
-  const allLinks = isAdmin
-    ? [...navLinks, { href: "/admin", label: "Admin", icon: Shield }]
-    : navLinks
-
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/"
     return pathname.startsWith(href)
   }
+
+  const allLinks = isAdmin
+    ? [...navLinks, { href: "/admin", label: "Admin", icon: Shield }]
+    : navLinks
+
+  const activeIndex = allLinks.findIndex((link) => isActive(link.href))
+
+  React.useLayoutEffect(() => {
+    const updateActivePill = () => {
+      const nav = navRef.current
+      const activeLink = activeIndex >= 0 ? linkRefs.current[activeIndex] : null
+
+      if (!nav || !activeLink) {
+        setActivePill({ left: 0, width: 0 })
+        return
+      }
+
+      const navRect = nav.getBoundingClientRect()
+      const linkRect = activeLink.getBoundingClientRect()
+      setActivePill({
+        left: linkRect.left - navRect.left,
+        width: linkRect.width,
+      })
+    }
+
+    updateActivePill()
+    window.addEventListener("resize", updateActivePill)
+    return () => window.removeEventListener("resize", updateActivePill)
+  }, [activeIndex, isAdmin])
 
   if (isDashboardRoute) {
     return null
@@ -109,7 +137,7 @@ export function Navbar() {
           : "bg-transparent"
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group shrink-0">
           <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-foreground group-hover:scale-105 transition-transform duration-200">
@@ -121,14 +149,29 @@ export function Navbar() {
         </Link>
 
         {/* Desktop Nav — Center */}
-        <nav className="hidden md:flex items-center gap-1 rounded-full border border-border/60 bg-muted/40 px-1 py-1">
+        <nav
+          ref={navRef}
+          className="relative hidden md:flex items-center gap-1 rounded-full border border-border/60 bg-muted/40 px-1 py-0.5"
+        >
+          <span
+            className="absolute top-1 bottom-1 rounded-full bg-background shadow-sm transition-[left,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+            style={{
+              left: activePill.left,
+              width: activePill.width,
+              opacity: activePill.width > 0 ? 1 : 0,
+            }}
+            aria-hidden="true"
+          />
           {allLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`relative px-3.5 py-1.5 text-[13px] font-medium rounded-full transition-all duration-200 ${
+              ref={(node) => {
+                linkRefs.current[allLinks.findIndex((item) => item.href === link.href)] = node
+              }}
+              className={`relative z-10 px-3.5 py-1.5 text-[13px] font-medium rounded-full transition-colors duration-200 ${
                 isActive(link.href)
-                  ? "bg-background text-foreground shadow-sm"
+                  ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >

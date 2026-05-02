@@ -68,7 +68,7 @@ export default function Home() {
   return (
     <div className="relative">
       <div className="relative min-h-screen flex flex-col">
-        <section className="relative min-h-screen flex items-center justify-center px-4">
+        <section className="relative min-h-screen flex items-center justify-center px-4 md:items-start md:pt-36 lg:pt-44 xl:pt-48">
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative w-[95%] md:w-[90%] h-[70%] md:h-[80%] rounded-2xl md:rounded-3xl overflow-hidden">
               {!mounted ? (
@@ -99,7 +99,7 @@ export default function Home() {
             </div>
           </div>
           
-          <div className="relative text-center z-10 px-4">
+          <div className="relative z-10 px-4 text-center md:translate-y-10 lg:translate-y-14 xl:translate-y-16">
             <Badge className="mb-4 md:mb-6 bg-white/10 backdrop-blur-md border-white/20 text-white text-xs md:text-sm">AI-Powered Neural Solutions</Badge>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 md:mb-6 text-white [text-shadow:_0_4px_20px_rgb(0_0_0_/_40%)]">
               BlazeNeuro

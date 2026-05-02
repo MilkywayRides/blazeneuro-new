@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Calendar, Grid3X3, List } from "lucide-react";
+import { ArrowRight, Calendar, Grid3X3, List } from "lucide-react";
 import { Footer } from "@/components/footer";
 
 export default function BlogsPageClient({ blogs: initialBlogs }: { blogs: any[] }) {
@@ -115,74 +115,123 @@ export default function BlogsPageClient({ blogs: initialBlogs }: { blogs: any[] 
                 </div>
               </div>
 
-              <div className={view === "grid" ? "grid gap-6 md:grid-cols-2 lg:grid-cols-3" : "space-y-4"}>
-                {otherBlogs.map(({ blog: post, author }) => (
-                  <Link key={post.id} href={`/blogs/${post.slug}`} className="block">
-                    <Card
-                      className={
-                        view === "grid"
-                          ? "h-full overflow-hidden p-0 transition-shadow hover:shadow-lg group cursor-pointer"
-                          : "overflow-hidden p-0 transition-shadow hover:shadow-lg group cursor-pointer sm:flex"
-                      }
+              {view === "grid" ? (
+                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                  {otherBlogs.map(({ blog: post, author }) => (
+                    <Link key={post.id} href={`/blogs/${post.slug}`} className="block">
+                      <Card className="group flex h-full cursor-pointer flex-col overflow-hidden border-border/70 bg-card/80 p-0 shadow-sm transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg">
+                        {post.coverImage ? (
+                          <div className="relative m-3 aspect-[16/10] overflow-hidden rounded-md bg-muted">
+                            <Image
+                              src={post.coverImage}
+                              alt={post.title}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                              unoptimized
+                            />
+                          </div>
+                        ) : (
+                          <div className="m-3 aspect-[16/10] rounded-md bg-gradient-to-br from-blue-500 to-purple-500" />
+                        )}
+                        <div className="flex flex-1 flex-col px-1 pb-1">
+                          <CardHeader className="pb-3">
+                            <CardDescription className="flex items-center gap-2 text-xs">
+                              <Calendar className="h-3 w-3" />
+                              {new Date(post.createdAt).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </CardDescription>
+                            <CardTitle className="line-clamp-2 text-xl leading-tight transition-colors group-hover:text-primary">
+                              {post.title}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="flex flex-1 flex-col justify-between gap-5 pt-0">
+                            {post.excerpt && (
+                              <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
+                                {post.excerpt}
+                              </p>
+                            )}
+                            <div className="flex items-center justify-between gap-3">
+                              {author ? (
+                                <div className="flex min-w-0 items-center gap-2">
+                                  <Avatar className="h-6 w-6">
+                                    <AvatarImage src={author.image || undefined} />
+                                    <AvatarFallback className="text-xs">{author.name.charAt(0)}</AvatarFallback>
+                                  </Avatar>
+                                  <span className="truncate text-xs text-muted-foreground">{author.name}</span>
+                                </div>
+                              ) : (
+                                <span />
+                              )}
+                              <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-foreground" />
+                            </div>
+                          </CardContent>
+                        </div>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="w-full overflow-hidden rounded-lg border border-border/70 bg-card">
+                  {otherBlogs.map(({ blog: post, author }) => (
+                    <Link
+                      key={post.id}
+                      href={`/blogs/${post.slug}`}
+                      className="group grid grid-cols-[96px_1fr] gap-3 border-b border-border/70 p-3 transition-colors last:border-b-0 hover:bg-muted/45 sm:grid-cols-[200px_1fr] sm:items-center sm:gap-4 sm:p-4 lg:grid-cols-[240px_1fr]"
                     >
                       {post.coverImage ? (
-                        <div
-                          className={
-                            view === "grid"
-                              ? "relative h-56 overflow-hidden rounded-lg m-4"
-                              : "relative h-48 overflow-hidden sm:h-auto sm:w-72 sm:shrink-0"
-                          }
-                        >
+                        <div className="relative h-24 overflow-hidden rounded-md bg-muted sm:aspect-[16/10] sm:h-auto">
                           <Image
                             src={post.coverImage}
                             alt={post.title}
                             fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
                             unoptimized
                           />
                         </div>
                       ) : (
-                        <div
-                          className={
-                            view === "grid"
-                              ? "h-56 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg m-4"
-                              : "h-48 bg-gradient-to-br from-blue-500 to-purple-500 sm:h-auto sm:w-72 sm:shrink-0"
-                          }
-                        />
+                        <div className="h-24 rounded-md bg-gradient-to-br from-blue-500 to-purple-500 sm:aspect-[16/10] sm:h-auto" />
                       )}
-                      <div className="flex flex-1 flex-col">
-                        <CardHeader>
-                          <CardTitle className="line-clamp-2">{post.title}</CardTitle>
-                          <CardDescription className="flex items-center gap-2">
+                      <div className="min-w-0">
+                        <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                          <span className="inline-flex items-center gap-1.5">
                             <Calendar className="h-3 w-3" />
                             {new Date(post.createdAt).toLocaleDateString("en-US", {
-                              year: "numeric",
-                              month: "long",
+                              month: "short",
                               day: "numeric",
+                              year: "numeric",
                             })}
-                          </CardDescription>
-                        </CardHeader>
-                        {post.excerpt && (
-                          <CardContent className={view === "grid" ? undefined : "flex flex-1 flex-col justify-between"}>
-                            <p className={`text-sm text-muted-foreground ${view === "grid" ? "line-clamp-3" : "line-clamp-2"}`}>
-                              {post.excerpt}
-                            </p>
-                            {author && (
-                              <div className="flex items-center gap-2 mt-4">
-                                <Avatar className="h-6 w-6">
-                                  <AvatarImage src={author.image || undefined} />
-                                  <AvatarFallback className="text-xs">{author.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <span className="text-xs text-muted-foreground">{author.name}</span>
-                              </div>
+                          </span>
+                          {author && (
+                            <span className="inline-flex min-w-0 items-center gap-1.5">
+                              <Avatar className="h-5 w-5">
+                                <AvatarImage src={author.image || undefined} />
+                                <AvatarFallback className="text-[10px]">{author.name.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <span className="truncate">{author.name}</span>
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-start gap-4">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="line-clamp-2 text-sm font-semibold leading-snug tracking-normal transition-colors group-hover:text-primary sm:text-lg">
+                              {post.title}
+                            </h3>
+                            {post.excerpt && (
+                              <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground sm:mt-2 sm:text-sm sm:leading-6">
+                                {post.excerpt}
+                              </p>
                             )}
-                          </CardContent>
-                        )}
+                          </div>
+                          <ArrowRight className="mt-1 hidden h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-foreground sm:block" />
+                        </div>
                       </div>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           </>
         )}
