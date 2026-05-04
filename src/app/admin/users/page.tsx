@@ -1,3 +1,4 @@
+import { RelativeTime } from "@/components/relative-time";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -7,9 +8,6 @@ export const metadata: Metadata = {
 import { requireAdmin } from "@/lib/auth-check";
 import { db } from "@/lib/db";
 import { user } from "@/lib/schema";
-import { AppSidebar } from "@/components/app-sidebar";
-import { SiteHeader } from "@/components/site-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import {
   Table,
   TableBody,
@@ -33,17 +31,7 @@ export default async function UsersPage() {
   };
 
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant="inset" userData={userData} />
-      <SidebarInset>
-        <SiteHeader />
+    
         <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -104,7 +92,7 @@ export default async function UsersPage() {
                       )}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">
-                      {new Date(u.createdAt).toLocaleDateString()}
+                      <RelativeTime date={u.createdAt} />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -112,7 +100,6 @@ export default async function UsersPage() {
             </Table>
           </div>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+      
   );
 }

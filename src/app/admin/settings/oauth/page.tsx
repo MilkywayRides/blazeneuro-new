@@ -1,10 +1,8 @@
+import { RelativeTime } from "@/components/relative-time";
 import { requireAuth } from "@/lib/auth-check";
 import { db } from "@/lib/db";
 import { oauthToken, oauthApp } from "@/lib/schema";
 import { eq } from "drizzle-orm";
-import { AppSidebar } from "@/components/app-sidebar";
-import { SiteHeader } from "@/components/site-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AddOAuthAppDialog } from "@/components/add-oauth-app-dialog";
 import {
   Table,
@@ -36,17 +34,7 @@ export default async function OAuthSettingsPage() {
   };
 
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant="inset" userData={userData} />
-      <SidebarInset>
-        <SiteHeader />
+    
         <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -89,7 +77,7 @@ export default async function OAuthSettingsPage() {
                         {app.homepageUrl}
                       </TableCell>
                       <TableCell className="hidden sm:table-cell text-muted-foreground">
-                        {new Date(token.createdAt).toLocaleDateString()}
+                        <RelativeTime date={token.createdAt} />
                       </TableCell>
                       <TableCell>
                         <Link href={`/admin/settings/oauth/${token.id}`}>
@@ -103,7 +91,6 @@ export default async function OAuthSettingsPage() {
             </div>
           )}
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+      
   );
 }

@@ -1,9 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import { AppSidebar } from "@/components/app-sidebar";
-import { SiteHeaderClient } from "@/components/site-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -137,18 +134,7 @@ export default function OAuthAppDetailPage() {
   }
 
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant="inset" />
-      <SidebarInset>
-        <SiteHeaderClient />
-        <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
+    <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
           <div className="max-w-4xl mx-auto w-full space-y-4">
             <div className="flex items-center gap-4">
             <Link href="/admin/oauth">
@@ -268,7 +254,6 @@ export default function OAuthAppDetailPage() {
           </Card>
           </div>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+      
   );
 }

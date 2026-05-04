@@ -1,3 +1,4 @@
+import { RelativeTime } from "@/components/relative-time";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -8,9 +9,6 @@ import { requireAdmin } from "@/lib/auth-check";
 import { db } from "@/lib/db";
 import { blog } from "@/lib/schema";
 import { sql } from "drizzle-orm";
-import { AppSidebar } from "@/components/app-sidebar";
-import { SiteHeader } from "@/components/site-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -50,17 +48,7 @@ export default async function BlogsPage() {
   };
 
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant="inset" userData={userData} />
-      <SidebarInset>
-        <SiteHeader />
+    
         <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -111,7 +99,7 @@ export default async function BlogsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="hidden lg:table-cell text-muted-foreground">
-                        {new Date(post.createdAt).toLocaleDateString()}
+                        <RelativeTime date={post.createdAt} />
                       </TableCell>
                       <TableCell>
                         <Link href={`/admin/blogs/${post.id}`}>
@@ -125,7 +113,6 @@ export default async function BlogsPage() {
             </div>
           )}
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+      
   );
 }

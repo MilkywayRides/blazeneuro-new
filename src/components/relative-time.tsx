@@ -26,13 +26,18 @@ export function RelativeTime({ date }: { date: Date | string }) {
         relative = `${diffSec} sec ago`
       }
       
-      const formatted = past.toLocaleDateString("en-US", { 
+      const formattedDate = past.toLocaleDateString("en-GB", { 
         day: "numeric", 
         month: "long", 
         year: "numeric" 
       })
+      const formattedTime = past.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      })
       
-      setTimeAgo(`${formatted} · ${relative}`)
+      setTimeAgo(`${formattedDate} ${formattedTime} ${relative}`)
     }
     
     updateTime()

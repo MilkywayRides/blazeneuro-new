@@ -8,9 +8,6 @@ import { requireAdmin } from "@/lib/auth-check";
 import { db } from "@/lib/db";
 import { user, session, blog, oauthApp, oauthToken } from "@/lib/schema";
 import { sql, eq, gte } from "drizzle-orm";
-import { AppSidebar } from "@/components/app-sidebar";
-import { SiteHeader } from "@/components/site-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AnalyticsCharts } from "@/components/analytics-charts";
 import { Users, FileText, Shield, Activity } from "lucide-react";
@@ -75,17 +72,7 @@ export default async function AnalyticsPage() {
   };
 
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant="inset" userData={userData} />
-      <SidebarInset>
-        <SiteHeader />
+    
         <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold">Analytics</h1>
@@ -151,7 +138,6 @@ export default async function AnalyticsPage() {
             oauthUsage={(oauthUsageResult as any).rows || []}
           />
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+      
   );
 }

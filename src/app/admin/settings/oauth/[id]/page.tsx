@@ -3,9 +3,6 @@ import { db } from "@/lib/db";
 import { oauthToken, oauthApp } from "@/lib/schema";
 import { eq, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import { AppSidebar } from "@/components/app-sidebar";
-import { SiteHeader } from "@/components/site-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { OAuthPermissionCard } from "@/components/oauth-permission-card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -42,17 +39,7 @@ export default async function OAuthAppDetailsPage({
   };
 
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant="inset" userData={userData} />
-      <SidebarInset>
-        <SiteHeader />
+    
         <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
           <div>
             <Link href="/admin/settings/oauth">
@@ -69,7 +56,6 @@ export default async function OAuthAppDetailsPage({
 
           <OAuthPermissionCard app={app} token={token} />
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+      
   );
 }

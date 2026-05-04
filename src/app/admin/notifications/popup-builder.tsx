@@ -1,3 +1,4 @@
+import { RelativeTime } from "@/components/relative-time";
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -219,7 +220,7 @@ export default function PopupBuilder() {
                     <CardTitle className="text-lg">{popup.title}</CardTitle>
                     <Badge variant={popup.active ? 'default' : 'secondary'}>{popup.active ? 'Active' : 'Inactive'}</Badge>
                   </div>
-                  <p className="text-xs text-muted-foreground">{new Date(popup.createdAt).toLocaleDateString()}</p>
+                  <p className="text-xs text-muted-foreground"><RelativeTime date={popup.createdAt} /></p>
                 </CardHeader>
                 <CardContent>
                   <div className="flex gap-2">

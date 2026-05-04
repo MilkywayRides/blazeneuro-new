@@ -1,3 +1,4 @@
+import { RelativeTime } from "@/components/relative-time";
 
 import { Metadata } from "next";
 import { requireAuth } from "@/lib/auth-check";
@@ -73,7 +74,7 @@ export default async function LinkedAccountsPage() {
                   <CardContent className="space-y-4">
                     <div className="flex items-center text-xs text-muted-foreground gap-1">
                       <Clock className="h-3 w-3" />
-                      <span>Authorized on {new Date(app.authorizedAt).toLocaleDateString()}</span>
+                      <span>Authorized on <RelativeTime date={app.authorizedAt} /></span>
                     </div>
                     <div className="flex items-center gap-2 pt-2">
                       <Link href={app.homepageUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
