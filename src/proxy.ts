@@ -17,12 +17,14 @@ export async function proxy(request: NextRequest) {
 
   // --- Subdomain Routing for [project].blazeneuro.com ---
   let subdomain: string | null = null;
-  if (hostname.includes('blazeneuro.com')) {
+  if (hostname.endsWith('.blazeneuro.com')) {
+    // Only matches subdomains like "myapp.blazeneuro.com", NOT "blazeneuro.com" itself
     const parts = hostname.replace('.blazeneuro.com', '');
-    if (parts && parts !== 'www' && parts !== 'admin' && parts !== 'blazeneuro') {
+    if (parts && parts !== 'www' && parts !== 'admin') {
       subdomain = parts;
     }
-  } else if (hostname.includes('localhost')) {
+  } else if (hostname.includes('.localhost')) {
+    // For local testing: "myapp.localhost:3000"
     const parts = hostname.split('.localhost')[0];
     if (parts && parts !== 'localhost' && !parts.includes(':')) {
       subdomain = parts;
