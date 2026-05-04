@@ -3,7 +3,7 @@ import { Sandbox } from '@e2b/code-interpreter';
 
 export async function POST(request: Request) {
   try {
-    const { code, sandboxId } = await request.json();
+    const { code, sandboxId, language = 'python' } = await request.json();
 
     if (!code) {
       return NextResponse.json({ error: 'No code provided' }, { status: 400 });
@@ -31,16 +31,28 @@ export async function POST(request: Request) {
     }
 
     try {
-      // Execute the python code
-      const execution = await sandbox.runCode(code);
-      
-      // Return the results
-      return NextResponse.json({
-        success: true,
-        results: execution.results, // Display rich outputs if any
-        logs: execution.logs,       // stdout and stderr (arrays of strings)
-        error: execution.error,     // Execution error
-      });
+      if (language === 'bash') {
+        const execResult = await sandbox.commands.run(code);
+        return NextResponse.json({
+          success: true,
+          logs: { 
+            stdout: execResult.stdout ? [execResult.stdout] : [], 
+            stderr: execResult.stderr ? [execResult.stderr] : [] 
+          },
+          error: execResult.error ? execResult.error.message : (execResult.exitCode !== 0 ? `Command exited with code ${execResult.exitCode}` : null),
+        });
+      } else {
+        // Execute the python code
+        const execution = await sandbox.runCode(code);
+        
+        // Return the results
+        return NextResponse.json({
+          success: true,
+          results: execution.results, // Display rich outputs if any
+          logs: execution.logs,       // stdout and stderr (arrays of strings)
+          error: execution.error,     // Execution error
+        });
+      }
     } finally {
       // Ensure the sandbox is always closed to prevent lingering instances if it was newly created
       if (!isReused) {

@@ -16,6 +16,7 @@ export default function ProjectSandboxPage(props: { params: Promise<{ id: string
   const [isInitializing, setIsInitializing] = useState(true);
   const [initError, setInitError] = useState<string | null>(null);
   
+  const [language, setLanguage] = useState<'python' | 'bash'>('python');
   const [code, setCode] = useState('# You are in /home/user/workspace\n# The repository is cloned here.\nimport os\n\nprint("Current directory:", os.getcwd())\nprint("Files:", os.listdir("."))\n');
   const [isExecuting, setIsExecuting] = useState(false);
   
@@ -121,7 +122,7 @@ export default function ProjectSandboxPage(props: { params: Promise<{ id: string
       const response = await fetch('/api/sandbox/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, sandboxId }),
+        body: JSON.stringify({ code, sandboxId, language }),
       });
 
       const data = await response.json();
@@ -199,6 +200,30 @@ export default function ProjectSandboxPage(props: { params: Promise<{ id: string
               Initialization Failed
             </span>
           )}
+          <div className="flex bg-zinc-900 border border-zinc-800 rounded-md p-1 mr-4">
+            <button
+              onClick={() => {
+                if (language !== 'python') {
+                  setLanguage('python');
+                  setCode('# You are in /home/user/workspace\nimport os\n\nprint("Current directory:", os.getcwd()")\n');
+                }
+              }}
+              className={`px-3 py-1.5 text-xs rounded-sm font-medium transition-colors ${language === 'python' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-300'}`}
+            >
+              Python
+            </button>
+            <button
+              onClick={() => {
+                if (language !== 'bash') {
+                  setLanguage('bash');
+                  setCode('# You are in /home/user/workspace\n# Write shell commands here\n\npwd\nls -la\n');
+                }
+              }}
+              className={`px-3 py-1.5 text-xs rounded-sm font-medium transition-colors ${language === 'bash' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-300'}`}
+            >
+              Terminal (Bash)
+            </button>
+          </div>
           <button
             onClick={handleClearTerminal}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border rounded-md bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-zinc-300"
@@ -249,7 +274,7 @@ export default function ProjectSandboxPage(props: { params: Promise<{ id: string
           )}
           <Editor
             height="100%"
-            defaultLanguage="python"
+            language={language === 'bash' ? 'shell' : 'python'}
             theme="vs-dark"
             value={code}
             onChange={(value) => setCode(value || '')}
