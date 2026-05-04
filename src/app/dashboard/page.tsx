@@ -27,7 +27,10 @@ const accountActiveData = [
 const chartConfig = {
   activeFrequency: {
     label: "Active Sessions",
-    color: "var(--color-chart-1)",
+    colors: {
+      light: ["#7e22ce"], // Tailwind purple-700
+      dark: ["#9333ea"], // Tailwind purple-600
+    },
   },
 };
 
