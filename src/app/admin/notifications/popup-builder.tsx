@@ -1,5 +1,5 @@
-import { RelativeTime } from "@/components/relative-time";
 'use client'
+import { RelativeTime } from "@/components/relative-time";
 
 import { useEffect, useState } from 'react'
 import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core'
