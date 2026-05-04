@@ -125,7 +125,9 @@ export function Navbar() {
     return () => window.removeEventListener("resize", updateActivePill)
   }, [activeIndex, isAdmin])
 
-  if (isDashboardRoute) {
+  const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/")
+
+  if (isDashboardRoute || isAdminRoute) {
     return null
   }
 

@@ -71,7 +71,7 @@ const adminData = {
       ),
     },
     {
-      title: "OAuth Apps",
+      title: "Create oAuth Apps",
       url: "/admin/oauth",
       icon: (
         <ShieldIcon className="h-4 w-4" />
@@ -142,7 +142,14 @@ const userDashboardData = {
       ),
     },
     {
-      title: "OAuth Apps",
+      title: "Linked Accounts",
+      url: "/dashboard/linked-accounts",
+      icon: (
+        <UsersIcon className="h-4 w-4" />
+      ),
+    },
+    {
+      title: "Create oAuth Apps",
       url: "/dashboard/oauth",
       icon: (
         <ShieldIcon className="h-4 w-4" />

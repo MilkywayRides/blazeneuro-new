@@ -75,28 +75,30 @@ export function NotificationButton({ notifications }: { notifications: Notificat
           </div>
         ) : (
           <>
-            {notifications.map((notification) => (
-              <DropdownMenuItem
-                key={notification.id}
-                className="flex flex-col items-start gap-1 p-3 cursor-pointer"
-                onClick={() => handleNotificationClick(notification.id)}
-              >
-                <div className="flex items-start justify-between w-full">
-                  <p className="font-medium text-sm">{notification.title}</p>
-                  {!notification.read && (
-                    <div className="h-2 w-2 rounded-full bg-blue-500 mt-1" />
+            <div className="max-h-[400px] overflow-y-auto">
+              {notifications.map((notification) => (
+                <DropdownMenuItem
+                  key={notification.id}
+                  className="flex flex-col items-start gap-1 p-3 cursor-pointer"
+                  onClick={() => handleNotificationClick(notification.id)}
+                >
+                  <div className="flex items-start justify-between w-full">
+                    <p className="font-medium text-sm">{notification.title}</p>
+                    {!notification.read && (
+                      <div className="h-2 w-2 rounded-full bg-blue-500 mt-1" />
+                    )}
+                  </div>
+                  {notification.description && (
+                    <p className="text-xs text-muted-foreground">
+                      {notification.description}
+                    </p>
                   )}
-                </div>
-                {notification.description && (
                   <p className="text-xs text-muted-foreground">
-                    {notification.description}
+                    {getTimeAgo(notification.createdAt)}
                   </p>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  {getTimeAgo(notification.createdAt)}
-                </p>
-              </DropdownMenuItem>
-            ))}
+                </DropdownMenuItem>
+              ))}
+            </div>
             {unreadCount > 0 && (
               <>
                 <DropdownMenuSeparator />
