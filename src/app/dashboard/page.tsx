@@ -1,5 +1,8 @@
 import { Metadata } from "next";
 import { requireAuth } from "@/lib/auth-check";
+import { db } from "@/lib/db";
+import { session as sessionTable } from "@/lib/schema";
+import { eq, and, gte, sql } from "drizzle-orm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -10,15 +13,7 @@ export const metadata: Metadata = {
   title: "Dashboard",
 };
 
-const accountActiveData = [
-  { month: "Jan", activeFrequency: 120 },
-  { month: "Feb", activeFrequency: 230 },
-  { month: "Mar", activeFrequency: 180 },
-  { month: "Apr", activeFrequency: 390 },
-  { month: "May", activeFrequency: 450 },
-  { month: "Jun", activeFrequency: 580 },
-  { month: "Jul", activeFrequency: 850 },
-];
+
 
 const chartConfig = {
   activeFrequency: {
@@ -32,6 +27,41 @@ const chartConfig = {
 
 export default async function Page() {
   const session = await requireAuth();
+
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5); // 6 months including current
+  sixMonthsAgo.setDate(1);
+  sixMonthsAgo.setHours(0, 0, 0, 0);
+
+  const rawSessionData = await db
+    .select({
+      month: sql<string>`to_char(${sessionTable.createdAt}, 'Mon')`,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(sessionTable)
+    .where(
+      and(
+        eq(sessionTable.userId, session.user.id),
+        gte(sessionTable.createdAt, sixMonthsAgo)
+      )
+    )
+    .groupBy(sql`to_char(${sessionTable.createdAt}, 'Mon'), date_trunc('month', ${sessionTable.createdAt})`)
+    .orderBy(sql`date_trunc('month', ${sessionTable.createdAt})`);
+
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date();
+    d.setMonth(d.getMonth() - i);
+    months.push(d.toLocaleString('default', { month: 'short' }));
+  }
+
+  const accountActiveData = months.map(m => {
+    const found = rawSessionData.find(d => d.month === m);
+    return {
+      month: m,
+      activeFrequency: found ? found.count : 0
+    };
+  });
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-8">

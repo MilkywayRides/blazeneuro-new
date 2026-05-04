@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DeployButton } from "@/components/deploy-button";
 import { RelativeTime } from "@/components/relative-time";
-import { ExternalLink, GitBranch } from "lucide-react";
+import { ExternalLink, GitBranch, Terminal } from "lucide-react";
 import { eq, desc } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -48,7 +48,15 @@ export default async function ProjectPage(props: { params: Promise<{ id: string 
                 {currentProject.repoFullName} · {currentProject.branch}
               </p>
             </div>
-            <DeployButton projectId={currentProject.id} />
+            <div className="flex gap-2">
+              <Link href={`/admin/deploy/${currentProject.id}/sandbox`}>
+                <Button variant="secondary">
+                  <Terminal className="h-4 w-4 mr-2" />
+                  Launch Sandbox
+                </Button>
+              </Link>
+              <DeployButton projectId={currentProject.id} />
+            </div>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
