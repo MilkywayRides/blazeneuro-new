@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { User, Mail, Shield, Activity, Zap } from "lucide-react";
-import { EvilAreaChart } from "@/components/evilcharts/charts/area-chart";
+import { AccountActiveChart } from "@/components/account-active-chart";
 import { AnalyticsTracker } from "@/components/analytics-tracker";
 
 export const metadata: Metadata = {
@@ -110,15 +110,9 @@ export default async function Page() {
               </CardHeader>
               <CardContent className="pl-0 pb-4">
                 <div className="h-[300px] w-full mt-4 pr-4">
-                  <EvilAreaChart
+                  <AccountActiveChart
                     data={accountActiveData}
                     chartConfig={chartConfig}
-                    xDataKey="month"
-                    areaVariant="gradient"
-                    strokeVariant="dashed"
-                    curveType="monotone"
-                    className="w-full h-full"
-                    isClickable={true}
                   />
                 </div>
               </CardContent>
