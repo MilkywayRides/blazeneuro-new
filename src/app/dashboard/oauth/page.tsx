@@ -1,6 +1,4 @@
-import { AppSidebar } from "@/components/app-sidebar"
-import { SiteHeader } from "@/components/site-header"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+
 import { Metadata } from "next";
 import { requireAuth } from "@/lib/auth-check";
 import { db } from "@/lib/db";
@@ -18,26 +16,9 @@ export default async function OAuthPage() {
   const session = await requireAuth();
   const userApps = await db.select().from(oauthApp).where(eq(oauthApp.userId, session.user.id));
 
-  const userData = {
-    name: session.user.name || "User",
-    email: session.user.email || "",
-    avatar: session.user.image || "/avatars/default.jpg",
-  };
-
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant="inset" isAdmin={false} userData={userData} />
-      <SidebarInset>
-        <SiteHeader />
-        <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
-          <div className="flex items-center justify-between">
+    <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
+      <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold">OAuth Applications</h1>
               <p className="text-sm md:text-base text-muted-foreground">Manage your OAuth apps</p>
@@ -72,8 +53,6 @@ export default async function OAuthPage() {
               ))}
             </div>
           )}
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+    </div>
   )
 }

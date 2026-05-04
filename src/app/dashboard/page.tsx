@@ -1,14 +1,10 @@
-import { AppSidebar } from "@/components/app-sidebar"
-import { SiteHeader } from "@/components/site-header"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Metadata } from "next";
 import { requireAuth } from "@/lib/auth-check";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, Mail, Shield, Activity, Zap } from "lucide-react";
+import { User, Mail, Shield, Activity } from "lucide-react";
 import { AccountActiveChart } from "@/components/account-active-chart";
-import { AnalyticsTracker } from "@/components/analytics-tracker";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -37,38 +33,16 @@ const chartConfig = {
 export default async function Page() {
   const session = await requireAuth();
 
-  const userData = {
-    name: session.user.name || "User",
-    email: session.user.email || "",
-    avatar: session.user.image || "/avatars/default.jpg",
-  };
-
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
-    >
-      <AnalyticsTracker 
-        userId={session.user.id} 
-        name={session.user.name} 
-        email={session.user.email} 
-      />
-      <AppSidebar variant="inset" isAdmin={false} userData={userData} />
-      <SidebarInset>
-        <SiteHeader />
-        <div className="flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-8 min-h-full">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-              Dashboard
-            </h1>
-            <p className="text-base text-muted-foreground flex items-center gap-2">
-              Welcome back, <span className="font-semibold text-foreground">{session.user.name}</span>
-            </p>
-          </div>
+    <div className="flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-8">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
+          Dashboard
+        </h1>
+        <p className="text-base text-muted-foreground flex items-center gap-2">
+          Welcome back, <span className="font-semibold text-foreground">{session.user.name}</span>
+        </p>
+      </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <Card>
@@ -141,7 +115,5 @@ export default async function Page() {
             </Card>
           </div>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
   )
 }

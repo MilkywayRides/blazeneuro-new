@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import {
-  Avatar,
+import { useRouter } from "next/navigation"
+import { authClient } from "@/lib/auth-client"
+import { useState } from "react"
+import {  Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar"
@@ -33,7 +34,13 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const router = useRouter()
   const [imageLoaded, setImageLoaded] = useState(false)
+  
+  const handleLogout = async () => {
+    await authClient.signOut()
+    router.push("/login")
+  }
   
   return (
     <SidebarMenu>
@@ -101,7 +108,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOutIcon
               />
               Log out

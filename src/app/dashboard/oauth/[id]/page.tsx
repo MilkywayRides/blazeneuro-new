@@ -1,7 +1,4 @@
 import { requireAuth } from "@/lib/auth-check";
-import { AppSidebar } from "@/components/app-sidebar";
-import { SiteHeader } from "@/components/site-header";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -41,26 +38,9 @@ export default async function OAuthAppDetailPage({ params }: { params: Promise<{
     .from(oauthToken)
     .where(eq(oauthToken.appId, id));
 
-  const userData = {
-    name: session.user.name || "User",
-    email: session.user.email || "",
-    avatar: session.user.image || "/avatars/default.jpg",
-  };
-
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant="inset" isAdmin={false} userData={userData} />
-      <SidebarInset>
-        <SiteHeader />
-        <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6 max-w-4xl">
-          <div className="flex items-center justify-between">
+    <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6 max-w-4xl">
+      <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link href="/dashboard/oauth">
                 <Button variant="ghost" size="icon">
@@ -152,7 +132,5 @@ export default async function OAuthAppDetailPage({ params }: { params: Promise<{
             </TabsContent>
           </Tabs>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
   );
 }

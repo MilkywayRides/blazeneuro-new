@@ -1,6 +1,4 @@
-import { AppSidebar } from "@/components/app-sidebar"
-import { SiteHeader } from "@/components/site-header"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+
 import { Metadata } from "next";
 import { requireAuth } from "@/lib/auth-check";
 import { db } from "@/lib/db";
@@ -43,26 +41,9 @@ export default async function LinkedAccountsPage() {
   }
   const linkedApps = Array.from(uniqueAppsMap.values());
 
-  const userData = {
-    name: session.user.name || "User",
-    email: session.user.email || "",
-    avatar: session.user.image || "/avatars/default.jpg",
-  };
-
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant="inset" isAdmin={false} userData={userData} />
-      <SidebarInset>
-        <SiteHeader />
-        <div className="flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-8 bg-gradient-to-br from-background via-background to-muted/30 min-h-full">
-          <div className="flex flex-col gap-2">
+    <div className="flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-8">
+      <div className="flex flex-col gap-2">
             <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/60">
               Linked Accounts
             </h1>
@@ -109,9 +90,7 @@ export default async function LinkedAccountsPage() {
                 </Card>
               ))
             )}
-          </div>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+    </div>
   );
 }
