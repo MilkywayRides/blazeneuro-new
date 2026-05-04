@@ -10,10 +10,37 @@ const allowedOrigins = [
   'https://www.blazeneuro.com'
 ]
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const origin = request.headers.get('origin')
   const pathname = request.nextUrl.pathname
-  
+  const hostname = request.headers.get('host') || ''
+
+  // --- Subdomain Routing for [project].blazeneuro.com ---
+  let subdomain: string | null = null;
+  if (hostname.includes('blazeneuro.com')) {
+    const parts = hostname.replace('.blazeneuro.com', '');
+    if (parts && parts !== 'www' && parts !== 'admin' && parts !== 'blazeneuro') {
+      subdomain = parts;
+    }
+  } else if (hostname.includes('localhost')) {
+    const parts = hostname.split('.localhost')[0];
+    if (parts && parts !== 'localhost' && !parts.includes(':')) {
+      subdomain = parts;
+    }
+  }
+
+  if (subdomain && !pathname.startsWith('/api') && !pathname.startsWith('/_next')) {
+    try {
+      const targetRes = await fetch(`${request.nextUrl.origin}/api/projects/get-target-url?subdomain=${subdomain}`);
+      const data = await targetRes.json();
+      if (data.targetUrl) {
+        return NextResponse.rewrite(new URL(`${data.targetUrl}${pathname}${request.nextUrl.search}`));
+      }
+    } catch (err) {
+      console.error('Subdomain routing error:', err);
+    }
+  }
+
   // Handle preflight
   if (request.method === 'OPTIONS') {
     const preflightResponse = new NextResponse(null, { status: 200 })
