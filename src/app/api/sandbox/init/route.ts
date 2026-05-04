@@ -59,7 +59,6 @@ export async function POST(request: Request) {
 
     if (cloneResult.exitCode !== 0) {
       console.error('Clone failed:', cloneResult.stderr);
-      // Clean up the failed sandbox
       await sandbox.kill();
       return NextResponse.json({ 
         error: 'Failed to clone repository', 
@@ -67,10 +66,32 @@ export async function POST(request: Request) {
       }, { status: 500 });
     }
 
+    let previewUrl = null;
+
+    if (currentProject.framework === 'nextjs') {
+      // Install dependencies (this might take a while, frontend should show "installing dependencies...")
+      await sandbox.commands.run('cd /home/user/workspace && npm install');
+      
+      // Start dev server in the background
+      await sandbox.commands.run('cd /home/user/workspace && npm run dev', { background: true });
+      
+      previewUrl = `https://${sandbox.getHost(3000)}`;
+      
+      // Save the subdomain and preview URL to the project so middleware can route it
+      const subdomainStr = currentProject.name.toLowerCase().replace(/[^a-z0-9-]/g, '');
+      await db.update(project)
+        .set({ 
+          domain: previewUrl,
+          subdomain: subdomainStr
+        })
+        .where(eq(project.id, projectId));
+    }
+
     // Return the sandbox ID to the frontend
     return NextResponse.json({
       success: true,
       sandboxId: sandbox.sandboxId,
+      previewUrl,
       logs: {
         stdout: [cloneResult.stdout],
         stderr: [cloneResult.stderr]

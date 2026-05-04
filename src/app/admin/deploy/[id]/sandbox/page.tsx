@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, use } from 'react';
 import Editor from '@monaco-editor/react';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
-import { Play, Loader2, RefreshCw, ArrowLeft } from 'lucide-react';
+import { Play, Loader2, RefreshCw, ArrowLeft, Folder, File as FileIcon, Save, LayoutTemplate, Terminal as TerminalIcon } from 'lucide-react';
 import Link from 'next/link';
 import '@xterm/xterm/css/xterm.css';
 
@@ -17,12 +17,68 @@ export default function ProjectSandboxPage(props: { params: Promise<{ id: string
   const [initError, setInitError] = useState<string | null>(null);
   
   const [language, setLanguage] = useState<'python' | 'bash'>('python');
-  const [code, setCode] = useState('# You are in /home/user/workspace\n# The repository is cloned here.\nimport os\n\nprint("Current directory:", os.getcwd())\nprint("Files:", os.listdir("."))\n');
+  const [code, setCode] = useState('# You are in /home/user/workspace\n# Select a file from the explorer to view/edit it.\n');
   const [isExecuting, setIsExecuting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
+  // File Explorer State
+  const [files, setFiles] = useState<any[]>([]);
+  const [currentPath, setCurrentPath] = useState('/home/user/workspace');
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [rightPaneTab, setRightPaneTab] = useState<'terminal' | 'preview'>('terminal');
+
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
+
+  const fetchFiles = async (path: string = '/home/user/workspace', sId: string) => {
+    try {
+      const res = await fetch(`/api/sandbox/files?sandboxId=${sId}&path=${encodeURIComponent(path)}&action=list`);
+      const data = await res.json();
+      if (data.success) {
+        setFiles(data.files || []);
+        setCurrentPath(path);
+      }
+    } catch (err) {
+      console.error('Failed to fetch files', err);
+    }
+  };
+
+  const handleFileClick = async (file: any) => {
+    if (file.isDir) {
+      fetchFiles(file.path, sandboxId!);
+    } else {
+      try {
+        const res = await fetch(`/api/sandbox/files?sandboxId=${sandboxId}&path=${encodeURIComponent(file.path)}&action=read`);
+        const data = await res.json();
+        if (data.success) {
+          setCode(data.content);
+          setSelectedFile(file.path);
+          // auto detect language roughly
+          if (file.name.endsWith('.ts') || file.name.endsWith('.tsx')) setLanguage('python'); // well monaco handles TS, we just use it
+        }
+      } catch (err) {
+        console.error('Failed to read file', err);
+      }
+    }
+  };
+
+  const handleSaveFile = async () => {
+    if (!selectedFile || !sandboxId) return;
+    setIsSaving(true);
+    try {
+      await fetch('/api/sandbox/files', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sandboxId, path: selectedFile, content: code }),
+      });
+    } catch (err) {
+      console.error('Failed to save file', err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Initialize Sandbox via API
   useEffect(() => {
@@ -41,6 +97,13 @@ export default function ProjectSandboxPage(props: { params: Promise<{ id: string
         }
 
         setSandboxId(data.sandboxId);
+        if (data.previewUrl) {
+          setPreviewUrl(data.previewUrl);
+          setRightPaneTab('preview');
+        }
+
+        // Fetch initial files
+        fetchFiles('/home/user/workspace', data.sandboxId);
 
         // If terminal is ready, print init logs
         const term = xtermRef.current;
@@ -93,6 +156,7 @@ export default function ProjectSandboxPage(props: { params: Promise<{ id: string
     fitAddon.fit();
     
     term.writeln('\x1b[1;34m$ Initializing Sandbox and Cloning Repository...\x1b[0m\n');
+    term.writeln('\x1b[33mNote: If this is a Next.js app, npm install may take ~1 minute.\x1b[0m\n');
 
     xtermRef.current = term;
     fitAddonRef.current = fitAddon;
@@ -112,6 +176,7 @@ export default function ProjectSandboxPage(props: { params: Promise<{ id: string
     if (!code.trim() || isExecuting || !sandboxId) return;
 
     setIsExecuting(true);
+    setRightPaneTab('terminal'); // Switch to terminal to see output
     const term = xtermRef.current;
     
     if (term) {
@@ -142,12 +207,12 @@ export default function ProjectSandboxPage(props: { params: Promise<{ id: string
           // Output logs
           if (data.logs?.stdout?.length > 0) {
             data.logs.stdout.forEach((log: string) => {
-              term.writeln(log.replace(/\n/g, '\r\n'));
+              if (log) term.writeln(log.replace(/\n/g, '\r\n'));
             });
           }
           if (data.logs?.stderr?.length > 0) {
             data.logs.stderr.forEach((log: string) => {
-              term.writeln(`\x1b[31m${log.replace(/\n/g, '\r\n')}\x1b[0m`);
+              if (log) term.writeln(`\x1b[31m${log.replace(/\n/g, '\r\n')}\x1b[0m`);
             });
           }
           if (data.results?.length > 0) {
@@ -184,15 +249,15 @@ export default function ProjectSandboxPage(props: { params: Promise<{ id: string
             <Link href={`/admin/deploy/${projectId}`} className="text-zinc-400 hover:text-white transition-colors">
               <ArrowLeft className="w-4 h-4" />
             </Link>
-            <h1 className="text-2xl font-bold">Project Sandbox</h1>
+            <h1 className="text-2xl font-bold">Cloud Web IDE</h1>
           </div>
-          <p className="text-sm text-zinc-400">Environment initialized with cloned repository</p>
+          <p className="text-sm text-zinc-400">Edit, save, and preview your repository live.</p>
         </div>
         <div className="flex gap-2 items-center">
           {isInitializing && (
             <span className="text-sm text-amber-500 flex items-center gap-2 mr-4">
               <Loader2 className="w-4 h-4 animate-spin" />
-              Initializing & Cloning...
+              Setting up (This may take a minute)...
             </span>
           )}
           {initError && (
@@ -202,36 +267,28 @@ export default function ProjectSandboxPage(props: { params: Promise<{ id: string
           )}
           <div className="flex bg-zinc-900 border border-zinc-800 rounded-md p-1 mr-4">
             <button
-              onClick={() => {
-                if (language !== 'python') {
-                  setLanguage('python');
-                  setCode('# You are in /home/user/workspace\nimport os\n\nprint("Current directory:", os.getcwd()")\n');
-                }
-              }}
+              onClick={() => setLanguage('python')}
               className={`px-3 py-1.5 text-xs rounded-sm font-medium transition-colors ${language === 'python' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-300'}`}
             >
-              Python
+              Code Execution
             </button>
             <button
-              onClick={() => {
-                if (language !== 'bash') {
-                  setLanguage('bash');
-                  setCode('# You are in /home/user/workspace\n# Write shell commands here\n\npwd\nls -la\n');
-                }
-              }}
+              onClick={() => setLanguage('bash')}
               className={`px-3 py-1.5 text-xs rounded-sm font-medium transition-colors ${language === 'bash' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-300'}`}
             >
-              Terminal (Bash)
+              Terminal Cmd
             </button>
           </div>
-          <button
-            onClick={handleClearTerminal}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border rounded-md bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-zinc-300"
-            disabled={isExecuting || isInitializing}
-          >
-            <RefreshCw className="w-4 h-4" />
-            Clear Console
-          </button>
+          {selectedFile && (
+             <button
+              onClick={handleSaveFile}
+              disabled={isSaving || isInitializing || !sandboxId}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border rounded-md bg-zinc-900 border-zinc-800 hover:bg-zinc-800 text-zinc-300 disabled:opacity-50"
+             >
+               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+               Save File
+             </button>
+          )}
           <button
             onClick={handleRunCode}
             disabled={isExecuting || isInitializing || !sandboxId}
@@ -247,9 +304,45 @@ export default function ProjectSandboxPage(props: { params: Promise<{ id: string
         </div>
       </div>
 
-      <div className="flex flex-1 gap-4 overflow-hidden border border-zinc-800 rounded-xl bg-zinc-900/50">
-        {/* Editor Pane */}
-        <div className="w-1/2 h-full border-r border-zinc-800 relative">
+      <div className="flex flex-1 gap-0 overflow-hidden border border-zinc-800 rounded-xl bg-zinc-900/50">
+        
+        {/* Left Pane: Explorer */}
+        <div className="w-64 flex flex-col border-r border-zinc-800 bg-zinc-950">
+          <div className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-zinc-500 border-b border-zinc-800">
+            Explorer
+          </div>
+          <div className="flex-1 overflow-y-auto p-2">
+            {currentPath !== '/home/user/workspace' && (
+              <button 
+                onClick={() => {
+                  const parts = currentPath.split('/');
+                  parts.pop();
+                  fetchFiles(parts.join('/'), sandboxId!);
+                }}
+                className="flex items-center gap-2 w-full text-left px-2 py-1.5 text-sm text-zinc-400 hover:bg-zinc-800/50 rounded-md"
+              >
+                <Folder className="w-4 h-4 text-blue-400" /> ..
+              </button>
+            )}
+            {files.map((file) => (
+              <button
+                key={file.path}
+                onClick={() => handleFileClick(file)}
+                className={`flex items-center gap-2 w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors ${selectedFile === file.path ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-300'}`}
+              >
+                {file.isDir ? (
+                  <Folder className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                ) : (
+                  <FileIcon className="w-4 h-4 text-zinc-500 flex-shrink-0" />
+                )}
+                <span className="truncate">{file.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Middle Pane: Editor */}
+        <div className="flex-1 h-full border-r border-zinc-800 relative">
           {isInitializing && (
             <div className="absolute inset-0 z-10 bg-zinc-950/50 backdrop-blur-sm flex items-center justify-center">
               <div className="flex flex-col items-center gap-4">
@@ -274,7 +367,7 @@ export default function ProjectSandboxPage(props: { params: Promise<{ id: string
           )}
           <Editor
             height="100%"
-            language={language === 'bash' ? 'shell' : 'python'}
+            language={language === 'bash' ? 'shell' : 'typescript'} // Defaulting to ts/js for better highlighting
             theme="vs-dark"
             value={code}
             onChange={(value) => setCode(value || '')}
@@ -289,13 +382,47 @@ export default function ProjectSandboxPage(props: { params: Promise<{ id: string
           />
         </div>
 
-        {/* Terminal Pane */}
-        <div className="flex flex-col w-1/2 h-full">
-          <div className="px-4 py-2 text-xs font-mono font-medium border-b border-zinc-800 text-zinc-400 bg-zinc-900/80">
-            TERMINAL OUTPUT
+        {/* Right Pane: Terminal / Preview */}
+        <div className="flex flex-col w-[40%] h-full bg-[#09090b]">
+          <div className="flex border-b border-zinc-800 bg-zinc-900/80">
+            <button
+              onClick={() => setRightPaneTab('terminal')}
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors ${rightPaneTab === 'terminal' ? 'text-white border-b-2 border-blue-500' : 'text-zinc-500 hover:text-zinc-300'}`}
+            >
+              <TerminalIcon className="w-4 h-4" /> Terminal
+            </button>
+            <button
+              onClick={() => setRightPaneTab('preview')}
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider transition-colors ${rightPaneTab === 'preview' ? 'text-white border-b-2 border-blue-500' : 'text-zinc-500 hover:text-zinc-300'}`}
+            >
+              <LayoutTemplate className="w-4 h-4" /> Live Preview
+            </button>
+            
+            <div className="flex-1 flex justify-end">
+              <button onClick={handleClearTerminal} className="px-3 py-2 text-zinc-500 hover:text-white" title="Clear Terminal">
+                 <RefreshCw className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-          <div className="flex-1 p-4 bg-[#09090b] overflow-hidden relative">
-            <div ref={terminalRef} className="absolute inset-4 overflow-hidden" />
+          
+          <div className="flex-1 relative">
+            {/* Terminal Tab */}
+            <div className={`absolute inset-0 p-4 ${rightPaneTab === 'terminal' ? 'block' : 'hidden'}`}>
+              <div ref={terminalRef} className="w-full h-full overflow-hidden" />
+            </div>
+            
+            {/* Preview Tab */}
+            <div className={`absolute inset-0 bg-white ${rightPaneTab === 'preview' ? 'block' : 'hidden'}`}>
+              {previewUrl ? (
+                <iframe src={previewUrl} className="w-full h-full border-none bg-white text-black" title="Live Preview" sandbox="allow-same-origin allow-scripts allow-forms" />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-zinc-500 bg-zinc-950 space-y-2">
+                  <LayoutTemplate className="w-12 h-12 mb-2 opacity-20" />
+                  <p>No preview URL available.</p>
+                  <p className="text-xs">If this is a Next.js app, ensure the dev server has started.</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
