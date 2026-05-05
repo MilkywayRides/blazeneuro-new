@@ -1,0 +1,6 @@
+modal
+diffusers
+torch
+transformers
+accelerate
+trellis

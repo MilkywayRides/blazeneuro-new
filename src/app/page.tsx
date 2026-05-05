@@ -68,7 +68,7 @@ export default function Home() {
   return (
     <div className="relative">
       <div className="relative min-h-screen flex flex-col">
-        <section className="relative min-h-screen flex items-center justify-center px-4 md:items-start md:pt-36 lg:pt-44 xl:pt-48">
+        <section className="relative min-h-screen flex items-center justify-center px-4 md:items-start md:pt-20 lg:pt-24 xl:pt-28">
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative w-[95%] md:w-[90%] h-[70%] md:h-[80%] rounded-2xl md:rounded-3xl overflow-hidden">
               {!mounted ? (
@@ -134,8 +134,9 @@ export default function Home() {
                         <a
                           key={result.id}
                           href={`/blogs/${result.slug}`}
-                          className="block p-3 hover:bg-white/10 rounded-lg transition-colors"
+                          className="flex items-center gap-3 p-3 hover:bg-white/10 rounded-lg transition-colors"
                         >
+                          <Search className="h-4 w-4 text-white/60 shrink-0" />
                           <h3 className="text-white font-medium">{result.title}</h3>
                         </a>
                       ))}

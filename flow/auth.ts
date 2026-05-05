@@ -20,7 +20,7 @@ export default NextAuth({
             body: JSON.stringify({
               grant_type: "authorization_code",
               code: params.code,
-              redirect_uri: provider.callbackUrl,
+              redirect_uri: params.redirect_uri || provider.callbackUrl,
               client_id: provider.clientId,
               client_secret: provider.clientSecret,
             }),
@@ -57,6 +57,13 @@ export default NextAuth({
   ],
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Allow mobile deep link redirects
+      if (url.startsWith("sbstylehub://")) return url;
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
+    },
     async jwt({ token, user, account, profile }) {
       if (user) {
         token.id = user.id
