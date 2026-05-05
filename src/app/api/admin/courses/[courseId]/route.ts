@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import { courses, coursePages } from "@/lib/schema"
+import { courses, coursePages, user } from "@/lib/schema"
 import { auth } from "@/lib/auth"
 import { eq, asc } from "drizzle-orm"
 
@@ -11,7 +11,13 @@ export async function GET(
   const { courseId } = await params
   const session = await auth.api.getSession({ headers: req.headers })
   
-  if (!session?.user || session.user.role !== "admin") {
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const [dbUser] = await db.select().from(user).where(eq(user.id, session.user.id))
+  
+  if (!dbUser || dbUser.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
