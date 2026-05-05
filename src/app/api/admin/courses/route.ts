@@ -5,22 +5,30 @@ import { eq, sql } from "drizzle-orm"
 
 async function getAdminUser(req: NextRequest) {
   const cookieHeader = req.headers.get("cookie") || ""
-  const sessionToken = cookieHeader.split(";").find(c => c.trim().startsWith("better-auth.session_token="))?.split("=")[1]
+  console.log("All cookies:", cookieHeader)
+  
+  // Try different possible cookie names
+  let sessionToken = cookieHeader.split(";").find(c => c.includes("session"))?.split("=")[1]
   
   if (!sessionToken) {
-    throw new Error("No session")
+    // Try to extract any token-like value
+    const cookies = cookieHeader.split(";").map(c => c.trim())
+    console.log("Parsed cookies:", cookies)
+    throw new Error(`No session cookie found. Available: ${cookies.join(", ")}`)
   }
+
+  console.log("Session token:", sessionToken)
 
   const [userSession] = await db.select().from(session).where(eq(session.token, sessionToken))
   
   if (!userSession) {
-    throw new Error("Invalid session")
+    throw new Error("Invalid session token")
   }
 
   const [dbUser] = await db.select().from(user).where(eq(user.id, userSession.userId))
   
   if (!dbUser || dbUser.role !== "admin") {
-    throw new Error("Not admin")
+    throw new Error(`Not admin. Role: ${dbUser?.role}`)
   }
 
   return dbUser
