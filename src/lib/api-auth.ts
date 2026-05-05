@@ -43,11 +43,14 @@ export async function verifyApiRequest(request: NextRequest) {
 export async function verifyAdminRequest(request: NextRequest) {
   const session = await verifyApiRequest(request);
   
-  // Check admin role
-  const adminEmails = ['admin@blazeneuro.com', 'ankityadav7420@gmail.com'];
-  const isAdmin = adminEmails.includes(session.user.email || '');
+  // Check admin role from database
+  const { db } = await import("@/lib/db");
+  const { user } = await import("@/lib/schema");
+  const { eq } = await import("drizzle-orm");
   
-  if (!isAdmin && session.user.role !== "admin" && session.user.role !== "superAdmin") {
+  const [dbUser] = await db.select().from(user).where(eq(user.id, session.user.id));
+  
+  if (!dbUser || (dbUser.role !== "admin" && dbUser.role !== "superAdmin")) {
     throw new ApiAuthError("Forbidden - Admin access required", 403);
   }
   
