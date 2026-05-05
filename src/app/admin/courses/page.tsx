@@ -24,16 +24,32 @@ export default function AdminCoursesPage() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [title, setTitle] = useState("")
   const [type, setType] = useState<"FREE" | "PAID">("FREE")
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
   useEffect(() => {
     fetchCourses()
   }, [])
 
   const fetchCourses = async () => {
-    const res = await fetch("/api/admin/courses")
-    const data = await res.json()
-    setCourses(data)
+    setLoading(true)
+    try {
+      const res = await fetch("/api/admin/courses")
+      const data = await res.json()
+      
+      if (data.error) {
+        setError(data.error)
+      } else if (Array.isArray(data)) {
+        setCourses(data)
+        setError("")
+      } else {
+        setError("Invalid response from server")
+      }
+    } catch (err) {
+      setError("Failed to load courses")
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleCreate = async () => {
@@ -48,6 +64,30 @@ export default function AdminCoursesPage() {
     setTitle("")
     setType("FREE")
     fetchCourses()
+  }
+
+  if (loading && courses.length === 0) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardContent className="py-12">
+            <p className="text-center text-muted-foreground">Loading courses...</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardContent className="py-12">
+            <p className="text-center text-destructive">{error}</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (
