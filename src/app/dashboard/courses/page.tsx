@@ -15,12 +15,58 @@ type Course = {
 
 export default function CourseCatalogPage() {
   const [courses, setCourses] = useState<Course[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
   useEffect(() => {
     fetch("/api/courses")
       .then(res => res.json())
-      .then(data => setCourses(data))
+      .then(data => {
+        if (data.error) {
+          setError(data.error)
+        } else if (Array.isArray(data)) {
+          setCourses(data)
+        } else {
+          setError("Invalid response from server")
+        }
+      })
+      .catch(err => setError("Failed to load courses"))
+      .finally(() => setLoading(false))
   }, [])
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Loading courses...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12">
+          <p className="text-destructive">{error}</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (courses.length === 0) {
+    return (
+      <div className="p-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Course Catalog</h1>
+          <p className="text-muted-foreground mt-2">Explore our courses and start learning</p>
+        </div>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">No courses available yet.</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-6">
