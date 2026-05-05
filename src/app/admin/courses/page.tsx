@@ -34,7 +34,9 @@ export default function AdminCoursesPage() {
   const fetchCourses = async () => {
     setLoading(true)
     try {
-      const res = await fetch("/api/admin/courses")
+      const res = await fetch("/api/admin/courses", {
+        credentials: "include"
+      })
       const data = await res.json()
       
       if (data.error) {
@@ -57,6 +59,7 @@ export default function AdminCoursesPage() {
     await fetch("/api/admin/courses", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ title, type })
     })
     setLoading(false)
