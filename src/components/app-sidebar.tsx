@@ -6,6 +6,7 @@ import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
+import { NavCourses } from "@/components/nav-courses"
 import {
   Sidebar,
   SidebarContent,
@@ -15,7 +16,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { LayoutDashboardIcon, UsersIcon, Settings2Icon, CircleHelpIcon, SearchIcon, ShieldIcon, ActivityIcon, DatabaseIcon, FileTextIcon, MessageSquareIcon, BellIcon } from "lucide-react"
+import { LayoutDashboardIcon, UsersIcon, Settings2Icon, CircleHelpIcon, SearchIcon, ShieldIcon, ActivityIcon, DatabaseIcon, FileTextIcon, MessageSquareIcon, BellIcon, BookOpenIcon } from "lucide-react"
 
 const adminData = {
   navMain: [
@@ -24,6 +25,13 @@ const adminData = {
       url: "/admin",
       icon: (
         <LayoutDashboardIcon className="h-4 w-4" />
+      ),
+    },
+    {
+      title: "Courses",
+      url: "/admin/courses",
+      icon: (
+        <BookOpenIcon className="h-4 w-4" />
       ),
     },
     {
@@ -197,6 +205,7 @@ export function AppSidebar({ userData, isAdmin = true, ...props }: React.Compone
       <SidebarContent>
         <NavMain items={data.navMain} />
         {data.documents.length > 0 && <NavDocuments items={data.documents} />}
+        {!isAdmin && <NavCourses />}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

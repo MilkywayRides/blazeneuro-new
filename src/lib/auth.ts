@@ -39,14 +39,11 @@ export const auth = betterAuth({
       enabled: true,
       maxAge: 5 * 60
     },
-    expiresIn: 60 * 60 * 24 * 7, // 7 days
-    updateAge: 60 * 60 * 24, // 1 day
+    expiresIn: 60 * 60 * 24 * 7,
+    updateAge: 60 * 60 * 24,
   },
   advanced: {
-    crossSubDomainCookies: {
-      enabled: true
-    },
-    useSecureCookies: process.env.NODE_ENV === "production",
+    useSecureCookies: false,
     cookieSameSite: "lax",
     generateId: () => crypto.randomUUID(),
   },

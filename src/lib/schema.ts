@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, primaryKey, integer } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, boolean, primaryKey, integer, uuid, jsonb } from "drizzle-orm/pg-core"
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -291,6 +291,34 @@ export const userContribution = pgTable("user_contribution", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 })
 
+// Course Management Tables
+export const courses = pgTable("courses", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  title: text("title").notNull(),
+  type: text("type", { enum: ["FREE", "PAID"] }).notNull().default("FREE"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+})
+
+export const coursePages = pgTable("course_pages", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  courseId: uuid("course_id").notNull().references(() => courses.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  order: integer("order").notNull().default(0),
+  contentType: text("content_type", { enum: ["ARTICLE", "VIDEO", "QUIZ"] }).notNull(),
+  body: text("body"),
+  videoUrl: text("video_url"),
+  quizData: jsonb("quiz_data"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+})
+
+export const coursePurchases = pgTable("course_purchases", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").notNull(),
+  courseId: uuid("course_id").notNull().references(() => courses.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+})
+
 export const schema = {
   user,
   session,
@@ -317,6 +345,9 @@ export const schema = {
   chatMessage,
   chatMention,
   pushToken,
-  userContribution
+  userContribution,
+  courses,
+  coursePages,
+  coursePurchases
 }
 
