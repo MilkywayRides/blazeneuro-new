@@ -1,17 +1,20 @@
 "use client";
 
-import { Footer } from "@/components/footer";
+import { Card } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function TermsOfServicePage() {
   return (
-    <div className="relative min-h-screen">
-      <main className="container mx-auto px-4 py-8 pt-8 max-w-4xl mb-16">
-        <div className="mb-8">
+    <div className="min-h-screen bg-background py-20">
+      <main className="container mx-auto px-4 max-w-5xl">
+        <div className="mb-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-3">Terms of Service</h1>
           <p className="text-muted-foreground text-lg">Last updated: April 2, 2026</p>
         </div>
 
-        <article className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3 prose-p:text-muted-foreground prose-p:leading-relaxed prose-li:text-muted-foreground prose-strong:text-foreground">
+        <Card className="border-2">
+          <ScrollArea className="h-[70vh] px-8 py-6">
+            <article className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3 prose-p:text-muted-foreground prose-p:leading-relaxed prose-li:text-muted-foreground prose-strong:text-foreground">
           <h2>1. Agreement to Terms</h2>
           <p>
             By accessing or using BlazeNeuro ("Service," "we," "us," or "our"), you agree to be bound by these Terms of Service ("Terms"). If you disagree with any part of these terms, you may not access the Service.
@@ -272,9 +275,9 @@ export default function TermsOfServicePage() {
             BY USING THE SERVICE, YOU ACKNOWLEDGE THAT YOU HAVE READ THESE TERMS OF SERVICE AND AGREE TO BE BOUND BY THEM.
           </p>
         </article>
+          </ScrollArea>
+        </Card>
       </main>
-
-      <Footer />
     </div>
   );
 }

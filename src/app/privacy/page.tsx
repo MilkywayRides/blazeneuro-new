@@ -1,17 +1,20 @@
 "use client";
 
-import { Footer } from "@/components/footer";
+import { Card } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="relative min-h-screen">
-      <main className="container mx-auto px-4 py-8 pt-8 max-w-4xl mb-16">
-        <div className="mb-8">
+    <div className="min-h-screen bg-background py-20">
+      <main className="container mx-auto px-4 max-w-5xl">
+        <div className="mb-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-3">Privacy Policy</h1>
           <p className="text-muted-foreground text-lg">Last updated: April 2, 2026</p>
         </div>
 
-        <article className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3 prose-p:text-muted-foreground prose-p:leading-relaxed prose-li:text-muted-foreground prose-strong:text-foreground">
+        <Card className="border-2">
+          <ScrollArea className="h-[70vh] px-8 py-6">
+            <article className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3 prose-p:text-muted-foreground prose-p:leading-relaxed prose-li:text-muted-foreground prose-strong:text-foreground">
           <h2>1. Introduction</h2>
           <p>
             Welcome to BlazeNeuro ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our application and services.
@@ -174,9 +177,9 @@ export default function PrivacyPolicyPage() {
             By using our service, you consent to our Privacy Policy and agree to its terms. If you do not agree with this policy, please do not use our service.
           </p>
         </article>
+          </ScrollArea>
+        </Card>
       </main>
-
-      <Footer />
     </div>
   );
 }

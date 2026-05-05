@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { MeshGradient } from '@paper-design/shaders-react';
 import { Play, Pause, Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -68,9 +69,9 @@ export default function Home() {
   return (
     <div className="relative">
       <div className="relative min-h-screen flex flex-col">
-        <section className="relative min-h-screen flex items-center justify-center px-4 md:items-start md:pt-20 lg:pt-24 xl:pt-28">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative w-[95%] md:w-[90%] h-[70%] md:h-[80%] rounded-2xl md:rounded-3xl overflow-hidden">
+        <section className="relative min-h-screen flex items-center justify-center px-4 md:items-center md:pt-0">
+          <div className="absolute inset-0 flex items-center justify-center md:pt-8">
+            <div className="relative w-[95%] md:w-[90%] h-[70%] md:h-[80%] rounded-2xl md:rounded-3xl overflow-hidden mt-16 md:mt-0">
               {!mounted ? (
                 <Skeleton className="w-full h-full rounded-2xl md:rounded-3xl" />
               ) : (
@@ -99,7 +100,7 @@ export default function Home() {
             </div>
           </div>
           
-          <div className="relative z-10 px-4 text-center md:translate-y-10 lg:translate-y-14 xl:translate-y-16">
+          <div className="relative z-10 px-4 text-center">
             <Badge className="mb-4 md:mb-6 bg-white/10 backdrop-blur-md border-white/20 text-white text-xs md:text-sm">AI-Powered Neural Solutions</Badge>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 md:mb-6 text-white [text-shadow:_0_4px_20px_rgb(0_0_0_/_40%)]">
               BlazeNeuro
@@ -125,22 +126,24 @@ export default function Home() {
               </div>
               
               {searchQuery && (
-                <div className="absolute top-full left-0 mt-2 w-full bg-black/90 backdrop-blur-lg border border-white/20 rounded-2xl shadow-2xl max-h-96 overflow-y-auto text-left">
+                <div className="absolute top-full left-0 mt-2 w-full bg-black/90 backdrop-blur-lg border border-white/20 rounded-2xl shadow-2xl text-left">
                   {searching ? (
                     <div className="p-4 text-center text-white/60">Searching...</div>
                   ) : searchResults.length > 0 ? (
-                    <div className="p-2">
-                      {searchResults.map((result) => (
-                        <a
-                          key={result.id}
-                          href={`/blogs/${result.slug}`}
-                          className="flex items-center gap-3 p-3 hover:bg-white/10 rounded-lg transition-colors"
-                        >
-                          <Search className="h-4 w-4 text-white/60 shrink-0" />
-                          <h3 className="text-white font-medium">{result.title}</h3>
-                        </a>
-                      ))}
-                    </div>
+                    <ScrollArea className="h-96">
+                      <div className="p-2">
+                        {searchResults.map((result) => (
+                          <a
+                            key={result.id}
+                            href={`/blogs/${result.slug}`}
+                            className="flex items-center gap-3 p-3 hover:bg-white/10 rounded-lg transition-colors"
+                          >
+                            <Search className="h-4 w-4 text-white/60 shrink-0" />
+                            <h3 className="text-white font-medium">{result.title}</h3>
+                          </a>
+                        ))}
+                      </div>
+                    </ScrollArea>
                   ) : (
                     <div className="p-4 text-center text-white/60">No results found</div>
                   )}

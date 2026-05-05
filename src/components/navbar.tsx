@@ -126,6 +126,7 @@ export function Navbar() {
   }, [activeIndex, isAdmin])
 
   const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/")
+  const isTermsOrPrivacy = pathname === "/terms" || pathname === "/privacy"
 
   if (isDashboardRoute || isAdminRoute) {
     return null
