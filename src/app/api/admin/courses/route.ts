@@ -31,13 +31,17 @@ export async function GET(req: NextRequest) {
   const session = await auth.api.getSession({ headers: req.headers })
   
   if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return NextResponse.json({ error: "No session" }, { status: 401 })
   }
 
   const [dbUser] = await db.select().from(user).where(eq(user.id, session.user.id))
   
-  if (!dbUser || dbUser.role !== "admin") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  if (!dbUser) {
+    return NextResponse.json({ error: "User not found" }, { status: 401 })
+  }
+
+  if (dbUser.role !== "admin") {
+    return NextResponse.json({ error: `Not admin. Role: ${dbUser.role}` }, { status: 401 })
   }
 
   const result = await db
