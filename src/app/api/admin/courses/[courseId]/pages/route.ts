@@ -1,27 +1,35 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import { coursePages, user } from "@/lib/schema"
-import { auth } from "@/lib/auth"
+import { coursePages } from "@/lib/schema"
 import { eq, max } from "drizzle-orm"
-
-async function getAdminUser(req: NextRequest) {
-  const session = await auth.api.getSession({ headers: req.headers })
-  
-  if (!session?.user) throw new Error("No session")
-
-  const [dbUser] = await db.select().from(user).where(eq(user.id, session.user.id))
-  if (!dbUser) throw new Error("User not found")
-  if (dbUser.role !== "admin") throw new Error(`Not admin. Role: ${dbUser.role}`)
-
-  return dbUser
-}
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    await getAdminUser(req)
+    const sessionToken = req.cookies.get('better-auth.session_token')?.value
+    
+    if (!sessionToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const session = await db.query.session.findFirst({
+      where: (s, { eq }) => eq(s.token, sessionToken)
+    })
+
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const userRecord = await db.query.user.findFirst({
+      where: (u, { eq }) => eq(u.id, session.userId)
+    })
+
+    if (!userRecord || userRecord.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const { courseId } = await params
     const { title, contentType, body, videoUrl } = await req.json()
 
@@ -43,6 +51,6 @@ export async function POST(
 
     return NextResponse.json(page)
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 401 })
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
