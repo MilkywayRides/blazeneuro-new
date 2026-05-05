@@ -1,19 +1,17 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import { coursePages, user, session } from "@/lib/schema"
+import { coursePages, user } from "@/lib/schema"
+import { auth } from "@/lib/auth"
 import { eq, max } from "drizzle-orm"
 
 async function getAdminUser(req: NextRequest) {
-  const cookieHeader = req.headers.get("cookie") || ""
-  const sessionToken = cookieHeader.split(";").find(c => c.trim().startsWith("better-auth.session_token="))?.split("=")[1]
+  const session = await auth.api.getSession({ headers: req.headers })
   
-  if (!sessionToken) throw new Error("No session")
+  if (!session?.user) throw new Error("No session")
 
-  const [userSession] = await db.select().from(session).where(eq(session.token, sessionToken))
-  if (!userSession) throw new Error("Invalid session")
-
-  const [dbUser] = await db.select().from(user).where(eq(user.id, userSession.userId))
-  if (!dbUser || dbUser.role !== "admin") throw new Error("Not admin")
+  const [dbUser] = await db.select().from(user).where(eq(user.id, session.user.id))
+  if (!dbUser) throw new Error("User not found")
+  if (dbUser.role !== "admin") throw new Error(`Not admin. Role: ${dbUser.role}`)
 
   return dbUser
 }
