@@ -3,11 +3,9 @@ import { db } from "@/lib/db"
 import { courses, coursePages, user } from "@/lib/schema"
 import { auth } from "@/lib/auth"
 import { eq, sql } from "drizzle-orm"
-import { cookies } from "next/headers"
 
 export async function POST(req: NextRequest) {
-  const cookieStore = await cookies()
-  const session = await auth.api.getSession({ headers: { cookie: cookieStore.toString() } })
+  const session = await auth.api.getSession({ headers: req.headers })
   
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -29,9 +27,8 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(course)
 }
 
-export async function GET() {
-  const cookieStore = await cookies()
-  const session = await auth.api.getSession({ headers: { cookie: cookieStore.toString() } })
+export async function GET(req: NextRequest) {
+  const session = await auth.api.getSession({ headers: req.headers })
   
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
