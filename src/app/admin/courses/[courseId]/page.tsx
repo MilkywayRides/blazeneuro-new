@@ -43,9 +43,17 @@ export default function CourseBuilderPage() {
   }, [courseId])
 
   const fetchCourse = async () => {
-    const res = await fetch(`/api/admin/courses/${courseId}`)
-    const data = await res.json()
-    setCourse(data)
+    try {
+      const res = await fetch(`/api/admin/courses/${courseId}`)
+      const data = await res.json()
+      if (data.error) {
+        console.error("Error fetching course:", data.error)
+      } else {
+        setCourse(data)
+      }
+    } catch (error) {
+      console.error("Failed to fetch course:", error)
+    }
   }
 
   const handleAddPage = async () => {

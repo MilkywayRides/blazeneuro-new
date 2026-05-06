@@ -24,7 +24,7 @@ export default async function AdminLayout({
       style={
         {
           "--sidebar-width": "16rem",
-          "--sidebar-width-icon": "4rem",
+          "--sidebar-width-icon": "3rem",
         } as React.CSSProperties
       }
     >
