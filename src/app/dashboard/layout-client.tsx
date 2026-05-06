@@ -30,7 +30,7 @@ export function DashboardLayoutClient({
       style={
         {
           "--sidebar-width": "16rem",
-          "--sidebar-width-icon": "3rem",
+          "--sidebar-width-icon": "4rem",
         } as React.CSSProperties
       }
     >

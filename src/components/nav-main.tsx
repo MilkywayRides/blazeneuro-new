@@ -39,17 +39,17 @@ export function NavMain({
               return (
                 <SidebarMenuItem key={item.title}>
                   <Tooltip>
-                    <TooltipTrigger>
+                    <TooltipTrigger asChild>
                       <Link 
                         href={item.url}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors w-full ${
                           isActive 
                             ? 'bg-accent text-accent-foreground' 
                             : 'hover:bg-accent/50'
-                        } ${!open ? 'justify-center w-10' : ''}`}
+                        } ${!open ? 'justify-center' : ''}`}
                       >
-                        {item.icon}
-                        {open && <span>{item.title}</span>}
+                        <span className="flex-shrink-0">{item.icon}</span>
+                        {open && <span className="flex-1 text-left">{item.title}</span>}
                       </Link>
                     </TooltipTrigger>
                     {!open && (
