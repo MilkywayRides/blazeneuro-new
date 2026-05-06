@@ -146,7 +146,7 @@ export default function CourseViewerPage() {
   const showPaywall = course.type === "PAID" && !hasPurchased && !isAdmin && session?.user
 
   return (
-    <div className="flex h-[calc(100vh-3rem)] overflow-hidden relative">
+    <div className="flex h-full overflow-hidden relative">
       {showPaywall && (
         <div className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-background/80">
           <Card className="max-w-md">
