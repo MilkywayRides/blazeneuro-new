@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import ReactMarkdown from "react-markdown"
+import { Quiz } from "@/components/quiz"
 import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
 import Link from "next/link"
@@ -35,6 +36,7 @@ type Page = {
   contentType: "ARTICLE" | "VIDEO" | "QUIZ"
   body?: string
   videoUrl?: string
+  quizData?: any[]
   order: number
   completed?: boolean
   userReaction?: boolean | null
@@ -373,20 +375,43 @@ export default function CourseViewerPage() {
                 )}
 
                 {selectedPage.contentType === "QUIZ" && (
-                  <Card className="border-border">
-                    <CardContent className="pt-6 space-y-4">
-                      <p className="text-foreground">Quiz coming soon</p>
-                      <Badge>Coming Soon</Badge>
-                    </CardContent>
-                    <CardFooter className="flex justify-center pt-4 border-t">
-                      <PageReactions 
-                        pageId={selectedPage.id} 
-                        initialReaction={selectedPage.userReaction}
-                        initialLikeCount={selectedPage.likeCount || 0}
-                        initialDislikeCount={selectedPage.dislikeCount || 0}
-                      />
-                    </CardFooter>
-                  </Card>
+                  <div className="space-y-4">
+                    {/* Creator info at top */}
+                    {course?.publisher && (
+                      <div className="flex items-center justify-between gap-4 pb-4 border-b">
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold flex-shrink-0">
+                            {course.publisher.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-foreground">{course.publisher.name}</div>
+                            <div className="text-sm text-muted-foreground">Course Creator</div>
+                          </div>
+                          <Button
+                            variant={course.isFollowing ? "outline" : "default"}
+                            size="sm"
+                            onClick={handleFollow}
+                            className="flex-shrink-0"
+                          >
+                            {course.isFollowing ? "Following" : "Follow"}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    <Quiz questions={selectedPage.quizData || []} pageId={selectedPage.id} />
+
+                    <Card className="border-border">
+                      <CardFooter className="flex justify-center pt-4">
+                        <PageReactions 
+                          pageId={selectedPage.id} 
+                          initialReaction={selectedPage.userReaction}
+                          initialLikeCount={selectedPage.likeCount || 0}
+                          initialDislikeCount={selectedPage.dislikeCount || 0}
+                        />
+                      </CardFooter>
+                    </Card>
+                  </div>
                 )}
               </>
             ) : (
