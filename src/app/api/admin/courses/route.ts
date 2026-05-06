@@ -55,13 +55,24 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    console.log('Looking for session with token:', sessionToken.substring(0, 20))
+
     const session = await db.query.session.findFirst({
       where: (s, { eq }) => eq(s.token, sessionToken)
     })
 
     if (!session) {
-      console.log('Session not found in database for token:', sessionToken.substring(0, 10))
-      return NextResponse.json({ error: 'Unauthorized - Invalid session' }, { status: 401 })
+      // Check if any sessions exist
+      const allSessions = await db.query.session.findMany({ limit: 5 })
+      console.log('Session not found. Total sessions in DB:', allSessions.length)
+      console.log('Sample session tokens:', allSessions.map(s => s.token.substring(0, 20)))
+      return NextResponse.json({ 
+        error: 'Unauthorized - Invalid session',
+        debug: {
+          tokenPrefix: sessionToken.substring(0, 20),
+          sessionsInDb: allSessions.length
+        }
+      }, { status: 401 })
     }
 
     const userRecord = await db.query.user.findFirst({
