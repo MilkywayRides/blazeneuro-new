@@ -11,12 +11,14 @@ export function DashboardLayoutClient({
   userData, 
   userId, 
   userName, 
-  userEmail 
+  userEmail,
+  children
 }: { 
   userData: any
   userId: string
   userName: string | null
   userEmail: string
+  children: React.ReactNode
 }) {
   const pathname = usePathname()
   const isCoursePage = pathname.includes("/courses/") && pathname.split("/").length > 3
@@ -40,6 +42,7 @@ export function DashboardLayoutClient({
       <AppSidebar variant="inset" isAdmin={false} userData={userData} />
       <SidebarInset>
         <SiteHeader />
+        {children}
       </SidebarInset>
     </SidebarProvider>
   )
