@@ -1,50 +1,50 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
-import { sql } from 'drizzle-orm'
+import { NextRequest, NextResponse } from "next/server"
+import { db } from "@/lib/db"
+import { sql } from "drizzle-orm"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
 
 export async function POST(req: NextRequest) {
   try {
-    const { secret } = await req.json()
-    
-    if (secret !== process.env.ADMIN_SECRET) {
+    const session = await auth.api.getSession({
+      headers: await headers()
+    })
+
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS "deviceLocation" (
-        "id" text PRIMARY KEY NOT NULL,
-        "userId" text,
-        "deviceId" text NOT NULL,
-        "latitude" text NOT NULL,
-        "longitude" text NOT NULL,
-        "lastSeen" timestamp DEFAULT now() NOT NULL
-      )
-    `)
+    const userRecord = await db.query.user.findFirst({
+      where: (u, { eq }) => eq(u.id, session.user.id)
+    })
 
+    if (!userRecord || userRecord.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    // Create course_progress table
     await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS "popup" (
-        "id" text PRIMARY KEY NOT NULL,
-        "title" text NOT NULL,
-        "components" text NOT NULL,
-        "active" boolean DEFAULT true NOT NULL,
+      CREATE TABLE IF NOT EXISTS "course_progress" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        "user_id" text NOT NULL,
+        "page_id" uuid NOT NULL REFERENCES "course_pages"("id") ON DELETE CASCADE,
+        "completed" boolean DEFAULT false NOT NULL,
         "created_at" timestamp DEFAULT now() NOT NULL,
         "updated_at" timestamp DEFAULT now() NOT NULL
       )
     `)
 
     await db.execute(sql`
-      CREATE TABLE IF NOT EXISTS "popup_response" (
-        "id" text PRIMARY KEY NOT NULL,
-        "popup_id" text NOT NULL,
-        "device_id" text NOT NULL,
-        "response" text NOT NULL,
-        "created_at" timestamp DEFAULT now() NOT NULL
-      )
+      CREATE INDEX IF NOT EXISTS "course_progress_user_id_idx" ON "course_progress"("user_id")
     `)
 
-    return NextResponse.json({ success: true, message: 'Tables created' })
-  } catch (error) {
-    console.error('Migration error:', error)
-    return NextResponse.json({ error: 'Failed', details: error instanceof Error ? error.message : 'Unknown' }, { status: 500 })
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS "course_progress_page_id_idx" ON "course_progress"("page_id")
+    `)
+
+    return NextResponse.json({ success: true, message: "Migration completed" })
+  } catch (error: any) {
+    console.error("Migration error:", error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
