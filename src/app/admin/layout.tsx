@@ -2,6 +2,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { requireAdmin } from "@/lib/auth-check";
+import { getNotifications } from "@/app/admin/notifications/actions"
 import React from "react";
 
 export default async function AdminLayout({
@@ -10,6 +11,7 @@ export default async function AdminLayout({
   children: React.ReactNode
 }) {
   const session = await requireAdmin();
+  const notifications = await getNotifications();
 
   const userData = {
     name: session.user.name || "Admin",
@@ -28,7 +30,7 @@ export default async function AdminLayout({
     >
       <AppSidebar variant="inset" isAdmin={true} userData={userData} />
       <SidebarInset>
-        <SiteHeader />
+        <SiteHeader notifications={notifications} />
         {children}
       </SidebarInset>
     </SidebarProvider>
