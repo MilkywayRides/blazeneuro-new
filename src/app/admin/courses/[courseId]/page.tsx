@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -12,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { useParams } from "next/navigation"
 import { Trash2, Pencil, GripVertical } from "lucide-react"
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
@@ -71,6 +72,8 @@ export default function CourseBuilderPage() {
   const courseId = params.courseId as string
   const [course, setCourse] = useState<Course | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [pageToDelete, setPageToDelete] = useState<string | null>(null)
   const [editingPage, setEditingPage] = useState<Page | null>(null)
   const [pageTitle, setPageTitle] = useState("")
   const [contentType, setContentType] = useState<"ARTICLE" | "VIDEO" | "QUIZ">("ARTICLE")
@@ -147,14 +150,21 @@ export default function CourseBuilderPage() {
   }
 
   const handleDeletePage = async (pageId: string) => {
-    if (!confirm("Are you sure you want to delete this page?")) return
-    await fetch(`/api/admin/courses/${courseId}/pages/${pageId}`, {
+    setPageToDelete(pageId)
+    setDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!pageToDelete) return
+    await fetch(`/api/admin/courses/${courseId}/pages/${pageToDelete}`, {
       method: "DELETE"
     })
+    setDeleteDialogOpen(false)
+    setPageToDelete(null)
     fetchCourse()
   }
 
-  const handleDragEnd = async (event: any) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
     if (!over || active.id === over.id || !course) return
 
@@ -164,11 +174,16 @@ export default function CourseBuilderPage() {
     const newPages = arrayMove(course.pages, oldIndex, newIndex).map((p, i) => ({ ...p, order: i }))
     setCourse({ ...course, pages: newPages })
 
-    await fetch(`/api/admin/courses/${courseId}/pages/reorder`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pages: newPages.map(p => ({ id: p.id, order: p.order })) })
-    })
+    try {
+      await fetch(`/api/admin/courses/${courseId}/pages/reorder`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pages: newPages.map(p => ({ id: p.id, order: p.order })) })
+      })
+    } catch (error) {
+      console.error("Failed to reorder:", error)
+      fetchCourse()
+    }
   }
 
   if (!course) return <div className="p-6">Loading...</div>
@@ -304,6 +319,21 @@ export default function CourseBuilderPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the page.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

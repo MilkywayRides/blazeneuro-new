@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -23,6 +24,8 @@ type Course = {
 export default function AdminCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [courseToDelete, setCourseToDelete] = useState<string | null>(null)
   const [editingCourse, setEditingCourse] = useState<Course | null>(null)
   const [title, setTitle] = useState("")
   const [type, setType] = useState<"FREE" | "PAID">("FREE")
@@ -89,11 +92,18 @@ export default function AdminCoursesPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this course?")) return
-    await fetch(`/api/admin/courses/${id}`, {
+    setCourseToDelete(id)
+    setDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!courseToDelete) return
+    await fetch(`/api/admin/courses/${courseToDelete}`, {
       method: "DELETE",
       credentials: "include"
     })
+    setDeleteDialogOpen(false)
+    setCourseToDelete(null)
     fetchCourses()
   }
 
@@ -221,6 +231,21 @@ export default function AdminCoursesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the course and all its pages.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
