@@ -16,12 +16,7 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({
-      user: {
-        id: session.user.id,
-        email: session.user.email,
-        name: session.user.name,
-        role: session.user.role
-      },
+      user: session.user,
       session: {
         id: session.session.id,
         expiresAt: session.session.expiresAt

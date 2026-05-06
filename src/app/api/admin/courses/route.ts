@@ -15,7 +15,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (session.user.role !== 'admin') {
+    // Check role from database directly
+    const userRecord = await db.query.user.findFirst({
+      where: (u, { eq }) => eq(u.id, session.user.id)
+    })
+
+    if (!userRecord || userRecord.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
     
@@ -43,8 +48,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // Check role from database directly
+    const userRecord = await db.query.user.findFirst({
+      where: (u, { eq }) => eq(u.id, session.user.id)
+    })
+
+    if (!userRecord || userRecord.role !== 'admin') {
+      return NextResponse.json({ 
+        error: 'Forbidden',
+        debug: { role: userRecord?.role, userId: session.user.id }
+      }, { status: 403 })
     }
 
     const result = await db
