@@ -43,7 +43,7 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 24,
   },
   advanced: {
-    useSecureCookies: false,
+    useSecureCookies: process.env.NODE_ENV === "production",
     cookieSameSite: "lax",
     generateId: () => crypto.randomUUID(),
   },
