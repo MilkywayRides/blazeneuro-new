@@ -69,7 +69,7 @@ export default function CourseCatalogPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 h-full overflow-y-auto">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Course Catalog</h1>
         <p className="text-muted-foreground mt-2">Explore our courses and start learning</p>

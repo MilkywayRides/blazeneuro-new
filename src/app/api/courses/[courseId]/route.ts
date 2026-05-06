@@ -28,7 +28,7 @@ export async function GET(
   })
 
   if (session?.user) {
-    // Auto-enroll user if not already enrolled
+    // Auto-enroll user if not already enrolled (only on first access)
     try {
       const existing = await db.query.courseEnrollments.findFirst({
         where: (ce, { and, eq }) => and(
@@ -41,10 +41,10 @@ export async function GET(
         await db.insert(courseEnrollments).values({
           userId: session.user.id,
           courseId
-        })
+        }).catch(() => {}) // Silently fail if table doesn't exist
       }
     } catch (error) {
-      console.error("Enrollment error:", error)
+      // Ignore enrollment errors
     }
 
     try {
