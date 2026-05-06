@@ -26,8 +26,7 @@ export function NavMain({
   }[]
 }) {
   const pathname = usePathname()
-  const { state } = useSidebar()
-  const isCollapsed = state === "collapsed"
+  const { open } = useSidebar()
 
   return (
     <SidebarGroup>
@@ -36,34 +35,44 @@ export function NavMain({
           <TooltipProvider>
             {items.map((item) => {
               const isActive = pathname === item.url
-              const linkContent = (
-                <Link 
-                  href={item.url} 
-                  className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                    isActive 
-                      ? 'bg-accent text-accent-foreground' 
-                      : 'hover:bg-accent/50'
-                  }`}
-                >
-                  <span className="flex-shrink-0">{item.icon}</span>
-                  {!isCollapsed && <span className="flex-1">{item.title}</span>}
-                </Link>
-              )
-
-              return (
-                <SidebarMenuItem key={item.title}>
-                  {isCollapsed ? (
+              
+              if (!open) {
+                return (
+                  <SidebarMenuItem key={item.title}>
                     <Tooltip>
                       <TooltipTrigger>
-                        {linkContent}
+                        <Link 
+                          href={item.url} 
+                          className={`flex items-center justify-center w-10 h-10 rounded-md transition-colors ${
+                            isActive 
+                              ? 'bg-accent text-accent-foreground' 
+                              : 'hover:bg-accent/50'
+                          }`}
+                        >
+                          {item.icon}
+                        </Link>
                       </TooltipTrigger>
                       <TooltipContent side="right">
                         {item.title}
                       </TooltipContent>
                     </Tooltip>
-                  ) : (
-                    linkContent
-                  )}
+                  </SidebarMenuItem>
+                )
+              }
+
+              return (
+                <SidebarMenuItem key={item.title}>
+                  <Link 
+                    href={item.url} 
+                    className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+                      isActive 
+                        ? 'bg-accent text-accent-foreground' 
+                        : 'hover:bg-accent/50'
+                    }`}
+                  >
+                    <span className="flex-shrink-0">{item.icon}</span>
+                    <span className="flex-1">{item.title}</span>
+                  </Link>
                 </SidebarMenuItem>
               )
             })}

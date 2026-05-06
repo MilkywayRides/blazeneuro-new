@@ -1,8 +1,5 @@
-import { AppSidebar } from "@/components/app-sidebar"
-import { SiteHeader } from "@/components/site-header"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { requireAuth } from "@/lib/auth-check";
-import { AnalyticsTracker } from "@/components/analytics-tracker";
+import { DashboardLayoutClient } from "./layout-client";
 import React from "react";
 
 export default async function DashboardLayout({
@@ -19,24 +16,13 @@ export default async function DashboardLayout({
   };
 
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
+    <DashboardLayoutClient 
+      userData={userData}
+      userId={session.user.id}
+      userName={session.user.name}
+      userEmail={session.user.email}
     >
-      <AnalyticsTracker 
-        userId={session.user.id} 
-        name={session.user.name} 
-        email={session.user.email} 
-      />
-      <AppSidebar variant="inset" isAdmin={false} userData={userData} />
-      <SidebarInset>
-        <SiteHeader />
-        {children}
-      </SidebarInset>
-    </SidebarProvider>
+      {children}
+    </DashboardLayoutClient>
   )
 }
