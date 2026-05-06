@@ -43,7 +43,11 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    const sessionToken = req.cookies.get('better-auth.session_token')?.value
+    // Try multiple cookie names
+    let sessionToken = req.cookies.get('better-auth.session_token')?.value
+    if (!sessionToken) {
+      sessionToken = req.cookies.get('authjs.session-token')?.value
+    }
     
     if (!sessionToken) {
       const allCookies = req.cookies.getAll()
@@ -59,15 +63,22 @@ export async function GET(req: NextRequest) {
     })
 
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      console.log('Session not found in database for token:', sessionToken.substring(0, 10))
+      return NextResponse.json({ error: 'Unauthorized - Invalid session' }, { status: 401 })
     }
 
     const userRecord = await db.query.user.findFirst({
       where: (u, { eq }) => eq(u.id, session.userId)
     })
 
-    if (!userRecord || userRecord.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (!userRecord) {
+      console.log('User not found for session userId:', session.userId)
+      return NextResponse.json({ error: 'Unauthorized - User not found' }, { status: 401 })
+    }
+
+    if (userRecord.role !== 'admin') {
+      console.log('User is not admin. Role:', userRecord.role)
+      return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 })
     }
 
     const result = await db
