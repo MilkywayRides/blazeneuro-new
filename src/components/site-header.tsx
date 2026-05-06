@@ -12,10 +12,14 @@ export function SiteHeader({ notifications }: { notifications?: any[] }) {
 
   return (
     <header className="flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear">
-      <div className="flex items-center gap-2 px-4 h-full">
+      <div className="flex items-center gap-2 px-4">
         <SidebarTrigger className="-ml-1" />
-        <Separator orientation="vertical" className="h-6" />
-        {showCourseSwitcher && <CourseSwitcher />}
+        {showCourseSwitcher && (
+          <>
+            <Separator orientation="vertical" className="h-6 mx-1" />
+            <CourseSwitcher />
+          </>
+        )}
       </div>
       <div className="ml-auto flex items-center gap-2 px-4">
         <NotificationButton notifications={notifications || []} />
