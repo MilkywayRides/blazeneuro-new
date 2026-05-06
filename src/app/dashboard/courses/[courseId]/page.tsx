@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useParams } from "next/navigation"
+import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
 import Link from "next/link"
 
@@ -28,7 +28,10 @@ type Course = {
 
 export default function CourseViewerPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const courseId = params.courseId as string
+  const pageId = searchParams.get('pageId')
   const [course, setCourse] = useState<Course | null>(null)
   const [selectedPage, setSelectedPage] = useState<Page | null>(null)
   const [hasPurchased, setHasPurchased] = useState(false)
@@ -41,11 +44,23 @@ export default function CourseViewerPage() {
       .then(res => res.json())
       .then(data => {
         setCourse(data)
-        if (data.pages.length > 0) {
+        if (pageId) {
+          const page = data.pages.find((p: Page) => p.id === pageId)
+          if (page) {
+            setSelectedPage(page)
+          } else if (data.pages.length > 0) {
+            setSelectedPage(data.pages[0])
+          }
+        } else if (data.pages.length > 0) {
           setSelectedPage(data.pages[0])
         }
       })
-  }, [courseId])
+  }, [courseId, pageId])
+
+  const handlePageSelect = (page: Page) => {
+    setSelectedPage(page)
+    router.push(`/dashboard/courses/${courseId}?pageId=${page.id}`, { scroll: false })
+  }
 
   if (!course) return <div className="p-6">Loading...</div>
 
@@ -100,7 +115,7 @@ export default function CourseViewerPage() {
                 key={page.id}
                 variant={selectedPage?.id === page.id ? "secondary" : "ghost"}
                 className="w-full justify-start mb-1"
-                onClick={() => setSelectedPage(page)}
+                onClick={() => handlePageSelect(page)}
               >
                 {page.title}
               </Button>
