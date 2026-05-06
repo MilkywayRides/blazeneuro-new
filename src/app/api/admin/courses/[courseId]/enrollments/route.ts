@@ -38,7 +38,7 @@ export async function GET(
           email: user.email
         })
         .from(courseEnrollments)
-        .leftJoin(user, eq(courseEnrollments.userId, user.id))
+        .innerJoin(user, eq(courseEnrollments.userId, user.id))
         .where(eq(courseEnrollments.courseId, courseId))
 
       const users = enrollments.map(e => ({
@@ -52,9 +52,9 @@ export async function GET(
     } catch (error: any) {
       console.error("Enrollment fetch error:", error)
       if (error.code === '42P01') {
-        return NextResponse.json({ users: [], count: 0 })
+        return NextResponse.json({ users: [], count: 0, warning: 'Table not created yet' })
       }
-      throw error
+      return NextResponse.json({ users: [], count: 0, error: error.message })
     }
   } catch (error: any) {
     console.error("Get enrollments error:", error)
