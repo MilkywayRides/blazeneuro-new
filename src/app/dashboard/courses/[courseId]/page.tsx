@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Progress } from "@/components/ui/progress"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
@@ -38,6 +39,7 @@ export default function CourseViewerPage() {
   const [course, setCourse] = useState<Course | null>(null)
   const [selectedPage, setSelectedPage] = useState<Page | null>(null)
   const [hasPurchased, setHasPurchased] = useState(false)
+  const [loading, setLoading] = useState(true)
   const { data: session } = authClient.useSession()
 
   const isAdmin = (session?.user as any)?.role === "admin"
@@ -47,6 +49,7 @@ export default function CourseViewerPage() {
   }, [courseId, pageId])
 
   const fetchCourse = async () => {
+    setLoading(true)
     const res = await fetch(`/api/courses/${courseId}`)
     const data = await res.json()
     setCourse(data)
@@ -60,6 +63,7 @@ export default function CourseViewerPage() {
     } else if (data.pages.length > 0) {
       setSelectedPage(data.pages[0])
     }
+    setLoading(false)
   }
 
   const handlePageSelect = (page: Page) => {
@@ -68,12 +72,20 @@ export default function CourseViewerPage() {
   }
 
   const markComplete = async (pageId: string) => {
-    await fetch(`/api/courses/${courseId}/progress`, {
+    // Optimistically update UI
+    if (course) {
+      const updatedPages = course.pages.map(p => 
+        p.id === pageId ? { ...p, completed: true } : p
+      )
+      setCourse({ ...course, pages: updatedPages })
+    }
+
+    // Update in background
+    fetch(`/api/courses/${courseId}/progress`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ pageId, completed: true })
-    })
-    fetchCourse()
+    }).catch(err => console.error("Failed to save progress:", err))
   }
 
   const handleNext = () => {
@@ -97,12 +109,27 @@ export default function CourseViewerPage() {
   const totalPages = course?.pages.length || 0
   const progress = totalPages > 0 ? Math.round((completedCount / totalPages) * 100) : 0
 
-  if (!course) return <div className="p-6">Loading...</div>
+  if (loading) {
+    return (
+      <div className="flex h-[calc(100vh-3rem)]">
+        <div className="w-64 border-r p-2 space-y-2">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+        <div className="flex-1 p-6">
+          <Skeleton className="aspect-video w-full" />
+        </div>
+      </div>
+    )
+  }
+
+  if (!course) return null
 
   const showPaywall = course.type === "PAID" && !hasPurchased && !isAdmin && session?.user
 
   return (
-    <div className="flex h-[calc(100vh-3rem)] relative pb-20">
+    <div className="flex h-[calc(100vh-3rem)] relative">
       {showPaywall && (
         <div className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-background/80">
           <Card className="max-w-md">
@@ -209,34 +236,32 @@ export default function CourseViewerPage() {
 
         {/* Bottom Navigation */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full max-w-3xl px-6">
-          <div className="flex flex-col gap-3 px-6 py-4 rounded-lg border bg-background/80 backdrop-blur-md shadow-lg">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between gap-4 px-6 py-3 rounded-lg border bg-background/80 backdrop-blur-md shadow-lg">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrevious}
+              disabled={!course || !selectedPage || course.pages.findIndex(p => p.id === selectedPage.id) === 0}
+            >
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Previous
+            </Button>
+            
+            <div className="flex items-center gap-2 flex-1 max-w-md">
               <Play className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <Progress value={progress} className="flex-1" />
               <Flag className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <span className="text-xs text-muted-foreground whitespace-nowrap">{completedCount}/{totalPages}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePrevious}
-                disabled={!course || !selectedPage || course.pages.findIndex(p => p.id === selectedPage.id) === 0}
-              >
-                <ChevronLeft className="h-4 w-4 mr-2" />
-                Previous
-              </Button>
-              <div className="text-sm text-muted-foreground">
-                {progress}% Complete ({completedCount}/{totalPages})
-              </div>
-              <Button
-                size="sm"
-                onClick={handleNext}
-                disabled={!course || !selectedPage || course.pages.findIndex(p => p.id === selectedPage.id) === course.pages.length - 1}
-              >
-                Next
-                <ChevronRight className="h-4 w-4 ml-2" />
-              </Button>
-            </div>
+
+            <Button
+              size="sm"
+              onClick={handleNext}
+              disabled={!course || !selectedPage || course.pages.findIndex(p => p.id === selectedPage.id) === course.pages.length - 1}
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-2" />
+            </Button>
           </div>
         </div>
       </div>
