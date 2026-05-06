@@ -11,12 +11,17 @@ import { Textarea } from "@/components/ui/textarea"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { useParams } from "next/navigation"
-import { Trash2 } from "lucide-react"
+import { Trash2, Pencil, GripVertical } from "lucide-react"
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 type Page = {
   id: string
   title: string
   contentType: "ARTICLE" | "VIDEO" | "QUIZ"
+  body?: string
+  videoUrl?: string
   order: number
 }
 
@@ -27,16 +32,58 @@ type Course = {
   pages: Page[]
 }
 
+function SortableRow({ page, onEdit, onDelete }: { page: Page, onEdit: (page: Page) => void, onDelete: (id: string) => void }) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: page.id })
+  
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
+
+  return (
+    <TableRow ref={setNodeRef} style={style}>
+      <TableCell>
+        <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+          <GripVertical className="h-4 w-4" />
+        </div>
+      </TableCell>
+      <TableCell>{page.order + 1}</TableCell>
+      <TableCell className="font-medium">{page.title}</TableCell>
+      <TableCell>
+        <Badge variant="outline">{page.contentType}</Badge>
+      </TableCell>
+      <TableCell>
+        <div className="flex gap-2">
+          <Button variant="ghost" size="sm" onClick={() => onEdit(page)}>
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => onDelete(page.id)}>
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  )
+}
+
 export default function CourseBuilderPage() {
   const params = useParams()
   const courseId = params.courseId as string
   const [course, setCourse] = useState<Course | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [editingPage, setEditingPage] = useState<Page | null>(null)
   const [pageTitle, setPageTitle] = useState("")
   const [contentType, setContentType] = useState<"ARTICLE" | "VIDEO" | "QUIZ">("ARTICLE")
   const [body, setBody] = useState("")
   const [videoUrl, setVideoUrl] = useState("")
   const [loading, setLoading] = useState(false)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
 
   useEffect(() => {
     fetchCourse()
@@ -58,22 +105,45 @@ export default function CourseBuilderPage() {
 
   const handleAddPage = async () => {
     setLoading(true)
-    await fetch(`/api/admin/courses/${courseId}/pages`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: pageTitle,
-        contentType,
-        body: contentType === "ARTICLE" ? body : undefined,
-        videoUrl: contentType === "VIDEO" ? videoUrl : undefined
+    if (editingPage) {
+      await fetch(`/api/admin/courses/${courseId}/pages/${editingPage.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: pageTitle,
+          contentType,
+          body: contentType === "ARTICLE" ? body : undefined,
+          videoUrl: contentType === "VIDEO" ? videoUrl : undefined
+        })
       })
-    })
+    } else {
+      await fetch(`/api/admin/courses/${courseId}/pages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: pageTitle,
+          contentType,
+          body: contentType === "ARTICLE" ? body : undefined,
+          videoUrl: contentType === "VIDEO" ? videoUrl : undefined
+        })
+      })
+    }
     setLoading(false)
     setDialogOpen(false)
+    setEditingPage(null)
     setPageTitle("")
     setBody("")
     setVideoUrl("")
     fetchCourse()
+  }
+
+  const handleEditPage = (page: Page) => {
+    setEditingPage(page)
+    setPageTitle(page.title)
+    setContentType(page.contentType)
+    setBody(page.body || "")
+    setVideoUrl(page.videoUrl || "")
+    setDialogOpen(true)
   }
 
   const handleDeletePage = async (pageId: string) => {
@@ -82,6 +152,23 @@ export default function CourseBuilderPage() {
       method: "DELETE"
     })
     fetchCourse()
+  }
+
+  const handleDragEnd = async (event: any) => {
+    const { active, over } = event
+    if (!over || active.id === over.id || !course) return
+
+    const oldIndex = course.pages.findIndex(p => p.id === active.id)
+    const newIndex = course.pages.findIndex(p => p.id === over.id)
+
+    const newPages = arrayMove(course.pages, oldIndex, newIndex).map((p, i) => ({ ...p, order: i }))
+    setCourse({ ...course, pages: newPages })
+
+    await fetch(`/api/admin/courses/${courseId}/pages/reorder`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pages: newPages.map(p => ({ id: p.id, order: p.order })) })
+    })
   }
 
   if (!course) return <div className="p-6">Loading...</div>
@@ -115,40 +202,42 @@ export default function CourseBuilderPage() {
               No pages yet. Add your first page to get started.
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order</TableHead>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Content Type</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {course.pages.map((page) => (
-                  <TableRow key={page.id}>
-                    <TableCell>{page.order + 1}</TableCell>
-                    <TableCell className="font-medium">{page.title}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{page.contentType}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm" onClick={() => handleDeletePage(page.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </TableCell>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12"></TableHead>
+                    <TableHead>Order</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Content Type</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  <SortableContext items={course.pages.map(p => p.id)} strategy={verticalListSortingStrategy}>
+                    {course.pages.map((page) => (
+                      <SortableRow key={page.id} page={page} onEdit={handleEditPage} onDelete={handleDeletePage} />
+                    ))}
+                  </SortableContext>
+                </TableBody>
+              </Table>
+            </DndContext>
           )}
         </CardContent>
       </Card>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => {
+        setDialogOpen(open)
+        if (!open) {
+          setEditingPage(null)
+          setPageTitle("")
+          setBody("")
+          setVideoUrl("")
+        }
+      }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Add Page</DialogTitle>
+            <DialogTitle>{editingPage ? "Edit Page" : "Add Page"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -209,7 +298,9 @@ export default function CourseBuilderPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleAddPage} disabled={loading || !pageTitle}>Add Page</Button>
+            <Button onClick={handleAddPage} disabled={loading || !pageTitle}>
+              {editingPage ? "Save Changes" : "Add Page"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
