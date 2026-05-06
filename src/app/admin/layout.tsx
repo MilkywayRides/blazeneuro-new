@@ -23,12 +23,12 @@ export default async function AdminLayout({
     <SidebarProvider
       style={
         {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
+          "--sidebar-width": "16rem",
+          "--sidebar-width-icon": "3rem",
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" isAdmin={true} userData={userData} />
+      <AppSidebar variant="inset" collapsible="icon" isAdmin={true} userData={userData} />
       <SidebarInset>
         <SiteHeader notifications={notifications} />
         {children}

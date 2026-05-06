@@ -29,8 +29,8 @@ export function DashboardLayoutClient({
       defaultOpen={defaultOpen}
       style={
         {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
+          "--sidebar-width": "16rem",
+          "--sidebar-width-icon": "3rem",
         } as React.CSSProperties
       }
     >
@@ -39,7 +39,7 @@ export function DashboardLayoutClient({
         name={userName} 
         email={userEmail} 
       />
-      <AppSidebar variant="inset" isAdmin={false} userData={userData} />
+      <AppSidebar variant="inset" collapsible="icon" isAdmin={false} userData={userData} />
       <SidebarInset>
         <SiteHeader />
         {children}
