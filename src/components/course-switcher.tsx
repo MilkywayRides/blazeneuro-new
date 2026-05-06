@@ -5,18 +5,12 @@ import { Check, ChevronsUpDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { usePathname, useRouter } from "next/navigation"
 
 type Course = {
@@ -25,9 +19,8 @@ type Course = {
 }
 
 export function CourseSwitcher() {
-  const [open, setOpen] = React.useState(false)
   const [courses, setCourses] = React.useState<Course[]>([])
-  const [selectedCourse, setSelectedCourse] = React.useState<Course | null>(null)
+  const [selectedCourse, setSelectedCourse] = React.useState<string>("")
   const pathname = usePathname()
   const router = useRouter()
 
@@ -37,58 +30,29 @@ export function CourseSwitcher() {
       .then(data => {
         if (Array.isArray(data)) {
           setCourses(data)
-          // Auto-select if on a course page
           const match = pathname.match(/\/admin\/courses\/([^\/]+)/)
           if (match) {
-            const course = data.find(c => c.id === match[1])
-            if (course) setSelectedCourse(course)
+            setSelectedCourse(match[1])
           }
         }
       })
   }, [pathname])
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-[200px] justify-between"
-        >
-          {selectedCourse ? selectedCourse.title : "Select course..."}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
-        <Command>
-          <CommandInput placeholder="Search course..." />
-          <CommandList>
-            <CommandEmpty>No course found.</CommandEmpty>
-            <CommandGroup>
-              {courses.map((course) => (
-                <CommandItem
-                  key={course.id}
-                  value={course.title}
-                  onSelect={() => {
-                    setSelectedCourse(course)
-                    setOpen(false)
-                    router.push(`/admin/courses/${course.id}`)
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      selectedCourse?.id === course.id ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {course.title}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <Select value={selectedCourse} onValueChange={(value) => {
+      setSelectedCourse(value)
+      router.push(`/admin/courses/${value}`)
+    }}>
+      <SelectTrigger className="w-[200px]">
+        <SelectValue placeholder="Select course..." />
+      </SelectTrigger>
+      <SelectContent>
+        {courses.map((course) => (
+          <SelectItem key={course.id} value={course.id}>
+            {course.title}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }
