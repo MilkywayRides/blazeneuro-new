@@ -5,7 +5,10 @@ import { eq, sql } from "drizzle-orm"
 
 export async function POST(req: NextRequest) {
   try {
-    const sessionToken = req.cookies.get('better-auth.session_token')?.value
+    let sessionToken = req.cookies.get('__Secure-better-auth.session_token')?.value
+    if (!sessionToken) {
+      sessionToken = req.cookies.get('better-auth.session_token')?.value
+    }
     
     if (!sessionToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -43,19 +46,13 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    // Try multiple cookie names
-    let sessionToken = req.cookies.get('better-auth.session_token')?.value
+    let sessionToken = req.cookies.get('__Secure-better-auth.session_token')?.value
     if (!sessionToken) {
-      sessionToken = req.cookies.get('authjs.session-token')?.value
+      sessionToken = req.cookies.get('better-auth.session_token')?.value
     }
     
     if (!sessionToken) {
-      const allCookies = req.cookies.getAll()
-      console.log('No session token found. Available cookies:', allCookies.map(c => c.name))
-      return NextResponse.json({ 
-        error: 'Unauthorized - No session token', 
-        debug: { availableCookies: allCookies.map(c => c.name) }
-      }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const session = await db.query.session.findFirst({
