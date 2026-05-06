@@ -102,13 +102,7 @@ export default function CourseViewerPage() {
 
       {/* Left Sidebar - Page List */}
       <div className="w-64 border-r">
-        <div className="p-4 border-b">
-          <h2 className="font-semibold">{course.title}</h2>
-          <Badge variant={course.type === "FREE" ? "default" : "destructive"} className="mt-2">
-            {course.type}
-          </Badge>
-        </div>
-        <ScrollArea className="h-[calc(100vh-8rem)]">
+        <ScrollArea className="h-full">
           <div className="p-2">
             {course.pages.map((page) => (
               <Button
@@ -130,10 +124,7 @@ export default function CourseViewerPage() {
           <div className="p-6">
             {selectedPage.contentType === "ARTICLE" && (
               <Card>
-                <CardHeader>
-                  <CardTitle>{selectedPage.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <div className="prose max-w-none">
                     {selectedPage.body}
                   </div>
@@ -143,10 +134,7 @@ export default function CourseViewerPage() {
 
             {selectedPage.contentType === "VIDEO" && (
               <Card>
-                <CardHeader>
-                  <CardTitle>{selectedPage.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <div className="aspect-video bg-black rounded-lg overflow-hidden">
                     {selectedPage.videoUrl?.includes('youtube.com') || selectedPage.videoUrl?.includes('youtu.be') ? (
                       <iframe
@@ -172,10 +160,7 @@ export default function CourseViewerPage() {
 
             {selectedPage.contentType === "QUIZ" && (
               <Card>
-                <CardHeader>
-                  <CardTitle>{selectedPage.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="pt-6 space-y-4">
                   <p>Quiz coming soon</p>
                   <Badge>Coming Soon</Badge>
                 </CardContent>
