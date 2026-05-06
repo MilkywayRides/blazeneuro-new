@@ -5,11 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Progress } from "@/components/ui/progress"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
 import Link from "next/link"
-import { Check, ChevronLeft, ChevronRight } from "lucide-react"
+import { Check, ChevronLeft, ChevronRight, Play, Flag } from "lucide-react"
 
 type Page = {
   id: string
@@ -209,25 +210,34 @@ export default function CourseViewerPage() {
 
       {/* Bottom Navigation */}
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4">
-        <div className="flex items-center justify-between px-6 py-3 rounded-lg border bg-background/80 backdrop-blur-md shadow-lg">
-          <Button
-            variant="outline"
-            onClick={handlePrevious}
-            disabled={!course || !selectedPage || course.pages.findIndex(p => p.id === selectedPage.id) === 0}
-          >
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Previous
-          </Button>
-          <div className="text-sm text-muted-foreground">
-            {progress}% Complete ({completedCount}/{totalPages})
+        <div className="flex flex-col gap-3 px-6 py-4 rounded-lg border bg-background/80 backdrop-blur-md shadow-lg">
+          <div className="flex items-center gap-3">
+            <Play className="h-4 w-4 text-muted-foreground" />
+            <Progress value={progress} className="flex-1" />
+            <Flag className="h-4 w-4 text-muted-foreground" />
           </div>
-          <Button
-            onClick={handleNext}
-            disabled={!course || !selectedPage || course.pages.findIndex(p => p.id === selectedPage.id) === course.pages.length - 1}
-          >
-            Next
-            <ChevronRight className="h-4 w-4 ml-2" />
-          </Button>
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrevious}
+              disabled={!course || !selectedPage || course.pages.findIndex(p => p.id === selectedPage.id) === 0}
+            >
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Previous
+            </Button>
+            <div className="text-sm text-muted-foreground">
+              {progress}% Complete ({completedCount}/{totalPages})
+            </div>
+            <Button
+              size="sm"
+              onClick={handleNext}
+              disabled={!course || !selectedPage || course.pages.findIndex(p => p.id === selectedPage.id) === course.pages.length - 1}
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
