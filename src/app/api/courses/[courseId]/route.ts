@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import { courses, coursePages } from "@/lib/schema"
+import { courses, coursePages, courseProgress } from "@/lib/schema"
 import { eq, asc } from "drizzle-orm"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
 
 export async function GET(
   req: NextRequest,
@@ -19,6 +21,25 @@ export async function GET(
     .from(coursePages)
     .where(eq(coursePages.courseId, courseId))
     .orderBy(asc(coursePages.order))
+
+  // Get user progress if authenticated
+  const session = await auth.api.getSession({
+    headers: await headers()
+  })
+
+  if (session?.user) {
+    const progressRecords = await db
+      .select()
+      .from(courseProgress)
+      .where(eq(courseProgress.userId, session.user.id))
+
+    const pagesWithProgress = pages.map(page => {
+      const progress = progressRecords.find(p => p.pageId === page.id)
+      return { ...page, completed: progress?.completed || false }
+    })
+
+    return NextResponse.json({ ...course, pages: pagesWithProgress })
+  }
 
   return NextResponse.json({ ...course, pages })
 }

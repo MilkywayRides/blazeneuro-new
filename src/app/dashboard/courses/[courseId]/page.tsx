@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
 import Link from "next/link"
+import { Check, ChevronLeft, ChevronRight } from "lucide-react"
 
 type Page = {
   id: string
@@ -17,6 +18,7 @@ type Page = {
   body?: string
   videoUrl?: string
   order: number
+  completed?: boolean
 }
 
 type Course = {
@@ -40,34 +42,66 @@ export default function CourseViewerPage() {
   const isAdmin = (session?.user as any)?.role === "admin"
 
   useEffect(() => {
-    fetch(`/api/courses/${courseId}`)
-      .then(res => res.json())
-      .then(data => {
-        setCourse(data)
-        if (pageId) {
-          const page = data.pages.find((p: Page) => p.id === pageId)
-          if (page) {
-            setSelectedPage(page)
-          } else if (data.pages.length > 0) {
-            setSelectedPage(data.pages[0])
-          }
-        } else if (data.pages.length > 0) {
-          setSelectedPage(data.pages[0])
-        }
-      })
+    fetchCourse()
   }, [courseId, pageId])
+
+  const fetchCourse = async () => {
+    const res = await fetch(`/api/courses/${courseId}`)
+    const data = await res.json()
+    setCourse(data)
+    if (pageId) {
+      const page = data.pages.find((p: Page) => p.id === pageId)
+      if (page) {
+        setSelectedPage(page)
+      } else if (data.pages.length > 0) {
+        setSelectedPage(data.pages[0])
+      }
+    } else if (data.pages.length > 0) {
+      setSelectedPage(data.pages[0])
+    }
+  }
 
   const handlePageSelect = (page: Page) => {
     setSelectedPage(page)
     router.push(`/dashboard/courses/${courseId}?pageId=${page.id}`, { scroll: false })
   }
 
+  const markComplete = async (pageId: string) => {
+    await fetch(`/api/courses/${courseId}/progress`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pageId, completed: true })
+    })
+    fetchCourse()
+  }
+
+  const handleNext = () => {
+    if (!course || !selectedPage) return
+    const currentIndex = course.pages.findIndex(p => p.id === selectedPage.id)
+    if (currentIndex < course.pages.length - 1) {
+      markComplete(selectedPage.id)
+      handlePageSelect(course.pages[currentIndex + 1])
+    }
+  }
+
+  const handlePrevious = () => {
+    if (!course || !selectedPage) return
+    const currentIndex = course.pages.findIndex(p => p.id === selectedPage.id)
+    if (currentIndex > 0) {
+      handlePageSelect(course.pages[currentIndex - 1])
+    }
+  }
+
+  const completedCount = course?.pages.filter(p => p.completed).length || 0
+  const totalPages = course?.pages.length || 0
+  const progress = totalPages > 0 ? Math.round((completedCount / totalPages) * 100) : 0
+
   if (!course) return <div className="p-6">Loading...</div>
 
   const showPaywall = course.type === "PAID" && !hasPurchased && !isAdmin && session?.user
 
   return (
-    <div className="flex h-[calc(100vh-3rem)] relative">
+    <div className="flex h-[calc(100vh-3rem)] relative pb-16">
       {showPaywall && (
         <div className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-background/80">
           <Card className="max-w-md">
@@ -108,10 +142,11 @@ export default function CourseViewerPage() {
               <Button
                 key={page.id}
                 variant={selectedPage?.id === page.id ? "secondary" : "ghost"}
-                className="w-full justify-start mb-1"
+                className="w-full justify-between mb-1"
                 onClick={() => handlePageSelect(page)}
               >
-                {page.title}
+                <span>{page.title}</span>
+                {page.completed && <Check className="h-4 w-4 text-green-600" />}
               </Button>
             ))}
           </div>
@@ -119,59 +154,81 @@ export default function CourseViewerPage() {
       </div>
 
       {/* Right Content Area */}
-      <div className="flex-1 overflow-auto">
-        {selectedPage ? (
-          <div className="p-6">
-            {selectedPage.contentType === "ARTICLE" && (
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="prose max-w-none">
-                    {selectedPage.body}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+      <div className="flex-1 flex flex-col">
+        <ScrollArea className="flex-1">
+          {selectedPage ? (
+            <div className="p-6">
+              {selectedPage.contentType === "ARTICLE" && (
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="prose max-w-none">
+                      {selectedPage.body}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-            {selectedPage.contentType === "VIDEO" && (
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                    {selectedPage.videoUrl?.includes('youtube.com') || selectedPage.videoUrl?.includes('youtu.be') ? (
-                      <iframe
-                        src={selectedPage.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
-                        className="w-full h-full"
-                        allowFullScreen
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      />
-                    ) : (
-                      <video
-                        src={selectedPage.videoUrl}
-                        className="w-full h-full"
-                        controls
-                        autoPlay
-                        loop
-                        muted
-                      />
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+              {selectedPage.contentType === "VIDEO" && (
+                <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                  {selectedPage.videoUrl?.includes('youtube.com') || selectedPage.videoUrl?.includes('youtu.be') ? (
+                    <iframe
+                      src={selectedPage.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                      className="w-full h-full"
+                      allowFullScreen
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    />
+                  ) : (
+                    <video
+                      src={selectedPage.videoUrl}
+                      className="w-full h-full"
+                      controls
+                      autoPlay
+                      loop
+                      muted
+                    />
+                  )}
+                </div>
+              )}
 
-            {selectedPage.contentType === "QUIZ" && (
-              <Card>
-                <CardContent className="pt-6 space-y-4">
-                  <p>Quiz coming soon</p>
-                  <Badge>Coming Soon</Badge>
-                </CardContent>
-              </Card>
-            )}
+              {selectedPage.contentType === "QUIZ" && (
+                <Card>
+                  <CardContent className="pt-6 space-y-4">
+                    <p>Quiz coming soon</p>
+                    <Badge>Coming Soon</Badge>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-full text-muted-foreground">
+              Select a page to view content
+            </div>
+          )}
+        </ScrollArea>
+      </div>
+
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex items-center justify-between px-6 py-3">
+          <Button
+            variant="outline"
+            onClick={handlePrevious}
+            disabled={!course || !selectedPage || course.pages.findIndex(p => p.id === selectedPage.id) === 0}
+          >
+            <ChevronLeft className="h-4 w-4 mr-2" />
+            Previous
+          </Button>
+          <div className="text-sm text-muted-foreground">
+            {progress}% Complete ({completedCount}/{totalPages})
           </div>
-        ) : (
-          <div className="flex items-center justify-center h-full text-muted-foreground">
-            Select a page to view content
-          </div>
-        )}
+          <Button
+            onClick={handleNext}
+            disabled={!course || !selectedPage || course.pages.findIndex(p => p.id === selectedPage.id) === course.pages.length - 1}
+          >
+            Next
+            <ChevronRight className="h-4 w-4 ml-2" />
+          </Button>
+        </div>
       </div>
     </div>
   )

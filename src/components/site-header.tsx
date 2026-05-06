@@ -41,7 +41,7 @@ export function SiteHeader({ notifications }: { notifications?: any[] }) {
       </div>
       {courseTitle && (
         <div className="flex-1 flex justify-center">
-          <h1 className="font-semibold text-lg">{courseTitle}</h1>
+          <h1 className="font-semibold text-base">{courseTitle}</h1>
         </div>
       )}
       <div className="ml-auto flex items-center gap-2 px-4">
