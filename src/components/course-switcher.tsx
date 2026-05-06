@@ -38,13 +38,17 @@ export function CourseSwitcher() {
       })
   }, [pathname])
 
+  const selectedCourseTitle = courses.find(c => c.id === selectedCourse)?.title
+
   return (
     <Select value={selectedCourse} onValueChange={(value) => {
       setSelectedCourse(value)
       router.push(`/admin/courses/${value}`)
     }}>
       <SelectTrigger className="w-[200px]">
-        <SelectValue placeholder="Select course..." />
+        <SelectValue placeholder="Select course...">
+          {selectedCourseTitle || "Select course..."}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {courses.map((course) => (

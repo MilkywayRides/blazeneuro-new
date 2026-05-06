@@ -80,7 +80,7 @@ export default function CourseBuilderPage() {
                 <Badge variant={course.type === "FREE" ? "default" : "destructive"}>
                   {course.type}
                 </Badge>
-                <span className="text-sm text-muted-foreground">{course.pages.length} pages</span>
+                <span className="text-sm text-muted-foreground">{course.pages?.length || 0} pages</span>
               </div>
             </div>
           </div>
@@ -93,7 +93,7 @@ export default function CourseBuilderPage() {
           <Button onClick={() => setDialogOpen(true)}>+ Add Page</Button>
         </CardHeader>
         <CardContent>
-          {course.pages.length === 0 ? (
+          {!course.pages || course.pages.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No pages yet. Add your first page to get started.
             </div>
