@@ -46,7 +46,12 @@ export async function GET(req: NextRequest) {
     const sessionToken = req.cookies.get('better-auth.session_token')?.value
     
     if (!sessionToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      const allCookies = req.cookies.getAll()
+      console.log('No session token found. Available cookies:', allCookies.map(c => c.name))
+      return NextResponse.json({ 
+        error: 'Unauthorized - No session token', 
+        debug: { availableCookies: allCookies.map(c => c.name) }
+      }, { status: 401 })
     }
 
     const session = await db.query.session.findFirst({
