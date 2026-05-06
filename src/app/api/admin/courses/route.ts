@@ -53,10 +53,19 @@ export async function GET(req: NextRequest) {
       where: (u, { eq }) => eq(u.id, session.user.id)
     })
 
-    if (!userRecord || userRecord.role !== 'admin') {
+    console.log('User record from DB:', userRecord)
+
+    if (!userRecord) {
       return NextResponse.json({ 
-        error: 'Forbidden',
-        debug: { role: userRecord?.role, userId: session.user.id }
+        error: 'User not found',
+        userId: session.user.id
+      }, { status: 403 })
+    }
+
+    if (userRecord.role !== 'admin') {
+      return NextResponse.json({ 
+        error: 'Forbidden - Not admin',
+        role: userRecord.role
       }, { status: 403 })
     }
 
@@ -75,6 +84,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(result)
   } catch (error: any) {
     console.error("Admin courses GET error:", error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ error: error.message, stack: error.stack }, { status: 500 })
   }
 }
