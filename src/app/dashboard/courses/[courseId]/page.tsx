@@ -101,7 +101,7 @@ export default function CourseViewerPage() {
   const showPaywall = course.type === "PAID" && !hasPurchased && !isAdmin && session?.user
 
   return (
-    <div className="flex h-[calc(100vh-3rem)] relative pb-16">
+    <div className="flex h-[calc(100vh-3rem)] relative pb-20">
       {showPaywall && (
         <div className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-background/80">
           <Card className="max-w-md">
@@ -208,8 +208,8 @@ export default function CourseViewerPage() {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center justify-between px-6 py-3">
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4">
+        <div className="flex items-center justify-between px-6 py-3 rounded-lg border bg-background/80 backdrop-blur-md shadow-lg">
           <Button
             variant="outline"
             onClick={handlePrevious}
