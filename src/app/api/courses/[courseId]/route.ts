@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
-import { courses, coursePages, courseProgress } from "@/lib/schema"
+import { courses, coursePages, courseProgress, courseEnrollments } from "@/lib/schema"
 import { eq, asc } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
@@ -28,6 +28,25 @@ export async function GET(
   })
 
   if (session?.user) {
+    // Auto-enroll user if not already enrolled
+    try {
+      const existing = await db.query.courseEnrollments.findFirst({
+        where: (ce, { and, eq }) => and(
+          eq(ce.userId, session.user.id),
+          eq(ce.courseId, courseId)
+        )
+      })
+
+      if (!existing) {
+        await db.insert(courseEnrollments).values({
+          userId: session.user.id,
+          courseId
+        })
+      }
+    } catch (error) {
+      console.error("Enrollment error:", error)
+    }
+
     try {
       const progressRecords = await db
         .select()

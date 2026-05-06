@@ -11,8 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useParams } from "next/navigation"
-import { Trash2, Pencil, GripVertical } from "lucide-react"
+import { Trash2, Pencil, GripVertical, Users } from "lucide-react"
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -24,6 +25,13 @@ type Page = {
   body?: string
   videoUrl?: string
   order: number
+}
+
+type EnrolledUser = {
+  id: string
+  name: string
+  email: string
+  enrolledAt: string
 }
 
 type Course = {
@@ -71,6 +79,7 @@ export default function CourseBuilderPage() {
   const params = useParams()
   const courseId = params.courseId as string
   const [course, setCourse] = useState<Course | null>(null)
+  const [enrolledUsers, setEnrolledUsers] = useState<EnrolledUser[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [pageToDelete, setPageToDelete] = useState<string | null>(null)
@@ -90,6 +99,7 @@ export default function CourseBuilderPage() {
 
   useEffect(() => {
     fetchCourse()
+    fetchEnrolledUsers()
   }, [courseId])
 
   const fetchCourse = async () => {
@@ -103,6 +113,16 @@ export default function CourseBuilderPage() {
       }
     } catch (error) {
       console.error("Failed to fetch course:", error)
+    }
+  }
+
+  const fetchEnrolledUsers = async () => {
+    try {
+      const res = await fetch(`/api/admin/courses/${courseId}/enrollments`)
+      const data = await res.json()
+      setEnrolledUsers(data.users || [])
+    } catch (error) {
+      console.error("Failed to fetch enrollments:", error)
     }
   }
 
@@ -206,28 +226,38 @@ export default function CourseBuilderPage() {
         </CardHeader>
       </Card>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Pages</CardTitle>
-          <Button onClick={() => setDialogOpen(true)}>+ Add Page</Button>
-        </CardHeader>
-        <CardContent>
-          {!course.pages || course.pages.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No pages yet. Add your first page to get started.
-            </div>
-          ) : (
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12"></TableHead>
-                    <TableHead>Order</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Content Type</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
+      <Tabs defaultValue="pages" className="w-full">
+        <TabsList>
+          <TabsTrigger value="pages">Pages</TabsTrigger>
+          <TabsTrigger value="enrolled">
+            <Users className="h-4 w-4 mr-2" />
+            Enrolled Users ({enrolledUsers.length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="pages">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Pages</CardTitle>
+              <Button onClick={() => setDialogOpen(true)}>+ Add Page</Button>
+            </CardHeader>
+            <CardContent>
+              {!course.pages || course.pages.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No pages yet. Add your first page to get started.
+                </div>
+              ) : (
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12"></TableHead>
+                        <TableHead>Order</TableHead>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Content Type</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
                 <TableBody>
                   <SortableContext items={course.pages.map(p => p.id)} strategy={verticalListSortingStrategy}>
                     {course.pages.map((page) => (
@@ -334,6 +364,42 @@ export default function CourseBuilderPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+        </TabsContent>
+
+        <TabsContent value="enrolled">
+          <Card>
+            <CardHeader>
+              <CardTitle>Enrolled Users</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {enrolledUsers.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No users enrolled yet.
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Enrolled At</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {enrolledUsers.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium">{user.name}</TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>{new Date(user.enrolledAt).toLocaleDateString()}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

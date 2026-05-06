@@ -11,7 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
 import Link from "next/link"
-import { Check, ChevronLeft, ChevronRight, Play, Flag } from "lucide-react"
+import { Check, ChevronLeft, ChevronRight, Play, Flag, Video, FileText, HelpCircle } from "lucide-react"
 
 type Page = {
   id: string
@@ -45,7 +45,6 @@ export default function CourseViewerPage() {
   const isAdmin = (session?.user as any)?.role === "admin"
 
   useEffect(() => {
-    if (!loading) return
     fetchCourse()
   }, [courseId])
 
@@ -184,17 +183,23 @@ export default function CourseViewerPage() {
       <div className="w-64 border-r flex flex-col h-full">
         <ScrollArea className="flex-1">
           <div className="p-2">
-            {course.pages.map((page) => (
-              <Button
-                key={page.id}
-                variant={selectedPage?.id === page.id ? "secondary" : "ghost"}
-                className="w-full justify-between mb-1"
-                onClick={() => handlePageSelect(page)}
-              >
-                <span>{page.title}</span>
-                {page.completed && <Check className="h-4 w-4 text-green-600" />}
-              </Button>
-            ))}
+            {course.pages.map((page) => {
+              const Icon = page.contentType === "VIDEO" ? Video : page.contentType === "ARTICLE" ? FileText : HelpCircle
+              return (
+                <Button
+                  key={page.id}
+                  variant={selectedPage?.id === page.id ? "secondary" : "ghost"}
+                  className="w-full justify-between mb-1"
+                  onClick={() => handlePageSelect(page)}
+                >
+                  <span className="flex items-center gap-2">
+                    <Icon className="h-4 w-4" />
+                    {page.title}
+                  </span>
+                  {page.completed && <Check className="h-4 w-4 text-green-600" />}
+                </Button>
+              )
+            })}
           </div>
         </ScrollArea>
       </div>

@@ -328,6 +328,13 @@ export const courseProgress = pgTable("course_progress", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 })
 
+export const courseEnrollments = pgTable("course_enrollments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").notNull(),
+  courseId: uuid("course_id").notNull().references(() => courses.id, { onDelete: "cascade" }),
+  enrolledAt: timestamp("enrolled_at").defaultNow().notNull(),
+})
+
 export const schema = {
   user,
   session,
@@ -358,6 +365,7 @@ export const schema = {
   courses,
   coursePages,
   coursePurchases,
-  courseProgress
+  courseProgress,
+  courseEnrollments
 }
 
