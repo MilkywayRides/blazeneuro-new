@@ -54,7 +54,7 @@ export function NavMain({
                 <SidebarMenuItem key={item.title}>
                   {isCollapsed ? (
                     <Tooltip>
-                      <TooltipTrigger asChild>
+                      <TooltipTrigger>
                         {linkContent}
                       </TooltipTrigger>
                       <TooltipContent side="right">
