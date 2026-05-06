@@ -36,28 +36,34 @@ export function NavMain({
             {items.map((item) => {
               const isActive = pathname === item.url
               
+              const linkElement = (
+                <Link 
+                  href={item.url}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors w-full ${
+                    isActive 
+                      ? 'bg-accent text-accent-foreground' 
+                      : 'hover:bg-accent/50'
+                  } ${!open ? 'justify-center' : ''}`}
+                >
+                  <span className="flex-shrink-0">{item.icon}</span>
+                  {open && <span className="flex-1 text-left">{item.title}</span>}
+                </Link>
+              )
+              
               return (
                 <SidebarMenuItem key={item.title}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Link 
-                        href={item.url}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors w-full ${
-                          isActive 
-                            ? 'bg-accent text-accent-foreground' 
-                            : 'hover:bg-accent/50'
-                        } ${!open ? 'justify-center' : ''}`}
-                      >
-                        <span className="flex-shrink-0">{item.icon}</span>
-                        {open && <span className="flex-1 text-left">{item.title}</span>}
-                      </Link>
-                    </TooltipTrigger>
-                    {!open && (
+                  {!open ? (
+                    <Tooltip>
+                      <TooltipTrigger>
+                        {linkElement}
+                      </TooltipTrigger>
                       <TooltipContent side="right">
                         {item.title}
                       </TooltipContent>
-                    )}
-                  </Tooltip>
+                    </Tooltip>
+                  ) : (
+                    linkElement
+                  )}
                 </SidebarMenuItem>
               )
             })}
