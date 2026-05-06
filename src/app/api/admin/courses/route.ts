@@ -2,11 +2,22 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { courses, coursePages } from "@/lib/schema"
 import { eq, sql } from "drizzle-orm"
-import { requireAdmin } from "@/lib/auth-server"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
 
 export async function POST(req: NextRequest) {
   try {
-    await requireAdmin()
+    const session = await auth.api.getSession({
+      headers: await headers()
+    })
+
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    if (session.user.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
     
     const { title, type } = await req.json()
 
@@ -17,20 +28,24 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(course)
   } catch (error: any) {
-    if (error.message === "Unauthorized") {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    if (error.message === "Forbidden") {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-    console.error("Admin courses POST error:", error.message)
+    console.error("Admin courses POST error:", error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
 
 export async function GET(req: NextRequest) {
   try {
-    await requireAdmin()
+    const session = await auth.api.getSession({
+      headers: await headers()
+    })
+
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    if (session.user.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
     const result = await db
       .select({
@@ -46,13 +61,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(result)
   } catch (error: any) {
-    if (error.message === "Unauthorized") {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    if (error.message === "Forbidden") {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-    console.error("Admin courses GET error:", error.message)
+    console.error("Admin courses GET error:", error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
