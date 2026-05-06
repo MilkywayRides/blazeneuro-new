@@ -150,6 +150,13 @@ const userDashboardData = {
       ),
     },
     {
+      title: "Courses",
+      url: "/dashboard/courses",
+      icon: (
+        <BookOpenIcon className="h-4 w-4" />
+      ),
+    },
+    {
       title: "Linked Accounts",
       url: "/dashboard/linked-accounts",
       icon: (
@@ -205,7 +212,6 @@ export function AppSidebar({ userData, isAdmin = true, ...props }: React.Compone
       <SidebarContent>
         <NavMain items={data.navMain} />
         {data.documents.length > 0 && <NavDocuments items={data.documents} />}
-        {!isAdmin && <NavCourses />}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
