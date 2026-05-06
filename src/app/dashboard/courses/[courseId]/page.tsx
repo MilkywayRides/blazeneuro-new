@@ -100,10 +100,17 @@ export default function CourseViewerPage() {
   const handleNext = () => {
     if (!course || !selectedPage) return
     const currentIndex = course.pages.findIndex(p => p.id === selectedPage.id)
-    if (currentIndex < course.pages.length - 1) {
-      markComplete(selectedPage.id)
-      handlePageSelect(course.pages[currentIndex + 1])
+    
+    // Mark current page as complete
+    markComplete(selectedPage.id)
+    
+    // If last page, mark as complete and stay
+    if (currentIndex === course.pages.length - 1) {
+      return
     }
+    
+    // Move to next page
+    handlePageSelect(course.pages[currentIndex + 1])
   }
 
   const handlePrevious = () => {
@@ -117,6 +124,8 @@ export default function CourseViewerPage() {
   const completedCount = course?.pages.filter(p => p.completed).length || 0
   const totalPages = course?.pages.length || 0
   const progress = totalPages > 0 ? Math.round((completedCount / totalPages) * 100) : 0
+  const isLastPage = course && selectedPage && course.pages.findIndex(p => p.id === selectedPage.id) === course.pages.length - 1
+  const allCompleted = completedCount === totalPages
 
   if (loading) {
     return (
@@ -260,18 +269,27 @@ export default function CourseViewerPage() {
             
             <div className="flex items-center gap-2 flex-1 max-w-md">
               <Play className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <Progress value={progress} className="flex-1" />
+              <Progress value={progress} className="flex-1 transition-all duration-300" />
               <Flag className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <span className="text-xs text-muted-foreground whitespace-nowrap">{completedCount}/{totalPages}</span>
+              <span className="text-xs text-muted-foreground whitespace-nowrap transition-all duration-300">{completedCount}/{totalPages}</span>
             </div>
 
             <Button
               size="sm"
               onClick={handleNext}
-              disabled={!course || !selectedPage || course.pages.findIndex(p => p.id === selectedPage.id) === course.pages.length - 1}
+              disabled={!course || !selectedPage || allCompleted}
             >
-              Next
-              <ChevronRight className="h-4 w-4 ml-2" />
+              {isLastPage ? (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Complete
+                </>
+              ) : (
+                <>
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-2" />
+                </>
+              )}
             </Button>
           </div>
         </div>
