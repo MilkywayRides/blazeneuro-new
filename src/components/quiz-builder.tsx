@@ -4,12 +4,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Textarea } from "@/components/ui/textarea"
 import { Plus, Trash2 } from "lucide-react"
 
 interface QuizQuestion {
   question: string
   options: string[]
   correctAnswer: number
+  solution?: string
 }
 
 interface QuizBuilderProps {
@@ -19,7 +21,7 @@ interface QuizBuilderProps {
 
 export function QuizBuilder({ value, onChange }: QuizBuilderProps) {
   const addQuestion = () => {
-    onChange([...value, { question: "", options: ["", ""], correctAnswer: 0 }])
+    onChange([...value, { question: "", options: ["", ""], correctAnswer: 0, solution: "" }])
   }
 
   const removeQuestion = (index: number) => {
@@ -110,6 +112,16 @@ export function QuizBuilder({ value, onChange }: QuizBuilderProps) {
               <Plus className="w-4 h-4 mr-2" />
               Add Option
             </Button>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Solution (Markdown)</Label>
+            <Textarea
+              value={q.solution || ""}
+              onChange={(e) => updateQuestion(qIndex, "solution", e.target.value)}
+              placeholder="Explain the correct answer (supports markdown)..."
+              rows={3}
+            />
           </div>
         </div>
       ))}

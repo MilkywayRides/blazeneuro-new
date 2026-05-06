@@ -3,21 +3,15 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Trash2, Pencil, GripVertical, Users } from "lucide-react"
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { QuizBuilder } from "@/components/quiz-builder"
 
 type Page = {
   id: string
@@ -43,7 +37,8 @@ type Course = {
   pages: Page[]
 }
 
-function SortableRow({ page, onEdit, onDelete }: { page: Page, onEdit: (page: Page) => void, onDelete: (id: string) => void }) {
+function SortableRow({ page, courseId, onDelete }: { page: Page, courseId: string, onDelete: (id: string) => void }) {
+  const router = useRouter()
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: page.id })
   
   const style = {
@@ -65,7 +60,7 @@ function SortableRow({ page, onEdit, onDelete }: { page: Page, onEdit: (page: Pa
       </TableCell>
       <TableCell>
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={() => onEdit(page)}>
+          <Button variant="ghost" size="sm" onClick={() => router.push(`/admin/courses/${courseId}/page-editor?pageId=${page.id}`)}>
             <Pencil className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="sm" onClick={() => onDelete(page.id)}>
@@ -79,20 +74,12 @@ function SortableRow({ page, onEdit, onDelete }: { page: Page, onEdit: (page: Pa
 
 export default function CourseBuilderPage() {
   const params = useParams()
+  const router = useRouter()
   const courseId = params.courseId as string
   const [course, setCourse] = useState<Course | null>(null)
   const [enrolledUsers, setEnrolledUsers] = useState<EnrolledUser[]>([])
-  const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [pageToDelete, setPageToDelete] = useState<string | null>(null)
-  const [editingPage, setEditingPage] = useState<Page | null>(null)
-  const [pageTitle, setPageTitle] = useState("")
-  const [contentType, setContentType] = useState<"ARTICLE" | "VIDEO" | "QUIZ">("ARTICLE")
-  const [body, setBody] = useState("")
-  const [videoUrl, setVideoUrl] = useState("")
-  const [quizData, setQuizData] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
-
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -127,53 +114,6 @@ export default function CourseBuilderPage() {
     } catch (error) {
       console.error("Failed to fetch enrollments:", error)
     }
-  }
-
-  const handleAddPage = async () => {
-    setLoading(true)
-    if (editingPage) {
-      await fetch(`/api/admin/courses/${courseId}/pages/${editingPage.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: pageTitle,
-          contentType,
-          body: contentType === "ARTICLE" || contentType === "VIDEO" ? body : undefined,
-          videoUrl: contentType === "VIDEO" ? videoUrl : undefined,
-          quizData: contentType === "QUIZ" ? quizData : undefined
-        })
-      })
-    } else {
-      await fetch(`/api/admin/courses/${courseId}/pages`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: pageTitle,
-          contentType,
-          body: contentType === "ARTICLE" || contentType === "VIDEO" ? body : undefined,
-          videoUrl: contentType === "VIDEO" ? videoUrl : undefined,
-          quizData: contentType === "QUIZ" ? quizData : undefined
-        })
-      })
-    }
-    setLoading(false)
-    setDialogOpen(false)
-    setEditingPage(null)
-    setPageTitle("")
-    setBody("")
-    setVideoUrl("")
-    setQuizData([])
-    fetchCourse()
-  }
-
-  const handleEditPage = (page: Page) => {
-    setEditingPage(page)
-    setPageTitle(page.title)
-    setContentType(page.contentType)
-    setBody(page.body || "")
-    setVideoUrl(page.videoUrl || "")
-    setQuizData(page.quizData || [])
-    setDialogOpen(true)
   }
 
   const handleDeletePage = async (pageId: string) => {
@@ -246,7 +186,7 @@ export default function CourseBuilderPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Pages</CardTitle>
-              <Button onClick={() => setDialogOpen(true)}>+ Add Page</Button>
+              <Button onClick={() => router.push(`/admin/courses/${courseId}/page-editor`)}>+ Add Page</Button>
             </CardHeader>
             <CardContent>
               {!course.pages || course.pages.length === 0 ? (
@@ -268,7 +208,7 @@ export default function CourseBuilderPage() {
                 <TableBody>
                   <SortableContext items={course.pages.map(p => p.id)} strategy={verticalListSortingStrategy}>
                     {course.pages.map((page) => (
-                      <SortableRow key={page.id} page={page} onEdit={handleEditPage} onDelete={handleDeletePage} />
+                      <SortableRow key={page.id} page={page} courseId={courseId} onDelete={handleDeletePage} />
                     ))}
                   </SortableContext>
                 </TableBody>
@@ -277,105 +217,6 @@ export default function CourseBuilderPage() {
           )}
         </CardContent>
       </Card>
-
-      <Dialog open={dialogOpen} onOpenChange={(open) => {
-        setDialogOpen(open)
-        if (!open) {
-          setEditingPage(null)
-          setPageTitle("")
-          setBody("")
-          setVideoUrl("")
-        }
-      }}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{editingPage ? "Edit Page" : "Add Page"}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="pageTitle">Page Title</Label>
-              <Input
-                id="pageTitle"
-                value={pageTitle}
-                onChange={(e) => setPageTitle(e.target.value)}
-                placeholder="Introduction"
-              />
-            </div>
-            <div>
-              <Label htmlFor="contentType">Content Type</Label>
-              <Select value={contentType} onValueChange={(v) => setContentType(v as any)}>
-                <SelectTrigger id="contentType">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ARTICLE">Article</SelectItem>
-                  <SelectItem value="VIDEO">Video</SelectItem>
-                  <SelectItem value="QUIZ">Quiz</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {contentType === "VIDEO" && (
-              <>
-                <div>
-                  <Label htmlFor="videoUrl">Video URL</Label>
-                  <Input
-                    id="videoUrl"
-                    value={videoUrl}
-                    onChange={(e) => setVideoUrl(e.target.value)}
-                    placeholder="https://youtube.com/..."
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="body">Additional Content (Markdown)</Label>
-                  <Textarea
-                    id="body"
-                    value={body}
-                    onChange={(e) => setBody(e.target.value)}
-                    placeholder="Add markdown content to show below the video..."
-                    rows={6}
-                  />
-                </div>
-              </>
-            )}
-            {contentType === "ARTICLE" && (
-              <div>
-                <Label htmlFor="body">Content (Markdown)</Label>
-                <Textarea
-                  id="body"
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
-                  placeholder="Write your article content here..."
-                  rows={8}
-                />
-              </div>
-            )}
-            {contentType === "QUIZ" && (
-              <QuizBuilder value={quizData} onChange={setQuizData} />
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleAddPage} disabled={loading || !pageTitle}>
-              {editingPage ? "Save Changes" : "Add Page"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the page.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
         </TabsContent>
 
         <TabsContent value="enrolled">
@@ -412,6 +253,21 @@ export default function CourseBuilderPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the page.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

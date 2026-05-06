@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { CheckCircle2, XCircle } from "lucide-react"
+import ReactMarkdown from "react-markdown"
 
 interface QuizQuestion {
   question: string
   options: string[]
   correctAnswer: number
+  solution?: string
 }
 
 interface QuizProps {
@@ -125,18 +127,29 @@ export function Quiz({ questions, pageId }: QuizProps) {
 
           {/* Result Message */}
           {showResult && (
-            <div
-              className={`p-4 rounded-lg ${
-                selectedAnswer === question.correctAnswer
-                  ? "bg-green-500/10 border border-green-500"
-                  : "bg-red-500/10 border border-red-500"
-              }`}
-            >
-              <p className="font-medium text-foreground">
-                {selectedAnswer === question.correctAnswer
-                  ? "✓ Correct!"
-                  : `✗ Incorrect. The correct answer is: ${question.options[question.correctAnswer]}`}
-              </p>
+            <div className="space-y-3">
+              <div
+                className={`p-4 rounded-lg ${
+                  selectedAnswer === question.correctAnswer
+                    ? "bg-green-500/10 border border-green-500"
+                    : "bg-red-500/10 border border-red-500"
+                }`}
+              >
+                <p className="font-medium text-foreground">
+                  {selectedAnswer === question.correctAnswer
+                    ? "✓ Correct!"
+                    : `✗ Incorrect. The correct answer is: ${question.options[question.correctAnswer]}`}
+                </p>
+              </div>
+              
+              {question.solution && (
+                <div className="p-4 rounded-lg bg-muted border">
+                  <p className="font-semibold text-foreground mb-2">Solution:</p>
+                  <div className="prose dark:prose-invert prose-sm max-w-none prose-p:text-foreground prose-headings:text-foreground prose-code:text-orange-500">
+                    <ReactMarkdown>{question.solution}</ReactMarkdown>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
