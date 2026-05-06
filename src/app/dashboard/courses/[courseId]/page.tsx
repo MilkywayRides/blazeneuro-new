@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import ReactMarkdown from "react-markdown"
 import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
 import Link from "next/link"
@@ -254,21 +255,47 @@ export default function CourseViewerPage() {
             {selectedPage ? (
               <>
                 {selectedPage.contentType === "ARTICLE" && (
-                  <Card className="border-border">
-                    <CardContent className="pt-6 space-y-6">
-                      <div className="prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-a:text-primary">
-                        {selectedPage.body}
+                  <div className="space-y-4">
+                    {/* Creator info at top */}
+                    {course?.publisher && (
+                      <div className="flex items-center justify-between gap-4 pb-4 border-b">
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold flex-shrink-0">
+                            {course.publisher.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-foreground">{course.publisher.name}</div>
+                            <div className="text-sm text-muted-foreground">Course Creator</div>
+                          </div>
+                          <Button
+                            variant={course.isFollowing ? "outline" : "default"}
+                            size="sm"
+                            onClick={handleFollow}
+                            className="flex-shrink-0"
+                          >
+                            {course.isFollowing ? "Following" : "Follow"}
+                          </Button>
+                        </div>
                       </div>
-                    </CardContent>
-                    <CardFooter className="flex justify-center pt-4 border-t">
-                      <PageReactions 
-                        pageId={selectedPage.id} 
-                        initialReaction={selectedPage.userReaction}
-                        initialLikeCount={selectedPage.likeCount || 0}
-                        initialDislikeCount={selectedPage.dislikeCount || 0}
-                      />
-                    </CardFooter>
-                  </Card>
+                    )}
+
+                    {/* Article content */}
+                    <Card className="border-border">
+                      <CardContent className="pt-6 space-y-6">
+                        <div className="prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-a:text-primary prose-code:text-orange-500 prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded">
+                          <ReactMarkdown>{selectedPage.body}</ReactMarkdown>
+                        </div>
+                      </CardContent>
+                      <CardFooter className="flex justify-center pt-4 border-t">
+                        <PageReactions 
+                          pageId={selectedPage.id} 
+                          initialReaction={selectedPage.userReaction}
+                          initialLikeCount={selectedPage.likeCount || 0}
+                          initialDislikeCount={selectedPage.dislikeCount || 0}
+                        />
+                      </CardFooter>
+                    </Card>
+                  </div>
                 )}
 
                 {selectedPage.contentType === "VIDEO" && (
@@ -298,7 +325,7 @@ export default function CourseViewerPage() {
                       <h1 className="text-xl font-semibold text-foreground">{selectedPage.title}</h1>
                       
                       {/* Publisher info and actions */}
-                      <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start justify-between gap-4 pb-4 border-b">
                         {course?.publisher ? (
                           <div className="flex items-center gap-3 flex-1">
                             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold flex-shrink-0">
@@ -330,6 +357,17 @@ export default function CourseViewerPage() {
                           />
                         </div>
                       </div>
+
+                      {/* Additional markdown content */}
+                      {selectedPage.body && (
+                        <Card className="border-border">
+                          <CardContent className="pt-6">
+                            <div className="prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-a:text-primary prose-code:text-orange-500 prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded">
+                              <ReactMarkdown>{selectedPage.body}</ReactMarkdown>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
                     </div>
                   </div>
                 )}

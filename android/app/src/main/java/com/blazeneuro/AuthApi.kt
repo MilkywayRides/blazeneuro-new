@@ -860,7 +860,8 @@ object AuthApi {
                 Publisher(
                     id = pubObj.getString("id"),
                     name = pubObj.getString("name"),
-                    image = pubObj.optString("image", null)
+                    image = if (pubObj.has("image") && !pubObj.isNull("image")) 
+                        pubObj.getString("image") else null
                 )
             } else null
 
@@ -900,17 +901,26 @@ object AuthApi {
 
     suspend fun reactToPage(pageId: String, liked: Boolean): Boolean = withContext(Dispatchers.IO) {
         try {
+            Log.d(TAG, "reactToPage: pageId=$pageId, liked=$liked")
             val json = JSONObject().apply {
                 put("pageId", pageId)
                 put("liked", liked)
             }
             val body = json.toString().toRequestBody("application/json".toMediaType())
-            val request = Request.Builder()
+            
+            val token = prefs.getString(KEY_TOKEN, null)
+            val requestBuilder = Request.Builder()
                 .url("$SITE_URL/api/courses/reactions")
                 .post(body)
-                .build()
-
+            
+            if (token != null) {
+                requestBuilder.addHeader("Cookie", "better-auth.session_token=$token")
+            }
+            
+            val request = requestBuilder.build()
             val response = client.newCall(request).execute()
+            val responseBody = response.body?.string()
+            Log.d(TAG, "reactToPage response: ${response.code}, body=$responseBody")
             response.isSuccessful
         } catch (e: Exception) {
             Log.e(TAG, "React to page error", e)
@@ -920,16 +930,25 @@ object AuthApi {
 
     suspend fun removeReaction(pageId: String): Boolean = withContext(Dispatchers.IO) {
         try {
+            Log.d(TAG, "removeReaction: pageId=$pageId")
             val json = JSONObject().apply {
                 put("pageId", pageId)
             }
             val body = json.toString().toRequestBody("application/json".toMediaType())
-            val request = Request.Builder()
+            
+            val token = prefs.getString(KEY_TOKEN, null)
+            val requestBuilder = Request.Builder()
                 .url("$SITE_URL/api/courses/reactions")
                 .delete(body)
-                .build()
-
+            
+            if (token != null) {
+                requestBuilder.addHeader("Cookie", "better-auth.session_token=$token")
+            }
+            
+            val request = requestBuilder.build()
             val response = client.newCall(request).execute()
+            val responseBody = response.body?.string()
+            Log.d(TAG, "removeReaction response: ${response.code}, body=$responseBody")
             response.isSuccessful
         } catch (e: Exception) {
             Log.e(TAG, "Remove reaction error", e)
@@ -939,12 +958,21 @@ object AuthApi {
 
     suspend fun followPublisher(courseId: String): Boolean = withContext(Dispatchers.IO) {
         try {
-            val request = Request.Builder()
+            Log.d(TAG, "followPublisher: courseId=$courseId")
+            
+            val token = prefs.getString(KEY_TOKEN, null)
+            val requestBuilder = Request.Builder()
                 .url("$SITE_URL/api/courses/$courseId/follow")
                 .post("".toRequestBody())
-                .build()
-
+            
+            if (token != null) {
+                requestBuilder.addHeader("Cookie", "better-auth.session_token=$token")
+            }
+            
+            val request = requestBuilder.build()
             val response = client.newCall(request).execute()
+            val responseBody = response.body?.string()
+            Log.d(TAG, "followPublisher response: ${response.code}, body=$responseBody")
             response.isSuccessful
         } catch (e: Exception) {
             Log.e(TAG, "Follow error", e)
@@ -954,12 +982,21 @@ object AuthApi {
 
     suspend fun unfollowPublisher(courseId: String): Boolean = withContext(Dispatchers.IO) {
         try {
-            val request = Request.Builder()
+            Log.d(TAG, "unfollowPublisher: courseId=$courseId")
+            
+            val token = prefs.getString(KEY_TOKEN, null)
+            val requestBuilder = Request.Builder()
                 .url("$SITE_URL/api/courses/$courseId/follow")
                 .delete()
-                .build()
-
+            
+            if (token != null) {
+                requestBuilder.addHeader("Cookie", "better-auth.session_token=$token")
+            }
+            
+            val request = requestBuilder.build()
             val response = client.newCall(request).execute()
+            val responseBody = response.body?.string()
+            Log.d(TAG, "unfollowPublisher response: ${response.code}, body=$responseBody")
             response.isSuccessful
         } catch (e: Exception) {
             Log.e(TAG, "Unfollow error", e)

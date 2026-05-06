@@ -17,6 +17,7 @@ import { Trash2, Pencil, GripVertical, Users } from "lucide-react"
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { QuizBuilder } from "@/components/quiz-builder"
 
 type Page = {
   id: string
@@ -24,6 +25,7 @@ type Page = {
   contentType: "ARTICLE" | "VIDEO" | "QUIZ"
   body?: string
   videoUrl?: string
+  quizData?: any
   order: number
 }
 
@@ -88,6 +90,7 @@ export default function CourseBuilderPage() {
   const [contentType, setContentType] = useState<"ARTICLE" | "VIDEO" | "QUIZ">("ARTICLE")
   const [body, setBody] = useState("")
   const [videoUrl, setVideoUrl] = useState("")
+  const [quizData, setQuizData] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
 
   const sensors = useSensors(
@@ -135,8 +138,9 @@ export default function CourseBuilderPage() {
         body: JSON.stringify({
           title: pageTitle,
           contentType,
-          body: contentType === "ARTICLE" ? body : undefined,
-          videoUrl: contentType === "VIDEO" ? videoUrl : undefined
+          body: contentType === "ARTICLE" || contentType === "VIDEO" ? body : undefined,
+          videoUrl: contentType === "VIDEO" ? videoUrl : undefined,
+          quizData: contentType === "QUIZ" ? quizData : undefined
         })
       })
     } else {
@@ -146,8 +150,9 @@ export default function CourseBuilderPage() {
         body: JSON.stringify({
           title: pageTitle,
           contentType,
-          body: contentType === "ARTICLE" ? body : undefined,
-          videoUrl: contentType === "VIDEO" ? videoUrl : undefined
+          body: contentType === "ARTICLE" || contentType === "VIDEO" ? body : undefined,
+          videoUrl: contentType === "VIDEO" ? videoUrl : undefined,
+          quizData: contentType === "QUIZ" ? quizData : undefined
         })
       })
     }
@@ -157,6 +162,7 @@ export default function CourseBuilderPage() {
     setPageTitle("")
     setBody("")
     setVideoUrl("")
+    setQuizData([])
     fetchCourse()
   }
 
@@ -166,6 +172,7 @@ export default function CourseBuilderPage() {
     setContentType(page.contentType)
     setBody(page.body || "")
     setVideoUrl(page.videoUrl || "")
+    setQuizData(page.quizData || [])
     setDialogOpen(true)
   }
 
@@ -308,19 +315,31 @@ export default function CourseBuilderPage() {
               </Select>
             </div>
             {contentType === "VIDEO" && (
-              <div>
-                <Label htmlFor="videoUrl">Video URL</Label>
-                <Input
-                  id="videoUrl"
-                  value={videoUrl}
-                  onChange={(e) => setVideoUrl(e.target.value)}
-                  placeholder="https://youtube.com/..."
-                />
-              </div>
+              <>
+                <div>
+                  <Label htmlFor="videoUrl">Video URL</Label>
+                  <Input
+                    id="videoUrl"
+                    value={videoUrl}
+                    onChange={(e) => setVideoUrl(e.target.value)}
+                    placeholder="https://youtube.com/..."
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="body">Additional Content (Markdown)</Label>
+                  <Textarea
+                    id="body"
+                    value={body}
+                    onChange={(e) => setBody(e.target.value)}
+                    placeholder="Add markdown content to show below the video..."
+                    rows={6}
+                  />
+                </div>
+              </>
             )}
             {contentType === "ARTICLE" && (
               <div>
-                <Label htmlFor="body">Content</Label>
+                <Label htmlFor="body">Content (Markdown)</Label>
                 <Textarea
                   id="body"
                   value={body}
@@ -331,14 +350,7 @@ export default function CourseBuilderPage() {
               </div>
             )}
             {contentType === "QUIZ" && (
-              <div>
-                <Label htmlFor="quiz">Quiz Data</Label>
-                <Textarea
-                  id="quiz"
-                  placeholder="Quiz builder coming soon — paste JSON or leave blank"
-                  rows={4}
-                />
-              </div>
+              <QuizBuilder value={quizData} onChange={setQuizData} />
             )}
           </div>
           <DialogFooter>

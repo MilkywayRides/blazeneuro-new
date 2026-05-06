@@ -196,10 +196,30 @@ class CourseDetailActivity : AppCompatActivity() {
                 }
             }
         }
-        contentContainer.addView(webView)
 
         when (page.contentType) {
             "ARTICLE" -> {
+                // Create a vertical container
+                val container = android.widget.LinearLayout(this).apply {
+                    orientation = android.widget.LinearLayout.VERTICAL
+                    layoutParams = FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.WRAP_CONTENT
+                    )
+                }
+                
+                // Add publisher info at top
+                val publisherView = layoutInflater.inflate(R.layout.layout_publisher_info, null, false)
+                container.addView(publisherView)
+                setupPublisherInfo(publisherView)
+                
+                // Add webView with article content
+                webView.layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                container.addView(webView)
+                
                 val content = page.body ?: ""
                 val htmlContent = content
                     .replace(Regex("### (.+)"), "<h3>$1</h3>")
@@ -250,9 +270,11 @@ class CourseDetailActivity : AppCompatActivity() {
                 webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null)
                 
                 // Add reactions below article
-                val reactionsView = layoutInflater.inflate(R.layout.layout_page_reactions, contentContainer, false)
-                contentContainer.addView(reactionsView)
+                val reactionsView = layoutInflater.inflate(R.layout.layout_page_reactions, null, false)
+                container.addView(reactionsView)
                 setupReactions(reactionsView, page)
+                
+                contentContainer.addView(container)
             }
             "VIDEO" -> {
                 val videoUrl = page.videoUrl ?: ""
@@ -371,7 +393,22 @@ class CourseDetailActivity : AppCompatActivity() {
                 
                 container.addView(webView)
                 
-                // Add reactions below video
+                // Add page title
+                val titleView = TextView(this).apply {
+                    text = page.title
+                    textSize = 18f
+                    setTextColor(android.graphics.Color.WHITE)
+                    typeface = android.graphics.Typeface.DEFAULT_BOLD
+                    setPadding(48, 32, 48, 0)
+                }
+                container.addView(titleView)
+                
+                // Add publisher info
+                val publisherView = layoutInflater.inflate(R.layout.layout_publisher_info, null, false)
+                container.addView(publisherView)
+                setupPublisherInfo(publisherView)
+                
+                // Add reactions below
                 val reactionsView = layoutInflater.inflate(R.layout.layout_page_reactions, null, false)
                 container.addView(reactionsView)
                 setupReactions(reactionsView, page)
@@ -443,22 +480,12 @@ class CourseDetailActivity : AppCompatActivity() {
         progressBar.progress = progress
     }
 
-    private fun setupReactions(view: View, page: AuthApi.CoursePage) {
-        val btnLike = view.findViewById<android.view.ViewGroup>(R.id.btnLike)
-        val btnDislike = view.findViewById<android.view.ViewGroup>(R.id.btnDislike)
-        val tvLikeCount = view.findViewById<TextView>(R.id.tvLikeCount)
-        val tvDislikeCount = view.findViewById<TextView>(R.id.tvDislikeCount)
-        val tvPageTitle = view.findViewById<TextView>(R.id.tvPageTitle)
-        val publisherSection = view.findViewById<android.view.ViewGroup>(R.id.publisherSection)
+    private fun setupPublisherInfo(view: View) {
         val tvPublisherAvatar = view.findViewById<TextView>(R.id.tvPublisherAvatar)
         val tvPublisherName = view.findViewById<TextView>(R.id.tvPublisherName)
         val btnFollow = view.findViewById<TextView>(R.id.btnFollow)
         
-        tvPageTitle.text = page.title
-        
-        // Setup publisher info
         course?.publisher?.let { publisher ->
-            publisherSection.visibility = View.VISIBLE
             tvPublisherAvatar.text = publisher.name.firstOrNull()?.uppercase() ?: "?"
             tvPublisherName.text = publisher.name
             
@@ -488,8 +515,15 @@ class CourseDetailActivity : AppCompatActivity() {
                 }
             }
         } ?: run {
-            publisherSection.visibility = View.GONE
+            view.visibility = View.GONE
         }
+    }
+
+    private fun setupReactions(view: View, page: AuthApi.CoursePage) {
+        val btnLike = view.findViewById<android.view.ViewGroup>(R.id.btnLike)
+        val btnDislike = view.findViewById<android.view.ViewGroup>(R.id.btnDislike)
+        val tvLikeCount = view.findViewById<TextView>(R.id.tvLikeCount)
+        val tvDislikeCount = view.findViewById<TextView>(R.id.tvDislikeCount)
         
         var currentReaction = page.userReaction
         var likeCount = page.likeCount
@@ -514,12 +548,10 @@ class CourseDetailActivity : AppCompatActivity() {
         btnLike.setOnClickListener {
             lifecycleScope.launch {
                 if (currentReaction == true) {
-                    // Remove like
                     AuthApi.removeReaction(page.id)
                     likeCount--
                     currentReaction = null
                 } else {
-                    // Add/switch to like
                     AuthApi.reactToPage(page.id, true)
                     if (currentReaction == false) dislikeCount--
                     likeCount++
@@ -532,12 +564,10 @@ class CourseDetailActivity : AppCompatActivity() {
         btnDislike.setOnClickListener {
             lifecycleScope.launch {
                 if (currentReaction == false) {
-                    // Remove dislike
                     AuthApi.removeReaction(page.id)
                     dislikeCount--
                     currentReaction = null
                 } else {
-                    // Add/switch to dislike
                     AuthApi.reactToPage(page.id, false)
                     if (currentReaction == true) likeCount--
                     dislikeCount++
