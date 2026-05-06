@@ -2,28 +2,24 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { coursePages } from "@/lib/schema"
 import { eq, max } from "drizzle-orm"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    const sessionToken = req.cookies.get('better-auth.session_token')?.value
-    
-    if (!sessionToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const session = await db.query.session.findFirst({
-      where: (s, { eq }) => eq(s.token, sessionToken)
+    const session = await auth.api.getSession({
+      headers: await headers()
     })
 
-    if (!session) {
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const userRecord = await db.query.user.findFirst({
-      where: (u, { eq }) => eq(u.id, session.userId)
+      where: (u, { eq }) => eq(u.id, session.user.id)
     })
 
     if (!userRecord || userRecord.role !== 'admin') {
@@ -51,6 +47,7 @@ export async function POST(
 
     return NextResponse.json(page)
   } catch (error: any) {
+    console.error("Add page error:", error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

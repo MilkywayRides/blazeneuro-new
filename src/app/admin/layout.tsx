@@ -28,7 +28,7 @@ export default async function AdminLayout({
     >
       <AppSidebar variant="inset" isAdmin={true} userData={userData} />
       <SidebarInset>
-        <SiteHeader showCourseSwitcher={true} />
+        <SiteHeader />
         {children}
       </SidebarInset>
     </SidebarProvider>

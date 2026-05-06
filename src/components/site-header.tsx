@@ -3,9 +3,13 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { NotificationButton } from "@/components/notification-button"
 import { getNotifications } from "@/app/admin/notifications/actions"
 import { CourseSwitcher } from "@/components/course-switcher"
+import { headers } from "next/headers"
 
-export async function SiteHeader({ showCourseSwitcher = false }: { showCourseSwitcher?: boolean }) {
+export async function SiteHeader() {
   const notifications = await getNotifications();
+  const headersList = await headers()
+  const pathname = headersList.get("x-pathname") || ""
+  const showCourseSwitcher = pathname.startsWith("/admin/courses")
 
   return (
     <SiteHeaderClient notifications={notifications} showCourseSwitcher={showCourseSwitcher} />
