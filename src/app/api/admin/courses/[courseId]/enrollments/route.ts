@@ -38,8 +38,10 @@ export async function GET(
           email: user.email
         })
         .from(courseEnrollments)
-        .innerJoin(user, eq(courseEnrollments.userId, user.id))
+        .leftJoin(user, eq(courseEnrollments.userId, user.id))
         .where(eq(courseEnrollments.courseId, courseId))
+
+      console.log("Enrollments fetched:", enrollments)
 
       const users = enrollments.map(e => ({
         id: e.userId,
