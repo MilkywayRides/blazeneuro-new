@@ -90,6 +90,30 @@ object AuthApi {
         val slug: String
     )
 
+    data class Course(
+        val id: String,
+        val title: String,
+        val type: String,
+        val pageCount: Int
+    )
+
+    data class CoursePage(
+        val id: String,
+        val title: String,
+        val contentType: String,
+        val body: String?,
+        val videoUrl: String?,
+        val order: Int,
+        val completed: Boolean = false
+    )
+
+    data class CourseDetail(
+        val id: String,
+        val title: String,
+        val type: String,
+        val pages: List<CoursePage>
+    )
+
     suspend fun signInEmail(email: String, password: String): AuthResult = withContext(Dispatchers.IO) {
         try {
             val json = JSONObject().apply {
@@ -747,6 +771,124 @@ object AuthApi {
         fun clearAll() {
             cookies.clear()
             prefs.edit().remove(KEY_COOKIES).apply()
+        }
+    }
+
+    // ---- Course API Methods ----
+
+    suspend fun getCourses(): List<Course> = withContext(Dispatchers.IO) {
+        try {
+            val request = Request.Builder()
+                .url("$SITE_URL/api/courses")
+                .get()
+                .build()
+
+            val response = client.newCall(request).execute()
+            val body = response.body?.string() ?: return@withContext emptyList()
+
+            if (!response.isSuccessful) {
+                Log.e(TAG, "Get courses failed: ${response.code}")
+                return@withContext emptyList()
+            }
+
+            val jsonArray = JSONArray(body)
+            val courses = mutableListOf<Course>()
+            for (i in 0 until jsonArray.length()) {
+                val obj = jsonArray.getJSONObject(i)
+                courses.add(Course(
+                    id = obj.getString("id"),
+                    title = obj.getString("title"),
+                    type = obj.getString("type"),
+                    pageCount = obj.getInt("pageCount")
+                ))
+            }
+            courses
+        } catch (e: Exception) {
+            Log.e(TAG, "Get courses error", e)
+            emptyList()
+        }
+    }
+
+    suspend fun getCourseDetail(courseId: String): CourseDetail? = withContext(Dispatchers.IO) {
+        try {
+            val request = Request.Builder()
+                .url("$SITE_URL/api/courses/$courseId")
+                .get()
+                .build()
+
+            val response = client.newCall(request).execute()
+            val body = response.body?.string() ?: return@withContext null
+
+            if (!response.isSuccessful) {
+                Log.e(TAG, "Get course detail failed: ${response.code}")
+                return@withContext null
+            }
+
+            val obj = JSONObject(body)
+            val pagesArray = obj.getJSONArray("pages")
+            val pages = mutableListOf<CoursePage>()
+            for (i in 0 until pagesArray.length()) {
+                val pageObj = pagesArray.getJSONObject(i)
+                pages.add(CoursePage(
+                    id = pageObj.getString("id"),
+                    title = pageObj.getString("title"),
+                    contentType = pageObj.getString("contentType"),
+                    body = pageObj.optString("body"),
+                    videoUrl = pageObj.optString("videoUrl"),
+                    order = pageObj.getInt("order"),
+                    completed = pageObj.optBoolean("completed", false)
+                ))
+            }
+
+            CourseDetail(
+                id = obj.getString("id"),
+                title = obj.getString("title"),
+                type = obj.getString("type"),
+                pages = pages
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Get course detail error", e)
+            null
+        }
+    }
+
+    suspend fun markPageComplete(courseId: String, pageId: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val json = JSONObject().apply {
+                put("pageId", pageId)
+                put("completed", true)
+            }
+            val body = json.toString().toRequestBody("application/json".toMediaType())
+            val request = Request.Builder()
+                .url("$SITE_URL/api/courses/$courseId/progress")
+                .post(body)
+                .build()
+
+            val response = client.newCall(request).execute()
+            response.isSuccessful
+        } catch (e: Exception) {
+            Log.e(TAG, "Mark page complete error", e)
+            false
+        }
+    }
+
+    suspend fun reactToPage(courseId: String, pageId: String, liked: Boolean): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val json = JSONObject().apply {
+                put("pageId", pageId)
+                put("liked", liked)
+            }
+            val body = json.toString().toRequestBody("application/json".toMediaType())
+            val request = Request.Builder()
+                .url("$SITE_URL/api/courses/reactions")
+                .post(body)
+                .build()
+
+            val response = client.newCall(request).execute()
+            response.isSuccessful
+        } catch (e: Exception) {
+            Log.e(TAG, "React to page error", e)
+            false
         }
     }
 }

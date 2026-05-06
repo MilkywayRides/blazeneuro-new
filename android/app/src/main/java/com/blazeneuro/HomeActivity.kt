@@ -245,7 +245,9 @@ class HomeActivity : AppCompatActivity() {
 class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var viewPager: androidx.viewpager2.widget.ViewPager2
+    private lateinit var rvCourses: RecyclerView
     private val topBlogs = mutableListOf<AuthApi.Blog>()
+    private val courses = mutableListOf<AuthApi.Course>()
     private var isLoading = true
     private lateinit var notificationBadge: View
     private val notificationListener = { updateNotificationBadge() }
@@ -265,17 +267,21 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         
         swipeRefresh = view.findViewById(R.id.swipeRefresh)
         viewPager = view.findViewById(R.id.vpCarousel)
+        rvCourses = view.findViewById(R.id.rvCourses)
         
         swipeRefresh.setOnRefreshListener {
             loadTopBlogs()
+            loadCourses()
         }
         
         NotificationManager.addListener(notificationListener)
         updateNotificationBadge()
         
         setupCarousel()
+        setupCourses()
         showSkeleton()
         loadTopBlogs()
+        loadCourses()
     }
     
     override fun onDestroyView() {
@@ -387,6 +393,59 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 isLoading = false
                 swipeRefresh.isRefreshing = false
             }
+        }
+    }
+
+    private fun setupCourses() {
+        rvCourses.layoutManager = LinearLayoutManager(requireContext())
+        rvCourses.adapter = CourseAdapter(courses) { course ->
+            val intent = Intent(requireContext(), CourseDetailActivity::class.java).apply {
+                putExtra("courseId", course.id)
+            }
+            startActivity(intent)
+        }
+    }
+
+    private fun loadCourses() {
+        lifecycleScope.launch {
+            try {
+                val result = AuthApi.getCourses()
+                courses.clear()
+                courses.addAll(result)
+                rvCourses.adapter?.notifyDataSetChanged()
+            } catch (e: Exception) {
+                Log.e("HomeFragment", "Failed to load courses", e)
+            }
+        }
+    }
+}
+
+class CourseAdapter(
+    private val courses: List<AuthApi.Course>,
+    private val onClick: (AuthApi.Course) -> Unit
+) : RecyclerView.Adapter<CourseAdapter.CourseViewHolder>() {
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CourseViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_course, parent, false)
+        return CourseViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: CourseViewHolder, position: Int) {
+        holder.bind(courses[position])
+    }
+
+    override fun getItemCount() = courses.size
+
+    inner class CourseViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        private val tvTitle: TextView = view.findViewById(R.id.tvCourseTitle)
+        private val tvType: TextView = view.findViewById(R.id.tvCourseType)
+        private val tvPageCount: TextView = view.findViewById(R.id.tvPageCount)
+
+        fun bind(course: AuthApi.Course) {
+            tvTitle.text = course.title
+            tvType.text = course.type
+            tvPageCount.text = "${course.pageCount} pages"
+            itemView.setOnClickListener { onClick(course) }
         }
     }
 }

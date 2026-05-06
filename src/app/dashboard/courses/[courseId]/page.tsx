@@ -12,6 +12,21 @@ import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
 import Link from "next/link"
 import { Check, ChevronLeft, ChevronRight, Play, Flag, Video, FileText, HelpCircle } from "lucide-react"
+import { PageReactions } from "@/components/page-reactions"
+
+const ArrowRightIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" className={className}>
+    <path opacity="0.4" d="M8.19486 5.40705C8.52237 4.96235 9.14837 4.86736 9.59306 5.19488C9.93847 5.44927 10.2668 5.70372 10.5528 5.92689C11.1236 6.3724 11.8882 6.98573 12.6556 7.65208C13.4181 8.31412 14.2064 9.04815 14.8119 9.73344C15.1136 10.0749 15.3911 10.4279 15.5986 10.7721C15.7895 11.0888 16 11.524 16 12.0001C16 12.4762 15.7895 12.9115 15.5986 13.2282C15.3911 13.5724 15.1136 13.9253 14.8119 14.2668C14.2064 14.9521 13.4181 15.6861 12.6556 16.3482C11.8882 17.0145 11.1236 17.6278 10.5528 18.0734C10.2668 18.2965 9.93847 18.551 9.59307 18.8054C9.14837 19.1329 8.52237 19.0379 8.19486 18.5932C8.0632 18.4144 7.99983 18.2064 8.00001 18.0002L8 12.0001L8 6.00007C7.99983 5.79387 8.0632 5.58581 8.19486 5.40705Z" fill="currentColor"/>
+    <path d="M14.8119 9.73344C15.1136 10.0749 15.3911 10.4279 15.5986 10.7721C15.7895 11.0888 16 11.524 16 12.0001C16 12.4762 15.7895 12.9115 15.5986 13.2282C15.3911 13.5724 15.1136 13.9253 14.8119 14.2668C14.2064 14.9521 13.4181 15.6861 12.6556 16.3482C11.8882 17.0145 11.1236 17.6278 10.5528 18.0734C10.2668 18.2965 9.93847 18.551 9.59307 18.8054C9.14837 19.1329 8.52237 19.0379 8.19486 18.5932C8.0632 18.4144 7.99983 18.2064 8.00001 18.0002L8 13L13.0509 8C13.6843 8.56556 14.3107 9.1662 14.8119 9.73344Z" fill="currentColor"/>
+  </svg>
+)
+
+const TickIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" className={className}>
+    <path opacity="0.4" fillRule="evenodd" clipRule="evenodd" d="M4.29289 13.2929C4.68342 12.9024 5.31658 12.9024 5.70711 13.2929L9.20711 16.7929C9.59763 17.1834 9.59763 17.8166 9.20711 18.2071C8.81658 18.5976 8.18342 18.5976 7.79289 18.2071L4.29289 14.7071C3.90237 14.3166 3.90237 13.6834 4.29289 13.2929Z" fill="currentColor"/>
+    <path fillRule="evenodd" clipRule="evenodd" d="M19.6905 5.77665C20.09 6.15799 20.1047 6.79098 19.7234 7.19048L9.22336 18.1905C8.84202 18.59 8.20902 18.6047 7.80953 18.2234C7.41003 17.842 7.39531 17.209 7.77665 16.8095L18.2766 5.80953C18.658 5.41003 19.291 5.39531 19.6905 5.77665Z" fill="currentColor"/>
+  </svg>
+)
 
 type Page = {
   id: string
@@ -21,6 +36,7 @@ type Page = {
   videoUrl?: string
   order: number
   completed?: boolean
+  userReaction?: boolean | null
 }
 
 type Course = {
@@ -196,7 +212,7 @@ export default function CourseViewerPage() {
                     <Icon className="h-4 w-4" />
                     {page.title}
                   </span>
-                  {page.completed && <Check className="h-4 w-4 text-green-600" />}
+                  {page.completed && <TickIcon className="h-4 w-4 text-green-600 dark:text-green-500" />}
                 </Button>
               )
             })}
@@ -212,33 +228,41 @@ export default function CourseViewerPage() {
               <>
                 {selectedPage.contentType === "ARTICLE" && (
                   <Card>
-                    <CardContent className="pt-6">
+                    <CardContent className="pt-6 space-y-6">
                       <div className="prose max-w-none">
                         {selectedPage.body}
+                      </div>
+                      <div className="flex justify-center pt-4 border-t">
+                        <PageReactions pageId={selectedPage.id} initialReaction={selectedPage.userReaction} />
                       </div>
                     </CardContent>
                   </Card>
                 )}
 
                 {selectedPage.contentType === "VIDEO" && (
-                  <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                    {selectedPage.videoUrl?.includes('youtube.com') || selectedPage.videoUrl?.includes('youtu.be') ? (
-                      <iframe
-                        src={selectedPage.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
-                        className="w-full h-full"
-                        allowFullScreen
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      />
-                    ) : (
-                      <video
-                        src={selectedPage.videoUrl}
-                        className="w-full h-full"
-                        controls
-                        autoPlay
-                        loop
-                        muted
-                      />
-                    )}
+                  <div className="space-y-4">
+                    <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                      {selectedPage.videoUrl?.includes('youtube.com') || selectedPage.videoUrl?.includes('youtu.be') ? (
+                        <iframe
+                          src={selectedPage.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                          className="w-full h-full"
+                          allowFullScreen
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        />
+                      ) : (
+                        <video
+                          src={selectedPage.videoUrl}
+                          className="w-full h-full"
+                          controls
+                          autoPlay
+                          loop
+                          muted
+                        />
+                      )}
+                    </div>
+                    <div className="flex justify-center">
+                      <PageReactions pageId={selectedPage.id} initialReaction={selectedPage.userReaction} />
+                    </div>
                   </div>
                 )}
 
@@ -247,6 +271,9 @@ export default function CourseViewerPage() {
                     <CardContent className="pt-6 space-y-4">
                       <p>Quiz coming soon</p>
                       <Badge>Coming Soon</Badge>
+                      <div className="flex justify-center pt-4 border-t">
+                        <PageReactions pageId={selectedPage.id} initialReaction={selectedPage.userReaction} />
+                      </div>
                     </CardContent>
                   </Card>
                 )}
@@ -261,7 +288,7 @@ export default function CourseViewerPage() {
 
         {/* Bottom Navigation */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full max-w-3xl px-6">
-          <div className="flex items-center justify-between gap-4 px-6 py-3 rounded-lg border bg-background/80 backdrop-blur-md shadow-lg">
+          <div className="flex items-center justify-between gap-4 px-6 py-3 rounded-lg border bg-card/80 backdrop-blur-md shadow-lg">
             <Button
               variant="outline"
               size="sm"
@@ -286,13 +313,13 @@ export default function CourseViewerPage() {
             >
               {isLastPage ? (
                 <>
-                  <Check className="h-4 w-4 mr-2" />
+                  <TickIcon className="h-4 w-4 mr-2" />
                   Complete
                 </>
               ) : (
                 <>
                   Next
-                  <ChevronRight className="h-4 w-4 ml-2" />
+                  <ArrowRightIcon className="h-4 w-4 ml-2" />
                 </>
               )}
             </Button>

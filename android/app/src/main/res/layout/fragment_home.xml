@@ -101,6 +101,22 @@
                     android:layout_marginTop="@dimen/space_md"
                     android:orientation="horizontal" />
 
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Available Courses"
+                    android:textColor="@color/foreground"
+                    android:textSize="@dimen/text_xl"
+                    android:textStyle="bold"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginBottom="@dimen/space_md" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvCourses"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false" />
+
             </LinearLayout>
 
         </ScrollView>

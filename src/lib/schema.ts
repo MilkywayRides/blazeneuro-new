@@ -335,6 +335,14 @@ export const courseEnrollments = pgTable("course_enrollments", {
   enrolledAt: timestamp("enrolled_at").defaultNow().notNull(),
 })
 
+export const coursePageReactions = pgTable("course_page_reactions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").notNull().references(() => user.id),
+  pageId: uuid("page_id").notNull().references(() => coursePages.id, { onDelete: "cascade" }),
+  liked: boolean("liked").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+})
+
 export const schema = {
   user,
   session,
@@ -366,6 +374,7 @@ export const schema = {
   coursePages,
   coursePurchases,
   courseProgress,
-  courseEnrollments
+  courseEnrollments,
+  coursePageReactions
 }
 
