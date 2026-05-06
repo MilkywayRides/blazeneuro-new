@@ -33,7 +33,7 @@ export function NavMain({
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-1">
         <SidebarMenu>
-          <TooltipProvider delayDuration={0}>
+          <TooltipProvider>
             {items.map((item) => {
               const isActive = pathname === item.url
               const linkContent = (
