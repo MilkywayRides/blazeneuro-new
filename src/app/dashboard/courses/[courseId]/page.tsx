@@ -132,12 +132,24 @@ export default function CourseViewerPage() {
                   <CardTitle>{selectedPage.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="aspect-video">
-                    <iframe
-                      src={selectedPage.videoUrl}
-                      className="w-full h-full rounded-lg"
-                      allowFullScreen
-                    />
+                  <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                    {selectedPage.videoUrl?.includes('youtube.com') || selectedPage.videoUrl?.includes('youtu.be') ? (
+                      <iframe
+                        src={selectedPage.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                        className="w-full h-full"
+                        allowFullScreen
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      />
+                    ) : (
+                      <video
+                        src={selectedPage.videoUrl}
+                        className="w-full h-full"
+                        controls
+                        autoPlay
+                        loop
+                        muted
+                      />
+                    )}
                   </div>
                 </CardContent>
               </Card>
