@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, primaryKey, integer, uuid, jsonb } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, boolean, primaryKey, integer, uuid, jsonb, unique } from "drizzle-orm/pg-core"
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -295,6 +295,8 @@ export const userContribution = pgTable("user_contribution", {
 export const courses = pgTable("courses", {
   id: uuid("id").defaultRandom().primaryKey(),
   title: text("title").notNull(),
+  description: text("description"),
+  publisherId: text("publisher_id").references(() => user.id),
   type: text("type", { enum: ["FREE", "PAID"] }).notNull().default("FREE"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -309,6 +311,8 @@ export const coursePages = pgTable("course_pages", {
   body: text("body"),
   videoUrl: text("video_url"),
   quizData: jsonb("quiz_data"),
+  likeCount: integer("like_count").notNull().default(0),
+  dislikeCount: integer("dislike_count").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 })
 
@@ -341,7 +345,18 @@ export const coursePageReactions = pgTable("course_page_reactions", {
   pageId: uuid("page_id").notNull().references(() => coursePages.id, { onDelete: "cascade" }),
   liked: boolean("liked").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-})
+}, (table) => ({
+  uniqueUserPage: unique().on(table.userId, table.pageId)
+}))
+
+export const courseFollows = pgTable("course_follows", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").notNull().references(() => user.id),
+  publisherId: text("publisher_id").notNull().references(() => user.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueUserPublisher: unique().on(table.userId, table.publisherId)
+}))
 
 export const schema = {
   user,
@@ -375,6 +390,7 @@ export const schema = {
   coursePurchases,
   courseProgress,
   courseEnrollments,
-  coursePageReactions
+  coursePageReactions,
+  courseFollows
 }
 

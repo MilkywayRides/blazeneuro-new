@@ -104,13 +104,24 @@ object AuthApi {
         val body: String?,
         val videoUrl: String?,
         val order: Int,
-        val completed: Boolean = false
+        val completed: Boolean = false,
+        val likeCount: Int = 0,
+        val dislikeCount: Int = 0,
+        val userReaction: Boolean? = null
+    )
+
+    data class Publisher(
+        val id: String,
+        val name: String,
+        val image: String?
     )
 
     data class CourseDetail(
         val id: String,
         val title: String,
         val type: String,
+        val publisher: Publisher?,
+        val isFollowing: Boolean = false,
         val pages: List<CoursePage>
     )
 
@@ -836,14 +847,29 @@ object AuthApi {
                     body = pageObj.optString("body"),
                     videoUrl = pageObj.optString("videoUrl"),
                     order = pageObj.getInt("order"),
-                    completed = pageObj.optBoolean("completed", false)
+                    completed = pageObj.optBoolean("completed", false),
+                    likeCount = pageObj.optInt("likeCount", 0),
+                    dislikeCount = pageObj.optInt("dislikeCount", 0),
+                    userReaction = if (pageObj.has("userReaction") && !pageObj.isNull("userReaction")) 
+                        pageObj.getBoolean("userReaction") else null
                 ))
             }
+
+            val publisher = if (obj.has("publisher") && !obj.isNull("publisher")) {
+                val pubObj = obj.getJSONObject("publisher")
+                Publisher(
+                    id = pubObj.getString("id"),
+                    name = pubObj.getString("name"),
+                    image = pubObj.optString("image", null)
+                )
+            } else null
 
             CourseDetail(
                 id = obj.getString("id"),
                 title = obj.getString("title"),
                 type = obj.getString("type"),
+                publisher = publisher,
+                isFollowing = obj.optBoolean("isFollowing", false),
                 pages = pages
             )
         } catch (e: Exception) {
@@ -872,7 +898,7 @@ object AuthApi {
         }
     }
 
-    suspend fun reactToPage(courseId: String, pageId: String, liked: Boolean): Boolean = withContext(Dispatchers.IO) {
+    suspend fun reactToPage(pageId: String, liked: Boolean): Boolean = withContext(Dispatchers.IO) {
         try {
             val json = JSONObject().apply {
                 put("pageId", pageId)
@@ -888,6 +914,55 @@ object AuthApi {
             response.isSuccessful
         } catch (e: Exception) {
             Log.e(TAG, "React to page error", e)
+            false
+        }
+    }
+
+    suspend fun removeReaction(pageId: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val json = JSONObject().apply {
+                put("pageId", pageId)
+            }
+            val body = json.toString().toRequestBody("application/json".toMediaType())
+            val request = Request.Builder()
+                .url("$SITE_URL/api/courses/reactions")
+                .delete(body)
+                .build()
+
+            val response = client.newCall(request).execute()
+            response.isSuccessful
+        } catch (e: Exception) {
+            Log.e(TAG, "Remove reaction error", e)
+            false
+        }
+    }
+
+    suspend fun followPublisher(courseId: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val request = Request.Builder()
+                .url("$SITE_URL/api/courses/$courseId/follow")
+                .post("".toRequestBody())
+                .build()
+
+            val response = client.newCall(request).execute()
+            response.isSuccessful
+        } catch (e: Exception) {
+            Log.e(TAG, "Follow error", e)
+            false
+        }
+    }
+
+    suspend fun unfollowPublisher(courseId: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val request = Request.Builder()
+                .url("$SITE_URL/api/courses/$courseId/follow")
+                .delete()
+                .build()
+
+            val response = client.newCall(request).execute()
+            response.isSuccessful
+        } catch (e: Exception) {
+            Log.e(TAG, "Unfollow error", e)
             false
         }
     }

@@ -37,12 +37,23 @@ type Page = {
   order: number
   completed?: boolean
   userReaction?: boolean | null
+  likeCount?: number
+  dislikeCount?: number
+}
+
+type Publisher = {
+  id: string
+  name: string
+  image?: string
 }
 
 type Course = {
   id: string
   title: string
+  description?: string
   type: "FREE" | "PAID"
+  publisher?: Publisher
+  isFollowing?: boolean
   pages: Page[]
 }
 
@@ -133,6 +144,22 @@ export default function CourseViewerPage() {
     const currentIndex = course.pages.findIndex(p => p.id === selectedPage.id)
     if (currentIndex > 0) {
       handlePageSelect(course.pages[currentIndex - 1])
+    }
+  }
+
+  const handleFollow = async () => {
+    if (!course?.publisher) return
+    
+    const newFollowState = !course.isFollowing
+    setCourse(prev => prev ? { ...prev, isFollowing: newFollowState } : null)
+    
+    try {
+      const res = await fetch(`/api/courses/${courseId}/follow`, {
+        method: newFollowState ? "POST" : "DELETE"
+      })
+      if (!res.ok) throw new Error()
+    } catch (error) {
+      setCourse(prev => prev ? { ...prev, isFollowing: !newFollowState } : null)
     }
   }
 
@@ -227,21 +254,26 @@ export default function CourseViewerPage() {
             {selectedPage ? (
               <>
                 {selectedPage.contentType === "ARTICLE" && (
-                  <Card>
+                  <Card className="border-border">
                     <CardContent className="pt-6 space-y-6">
-                      <div className="prose max-w-none">
+                      <div className="prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-a:text-primary">
                         {selectedPage.body}
                       </div>
-                      <div className="flex justify-center pt-4 border-t">
-                        <PageReactions pageId={selectedPage.id} initialReaction={selectedPage.userReaction} />
-                      </div>
                     </CardContent>
+                    <CardFooter className="flex justify-center pt-4 border-t">
+                      <PageReactions 
+                        pageId={selectedPage.id} 
+                        initialReaction={selectedPage.userReaction}
+                        initialLikeCount={selectedPage.likeCount || 0}
+                        initialDislikeCount={selectedPage.dislikeCount || 0}
+                      />
+                    </CardFooter>
                   </Card>
                 )}
 
                 {selectedPage.contentType === "VIDEO" && (
                   <div className="space-y-4">
-                    <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                    <div className="aspect-video bg-black rounded-xl overflow-hidden shadow-lg">
                       {selectedPage.videoUrl?.includes('youtube.com') || selectedPage.videoUrl?.includes('youtu.be') ? (
                         <iframe
                           src={selectedPage.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
@@ -260,21 +292,62 @@ export default function CourseViewerPage() {
                         />
                       )}
                     </div>
-                    <div className="flex justify-center">
-                      <PageReactions pageId={selectedPage.id} initialReaction={selectedPage.userReaction} />
+                    
+                    {/* YouTube-style title and info */}
+                    <div className="space-y-4">
+                      <h1 className="text-xl font-semibold text-foreground">{selectedPage.title}</h1>
+                      
+                      {/* Publisher info and actions */}
+                      <div className="flex items-start justify-between gap-4">
+                        {course?.publisher ? (
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold flex-shrink-0">
+                              {course.publisher.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-foreground">{course.publisher.name}</div>
+                              <div className="text-sm text-muted-foreground">Course Creator</div>
+                            </div>
+                            <Button
+                              variant={course.isFollowing ? "outline" : "default"}
+                              size="sm"
+                              onClick={handleFollow}
+                              className="flex-shrink-0"
+                            >
+                              {course.isFollowing ? "Following" : "Follow"}
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex-1" />
+                        )}
+                        
+                        <div className="flex-shrink-0">
+                          <PageReactions 
+                            pageId={selectedPage.id} 
+                            initialReaction={selectedPage.userReaction}
+                            initialLikeCount={selectedPage.likeCount || 0}
+                            initialDislikeCount={selectedPage.dislikeCount || 0}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
 
                 {selectedPage.contentType === "QUIZ" && (
-                  <Card>
+                  <Card className="border-border">
                     <CardContent className="pt-6 space-y-4">
-                      <p>Quiz coming soon</p>
+                      <p className="text-foreground">Quiz coming soon</p>
                       <Badge>Coming Soon</Badge>
-                      <div className="flex justify-center pt-4 border-t">
-                        <PageReactions pageId={selectedPage.id} initialReaction={selectedPage.userReaction} />
-                      </div>
                     </CardContent>
+                    <CardFooter className="flex justify-center pt-4 border-t">
+                      <PageReactions 
+                        pageId={selectedPage.id} 
+                        initialReaction={selectedPage.userReaction}
+                        initialLikeCount={selectedPage.likeCount || 0}
+                        initialDislikeCount={selectedPage.dislikeCount || 0}
+                      />
+                    </CardFooter>
                   </Card>
                 )}
               </>
@@ -288,7 +361,7 @@ export default function CourseViewerPage() {
 
         {/* Bottom Navigation */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full max-w-3xl px-6">
-          <div className="flex items-center justify-between gap-4 px-6 py-3 rounded-lg border bg-card/80 backdrop-blur-md shadow-lg">
+          <div className="flex items-center justify-between gap-4 px-6 py-3 rounded-xl border bg-card/95 backdrop-blur-md shadow-lg">
             <Button
               variant="outline"
               size="sm"
@@ -301,7 +374,7 @@ export default function CourseViewerPage() {
             
             <div className="flex items-center gap-2 flex-1 max-w-md">
               <Play className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <Progress value={progress} className="flex-1 transition-all duration-300" />
+              <Progress value={progress} className="flex-1 transition-all duration-300 h-2" />
               <Flag className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <span className="text-xs text-muted-foreground whitespace-nowrap transition-all duration-300">{completedCount}/{totalPages}</span>
             </div>
@@ -310,6 +383,7 @@ export default function CourseViewerPage() {
               size="sm"
               onClick={handleNext}
               disabled={!course || !selectedPage || allCompleted}
+              className="bg-foreground text-background hover:bg-foreground/90"
             >
               {isLastPage ? (
                 <>

@@ -256,6 +256,62 @@ class CourseDetailActivity : AppCompatActivity() {
             }
             "VIDEO" -> {
                 val videoUrl = page.videoUrl ?: ""
+                
+                // Create a vertical container for video + reactions
+                val container = android.widget.LinearLayout(this).apply {
+                    orientation = android.widget.LinearLayout.VERTICAL
+                    layoutParams = FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.WRAP_CONTENT
+                    )
+                }
+                
+                // Add video WebView
+                val webView = WebView(this).apply {
+                    layoutParams = android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+                    settings.javaScriptEnabled = true
+                    settings.domStorageEnabled = true
+                    settings.mediaPlaybackRequiresUserGesture = false
+                    webChromeClient = object : android.webkit.WebChromeClient() {
+                        private var customView: View? = null
+                        
+                        override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
+                            if (customView != null) {
+                                callback?.onCustomViewHidden()
+                                return
+                            }
+                            
+                            customView = view
+                            window.decorView.systemUiVisibility = (
+                                View.SYSTEM_UI_FLAG_FULLSCREEN
+                                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                            )
+                            requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                            
+                            val decorView = window.decorView as android.view.ViewGroup
+                            decorView.addView(view, android.view.ViewGroup.LayoutParams(
+                                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                                android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                            ))
+                        }
+                        
+                        override fun onHideCustomView() {
+                            if (customView == null) return
+                            
+                            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
+                            requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                            
+                            val decorView = window.decorView as android.view.ViewGroup
+                            decorView.removeView(customView)
+                            customView = null
+                        }
+                    }
+                }
+                
                 val html = if (videoUrl.contains("youtube.com") || videoUrl.contains("youtu.be")) {
                     val videoId = videoUrl.substringAfter("watch?v=").substringAfter("youtu.be/").substringBefore("&")
                     """
@@ -313,10 +369,14 @@ class CourseDetailActivity : AppCompatActivity() {
                 }
                 webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null)
                 
+                container.addView(webView)
+                
                 // Add reactions below video
-                val reactionsView = layoutInflater.inflate(R.layout.layout_page_reactions, contentContainer, false)
-                contentContainer.addView(reactionsView)
+                val reactionsView = layoutInflater.inflate(R.layout.layout_page_reactions, null, false)
+                container.addView(reactionsView)
                 setupReactions(reactionsView, page)
+                
+                contentContainer.addView(container)
             }
             else -> {
                 webView.loadData("<html><body style='padding:20px;color:#fff;background:#0a0a0a;'><p>Quiz coming soon</p></body></html>", "text/html", "UTF-8")
@@ -384,20 +444,106 @@ class CourseDetailActivity : AppCompatActivity() {
     }
 
     private fun setupReactions(view: View, page: AuthApi.CoursePage) {
-        val btnLike = view.findViewById<ImageView>(R.id.btnLike)
-        val btnDislike = view.findViewById<ImageView>(R.id.btnDislike)
+        val btnLike = view.findViewById<android.view.ViewGroup>(R.id.btnLike)
+        val btnDislike = view.findViewById<android.view.ViewGroup>(R.id.btnDislike)
+        val tvLikeCount = view.findViewById<TextView>(R.id.tvLikeCount)
+        val tvDislikeCount = view.findViewById<TextView>(R.id.tvDislikeCount)
+        val tvPageTitle = view.findViewById<TextView>(R.id.tvPageTitle)
+        val publisherSection = view.findViewById<android.view.ViewGroup>(R.id.publisherSection)
+        val tvPublisherAvatar = view.findViewById<TextView>(R.id.tvPublisherAvatar)
+        val tvPublisherName = view.findViewById<TextView>(R.id.tvPublisherName)
+        val btnFollow = view.findViewById<TextView>(R.id.btnFollow)
+        
+        tvPageTitle.text = page.title
+        
+        // Setup publisher info
+        course?.publisher?.let { publisher ->
+            publisherSection.visibility = View.VISIBLE
+            tvPublisherAvatar.text = publisher.name.firstOrNull()?.uppercase() ?: "?"
+            tvPublisherName.text = publisher.name
+            
+            btnFollow.text = if (course?.isFollowing == true) "Following" else "Follow"
+            btnFollow.setBackgroundResource(
+                if (course?.isFollowing == true) R.drawable.feedback_glass_btn 
+                else R.drawable.button_primary
+            )
+            
+            btnFollow.setOnClickListener {
+                lifecycleScope.launch {
+                    val newState = !(course?.isFollowing ?: false)
+                    val res = if (newState) {
+                        AuthApi.followPublisher(course?.id ?: return@launch)
+                    } else {
+                        AuthApi.unfollowPublisher(course?.id ?: return@launch)
+                    }
+                    
+                    if (res) {
+                        course = course?.copy(isFollowing = newState)
+                        btnFollow.text = if (newState) "Following" else "Follow"
+                        btnFollow.setBackgroundResource(
+                            if (newState) R.drawable.feedback_glass_btn 
+                            else R.drawable.button_primary
+                        )
+                    }
+                }
+            }
+        } ?: run {
+            publisherSection.visibility = View.GONE
+        }
+        
+        var currentReaction = page.userReaction
+        var likeCount = page.likeCount
+        var dislikeCount = page.dislikeCount
+        
+        fun updateUI() {
+            tvLikeCount.text = likeCount.toString()
+            tvDislikeCount.text = dislikeCount.toString()
+            
+            btnLike.setBackgroundResource(
+                if (currentReaction == true) R.drawable.feedback_glass_btn_active 
+                else R.drawable.feedback_glass_btn
+            )
+            btnDislike.setBackgroundResource(
+                if (currentReaction == false) R.drawable.feedback_glass_btn_active 
+                else R.drawable.feedback_glass_btn
+            )
+        }
+        
+        updateUI()
         
         btnLike.setOnClickListener {
             lifecycleScope.launch {
-                AuthApi.reactToPage(course?.id ?: return@launch, page.id, true)
-                Toast.makeText(this@CourseDetailActivity, "Marked as helpful", Toast.LENGTH_SHORT).show()
+                if (currentReaction == true) {
+                    // Remove like
+                    AuthApi.removeReaction(page.id)
+                    likeCount--
+                    currentReaction = null
+                } else {
+                    // Add/switch to like
+                    AuthApi.reactToPage(page.id, true)
+                    if (currentReaction == false) dislikeCount--
+                    likeCount++
+                    currentReaction = true
+                }
+                updateUI()
             }
         }
         
         btnDislike.setOnClickListener {
             lifecycleScope.launch {
-                AuthApi.reactToPage(course?.id ?: return@launch, page.id, false)
-                Toast.makeText(this@CourseDetailActivity, "Marked as not helpful", Toast.LENGTH_SHORT).show()
+                if (currentReaction == false) {
+                    // Remove dislike
+                    AuthApi.removeReaction(page.id)
+                    dislikeCount--
+                    currentReaction = null
+                } else {
+                    // Add/switch to dislike
+                    AuthApi.reactToPage(page.id, false)
+                    if (currentReaction == true) likeCount--
+                    dislikeCount++
+                    currentReaction = false
+                }
+                updateUI()
             }
         }
     }
