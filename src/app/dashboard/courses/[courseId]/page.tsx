@@ -45,8 +45,17 @@ export default function CourseViewerPage() {
   const isAdmin = (session?.user as any)?.role === "admin"
 
   useEffect(() => {
+    if (!loading) return
     fetchCourse()
-  }, [courseId, pageId])
+  }, [courseId])
+
+  useEffect(() => {
+    if (!course || !pageId) return
+    const page = course.pages.find((p: Page) => p.id === pageId)
+    if (page) {
+      setSelectedPage(page)
+    }
+  }, [pageId, course])
 
   const fetchCourse = async () => {
     setLoading(true)
@@ -68,7 +77,7 @@ export default function CourseViewerPage() {
 
   const handlePageSelect = (page: Page) => {
     setSelectedPage(page)
-    router.push(`/dashboard/courses/${courseId}?pageId=${page.id}`, { scroll: false })
+    router.replace(`/dashboard/courses/${courseId}?pageId=${page.id}`, { scroll: false })
   }
 
   const markComplete = async (pageId: string) => {
@@ -182,10 +191,10 @@ export default function CourseViewerPage() {
       </div>
 
       {/* Right Content Area */}
-      <div className="flex-1 flex flex-col relative">
-        <ScrollArea className="flex-1">
+      <div className="flex-1 flex flex-col relative overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
           {selectedPage ? (
-            <div className="p-6">
+            <div className="p-6 pb-24">
               {selectedPage.contentType === "ARTICLE" && (
                 <Card>
                   <CardContent className="pt-6">
@@ -232,7 +241,7 @@ export default function CourseViewerPage() {
               Select a page to view content
             </div>
           )}
-        </ScrollArea>
+        </div>
 
         {/* Bottom Navigation */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full max-w-3xl px-6">
