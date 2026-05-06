@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { useParams } from "next/navigation"
+import { Trash2 } from "lucide-react"
 
 type Page = {
   id: string
@@ -67,6 +68,14 @@ export default function CourseBuilderPage() {
     fetchCourse()
   }
 
+  const handleDeletePage = async (pageId: string) => {
+    if (!confirm("Are you sure you want to delete this page?")) return
+    await fetch(`/api/admin/courses/${courseId}/pages/${pageId}`, {
+      method: "DELETE"
+    })
+    fetchCourse()
+  }
+
   if (!course) return <div className="p-6">Loading...</div>
 
   return (
@@ -116,7 +125,9 @@ export default function CourseBuilderPage() {
                       <Badge variant="outline">{page.contentType}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm">🗑️</Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDeletePage(page.id)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}

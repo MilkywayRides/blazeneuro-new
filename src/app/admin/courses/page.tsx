@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
+import { Pencil, Trash2 } from "lucide-react"
 
 type Course = {
   id: string
@@ -22,6 +23,7 @@ type Course = {
 export default function AdminCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null)
   const [title, setTitle] = useState("")
   const [type, setType] = useState<"FREE" | "PAID">("FREE")
   const [loading, setLoading] = useState(true)
@@ -56,16 +58,42 @@ export default function AdminCoursesPage() {
 
   const handleCreate = async () => {
     setLoading(true)
-    await fetch("/api/admin/courses", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ title, type })
-    })
+    if (editingCourse) {
+      await fetch(`/api/admin/courses/${editingCourse.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ title, type })
+      })
+    } else {
+      await fetch("/api/admin/courses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ title, type })
+      })
+    }
     setLoading(false)
     setDialogOpen(false)
     setTitle("")
     setType("FREE")
+    setEditingCourse(null)
+    fetchCourses()
+  }
+
+  const handleEdit = (course: Course) => {
+    setEditingCourse(course)
+    setTitle(course.title)
+    setType(course.type)
+    setDialogOpen(true)
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this course?")) return
+    await fetch(`/api/admin/courses/${id}`, {
+      method: "DELETE",
+      credentials: "include"
+    })
     fetchCourses()
   }
 
@@ -132,9 +160,17 @@ export default function AdminCoursesPage() {
                     <TableCell>{course.pageCount}</TableCell>
                     <TableCell>{new Date(course.createdAt).toLocaleDateString()}</TableCell>
                     <TableCell>
-                      <Link href={`/admin/courses/${course.id}`}>
-                        <Button variant="ghost" size="sm">Manage</Button>
-                      </Link>
+                      <div className="flex gap-2">
+                        <Link href={`/admin/courses/${course.id}`}>
+                          <Button variant="ghost" size="sm">Manage</Button>
+                        </Link>
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(course)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDelete(course.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -144,10 +180,17 @@ export default function AdminCoursesPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => {
+        setDialogOpen(open)
+        if (!open) {
+          setEditingCourse(null)
+          setTitle("")
+          setType("FREE")
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Course</DialogTitle>
+            <DialogTitle>{editingCourse ? "Edit Course" : "Create Course"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
