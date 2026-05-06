@@ -28,18 +28,24 @@ export async function GET(
   })
 
   if (session?.user) {
-    const progressRecords = await db
-      .select()
-      .from(courseProgress)
-      .where(eq(courseProgress.userId, session.user.id))
+    try {
+      const progressRecords = await db
+        .select()
+        .from(courseProgress)
+        .where(eq(courseProgress.userId, session.user.id))
 
-    const pagesWithProgress = pages.map(page => {
-      const progress = progressRecords.find(p => p.pageId === page.id)
-      return { ...page, completed: progress?.completed || false }
-    })
+      const pagesWithProgress = pages.map(page => {
+        const progress = progressRecords.find(p => p.pageId === page.id)
+        return { ...page, completed: progress?.completed || false }
+      })
 
-    return NextResponse.json({ ...course, pages: pagesWithProgress })
+      return NextResponse.json({ ...course, pages: pagesWithProgress })
+    } catch (error) {
+      console.error("Progress fetch error:", error)
+      // If table doesn't exist yet, return pages without progress
+      return NextResponse.json({ ...course, pages: pages.map(p => ({ ...p, completed: false })) })
+    }
   }
 
-  return NextResponse.json({ ...course, pages })
+  return NextResponse.json({ ...course, pages: pages.map(p => ({ ...p, completed: false })) })
 }
