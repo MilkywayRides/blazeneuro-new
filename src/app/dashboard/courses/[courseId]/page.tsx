@@ -138,7 +138,7 @@ export default function CourseViewerPage() {
   const showPaywall = course.type === "PAID" && !hasPurchased && !isAdmin && session?.user
 
   return (
-    <div className="flex h-[calc(100vh-3rem)] relative">
+    <div className="flex h-[calc(100vh-3rem)] overflow-hidden relative">
       {showPaywall && (
         <div className="absolute inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-background/80">
           <Card className="max-w-md">
@@ -172,8 +172,8 @@ export default function CourseViewerPage() {
       )}
 
       {/* Left Sidebar - Page List */}
-      <div className="w-64 border-r">
-        <ScrollArea className="h-full">
+      <div className="w-64 border-r flex flex-col h-full">
+        <ScrollArea className="flex-1">
           <div className="p-2">
             {course.pages.map((page) => (
               <Button
@@ -191,57 +191,59 @@ export default function CourseViewerPage() {
       </div>
 
       {/* Right Content Area */}
-      <div className="flex-1 flex flex-col relative overflow-hidden">
-        <div className="flex-1 overflow-y-auto">
-          {selectedPage ? (
-            <div className="p-6 pb-24">
-              {selectedPage.contentType === "ARTICLE" && (
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="prose max-w-none">
-                      {selectedPage.body}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+      <div className="flex-1 flex flex-col relative h-full">
+        <ScrollArea className="flex-1">
+          <div className="p-6 pb-24">
+            {selectedPage ? (
+              <>
+                {selectedPage.contentType === "ARTICLE" && (
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="prose max-w-none">
+                        {selectedPage.body}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
-              {selectedPage.contentType === "VIDEO" && (
-                <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                  {selectedPage.videoUrl?.includes('youtube.com') || selectedPage.videoUrl?.includes('youtu.be') ? (
-                    <iframe
-                      src={selectedPage.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
-                      className="w-full h-full"
-                      allowFullScreen
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    />
-                  ) : (
-                    <video
-                      src={selectedPage.videoUrl}
-                      className="w-full h-full"
-                      controls
-                      autoPlay
-                      loop
-                      muted
-                    />
-                  )}
-                </div>
-              )}
+                {selectedPage.contentType === "VIDEO" && (
+                  <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                    {selectedPage.videoUrl?.includes('youtube.com') || selectedPage.videoUrl?.includes('youtu.be') ? (
+                      <iframe
+                        src={selectedPage.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                        className="w-full h-full"
+                        allowFullScreen
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      />
+                    ) : (
+                      <video
+                        src={selectedPage.videoUrl}
+                        className="w-full h-full"
+                        controls
+                        autoPlay
+                        loop
+                        muted
+                      />
+                    )}
+                  </div>
+                )}
 
-              {selectedPage.contentType === "QUIZ" && (
-                <Card>
-                  <CardContent className="pt-6 space-y-4">
-                    <p>Quiz coming soon</p>
-                    <Badge>Coming Soon</Badge>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-full text-muted-foreground">
-              Select a page to view content
-            </div>
-          )}
-        </div>
+                {selectedPage.contentType === "QUIZ" && (
+                  <Card>
+                    <CardContent className="pt-6 space-y-4">
+                      <p>Quiz coming soon</p>
+                      <Badge>Coming Soon</Badge>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                Select a page to view content
+              </div>
+            )}
+          </div>
+        </ScrollArea>
 
         {/* Bottom Navigation */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full max-w-3xl px-6">
