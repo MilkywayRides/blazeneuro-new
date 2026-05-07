@@ -9,6 +9,7 @@ import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
 import { NavCourses } from "@/components/nav-courses"
+import { CourseSelector } from "@/components/course-selector"
 import {
   Sidebar,
   SidebarContent,
@@ -18,6 +19,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupContent,
 } from "@/components/ui/sidebar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { LayoutDashboardIcon, UsersIcon, Settings2Icon, CircleHelpIcon, SearchIcon, ShieldIcon, ActivityIcon, DatabaseIcon, FileTextIcon, MessageSquareIcon, BellIcon, BookOpenIcon } from "lucide-react"
@@ -238,6 +242,14 @@ export function AppSidebar({ userData, isAdmin = true, ...props }: React.Compone
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
+        {!isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>My Courses</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <CourseSelector />
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
         <NavMain items={data.navMain} />
         {data.documents.length > 0 && <NavDocuments items={data.documents} />}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
