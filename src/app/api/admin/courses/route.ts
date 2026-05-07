@@ -24,11 +24,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
     
-    const { title, type } = await req.json()
+    const { title, type, coverImage } = await req.json()
 
     const [course] = await db.insert(courses).values({
       title,
-      type: type || "FREE"
+      type: type || "FREE",
+      coverImage: coverImage || null
     }).returning()
 
     return NextResponse.json(course)
@@ -74,6 +75,7 @@ export async function GET(req: NextRequest) {
         id: courses.id,
         title: courses.title,
         type: courses.type,
+        coverImage: courses.coverImage,
         createdAt: courses.createdAt,
         pageCount: sql<number>`count(${coursePages.id})::int`
       })

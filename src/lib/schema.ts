@@ -296,6 +296,7 @@ export const courses = pgTable("courses", {
   id: uuid("id").defaultRandom().primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
+  coverImage: text("cover_image"),
   publisherId: text("publisher_id").references(() => user.id),
   type: text("type", { enum: ["FREE", "PAID"] }).notNull().default("FREE"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

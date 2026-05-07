@@ -17,6 +17,7 @@ type Course = {
   id: string
   title: string
   type: "FREE" | "PAID"
+  coverImage?: string
   createdAt: string
   pageCount: number
 }
@@ -29,6 +30,7 @@ export default function AdminCoursesPage() {
   const [editingCourse, setEditingCourse] = useState<Course | null>(null)
   const [title, setTitle] = useState("")
   const [type, setType] = useState<"FREE" | "PAID">("FREE")
+  const [coverImage, setCoverImage] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
 
@@ -66,20 +68,21 @@ export default function AdminCoursesPage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ title, type })
+        body: JSON.stringify({ title, type, coverImage })
       })
     } else {
       await fetch("/api/admin/courses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ title, type })
+        body: JSON.stringify({ title, type, coverImage })
       })
     }
     setLoading(false)
     setDialogOpen(false)
     setTitle("")
     setType("FREE")
+    setCoverImage("")
     setEditingCourse(null)
     fetchCourses()
   }
@@ -88,6 +91,7 @@ export default function AdminCoursesPage() {
     setEditingCourse(course)
     setTitle(course.title)
     setType(course.type)
+    setCoverImage(course.coverImage || "")
     setDialogOpen(true)
   }
 
@@ -196,6 +200,7 @@ export default function AdminCoursesPage() {
           setEditingCourse(null)
           setTitle("")
           setType("FREE")
+          setCoverImage("")
         }
       }}>
         <DialogContent>
@@ -223,6 +228,15 @@ export default function AdminCoursesPage() {
                   <SelectItem value="PAID">Paid</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div>
+              <Label htmlFor="coverImage">Cover Image URL</Label>
+              <Input
+                id="coverImage"
+                value={coverImage}
+                onChange={(e) => setCoverImage(e.target.value)}
+                placeholder="https://example.com/image.jpg"
+              />
             </div>
           </div>
           <DialogFooter>

@@ -10,6 +10,7 @@ type Course = {
   id: string
   title: string
   type: "FREE" | "PAID"
+  coverImage?: string
   pageCount: number
 }
 
@@ -77,7 +78,16 @@ export default function CourseCatalogPage() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {courses.map((course) => (
-          <Card key={course.id}>
+          <Card key={course.id} className="overflow-hidden">
+            {course.coverImage && (
+              <div className="aspect-video w-full overflow-hidden bg-muted">
+                <img 
+                  src={course.coverImage} 
+                  alt={course.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
             <CardHeader>
               <div className="flex items-start justify-between">
                 <CardTitle className="text-lg">{course.title}</CardTitle>

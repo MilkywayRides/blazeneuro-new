@@ -9,6 +9,7 @@ export async function GET() {
       id: courses.id,
       title: courses.title,
       type: courses.type,
+      coverImage: courses.coverImage,
       pageCount: sql<number>`count(${coursePages.id})::int`
     })
     .from(courses)
