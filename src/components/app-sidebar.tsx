@@ -199,13 +199,13 @@ export function AppSidebar({ userData, isAdmin = true, ...props }: React.Compone
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg">
-              <a href={homeUrl} className="flex items-center gap-2">
+            <SidebarMenuButton size="lg" asChild>
+              <a href={homeUrl}>
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <ShieldIcon className="size-4" />
                 </div>
-                <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold">{title}</span>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">{title}</span>
                 </div>
               </a>
             </SidebarMenuButton>
