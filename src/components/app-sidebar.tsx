@@ -242,6 +242,7 @@ export function AppSidebar({ userData, isAdmin = true, ...props }: React.Compone
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
+        <NavMain items={data.navMain} />
         {!isAdmin && (
           <SidebarGroup>
             <SidebarGroupLabel>My Courses</SidebarGroupLabel>
@@ -250,7 +251,6 @@ export function AppSidebar({ userData, isAdmin = true, ...props }: React.Compone
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-        <NavMain items={data.navMain} />
         {data.documents.length > 0 && <NavDocuments items={data.documents} />}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>

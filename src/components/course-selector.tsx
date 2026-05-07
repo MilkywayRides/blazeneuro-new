@@ -38,6 +38,7 @@ export function CourseSelector() {
   const [selectedCourse, setSelectedCourse] = React.useState<Course | null>(null)
   const [courses, setCourses] = React.useState<Course[]>([])
   const [loading, setLoading] = React.useState(true)
+  const [showPages, setShowPages] = React.useState(false)
   const router = useRouter()
 
   React.useEffect(() => {
@@ -75,6 +76,7 @@ export function CourseSelector() {
     localStorage.setItem("selected-course-id", course.id)
     fetchCourseDetails(course.id)
     setOpen(false)
+    setShowPages(true)
   }
 
   const handlePageClick = (pageId: string) => {
@@ -95,14 +97,15 @@ export function CourseSelector() {
   return (
     <div className="space-y-2">
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger>
+        <PopoverTrigger className="w-full">
           <Button
-            variant="outline"
+            variant="ghost"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between"
+            className="w-full justify-between h-9 px-2"
+            onClick={() => setShowPages(!showPages)}
           >
-            {selectedCourse ? selectedCourse.title : "Select course..."}
+            <span className="truncate">{selectedCourse ? selectedCourse.title : "All Courses"}</span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -133,14 +136,14 @@ export function CourseSelector() {
         </PopoverContent>
       </Popover>
 
-      {selectedCourse?.pages && selectedCourse.pages.length > 0 && (
-        <ScrollArea className="h-[calc(100vh-20rem)]">
+      {showPages && selectedCourse?.pages && selectedCourse.pages.length > 0 && (
+        <ScrollArea className="h-[calc(100vh-28rem)]">
           <div className="space-y-1">
             {selectedCourse.pages.map((page) => (
               <Button
                 key={page.id}
                 variant="ghost"
-                className="w-full justify-start text-sm"
+                className="w-full justify-start text-sm h-9 px-2"
                 onClick={() => handlePageClick(page.id)}
               >
                 {getIcon(page.contentType)}
