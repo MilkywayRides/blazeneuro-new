@@ -49,7 +49,7 @@ export function NavSecondary({
                 <SidebarMenuItem key={item.title}>
                   {!open ? (
                     <Tooltip>
-                      <TooltipTrigger asChild>
+                      <TooltipTrigger>
                         {linkElement}
                       </TooltipTrigger>
                       <TooltipContent side="right">
