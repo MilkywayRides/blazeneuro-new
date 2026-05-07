@@ -26,6 +26,11 @@ export function initSocketServer(httpServer: HTTPServer) {
       console.log('Client joined community room')
     })
 
+    socket.on('courses:join', () => {
+      socket.join('courses')
+      console.log('Client joined courses room')
+    })
+
     socket.on('community:new_post', async (data) => {
       try {
         const { userId, message, replyToId } = data
