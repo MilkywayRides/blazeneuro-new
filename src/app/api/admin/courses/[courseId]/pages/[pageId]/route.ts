@@ -5,6 +5,45 @@ import { eq } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ courseId: string; pageId: string }> }
+) {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers()
+    })
+
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const userRecord = await db.query.user.findFirst({
+      where: (u, { eq }) => eq(u.id, session.user.id)
+    })
+
+    if (!userRecord || userRecord.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const { pageId } = await params
+
+    const [page] = await db
+      .select()
+      .from(coursePages)
+      .where(eq(coursePages.id, pageId))
+
+    if (!page) {
+      return NextResponse.json({ error: 'Page not found' }, { status: 404 })
+    }
+
+    return NextResponse.json(page)
+  } catch (error: any) {
+    console.error("Get page error:", error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
+
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ courseId: string; pageId: string }> }
@@ -27,11 +66,11 @@ export async function PUT(
     }
 
     const { pageId } = await params
-    const { title, contentType, body, videoUrl } = await req.json()
+    const { title, contentType, body, videoUrl, quizData } = await req.json()
 
     const [page] = await db
       .update(coursePages)
-      .set({ title, contentType, body, videoUrl })
+      .set({ title, contentType, body, videoUrl, quizData })
       .where(eq(coursePages.id, pageId))
       .returning()
 

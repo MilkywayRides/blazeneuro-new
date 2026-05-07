@@ -27,7 +27,7 @@ export async function POST(
     }
 
     const { courseId } = await params
-    const { title, contentType, body, videoUrl } = await req.json()
+    const { title, contentType, body, videoUrl, quizData } = await req.json()
 
     const [maxOrder] = await db
       .select({ max: max(coursePages.order) })
@@ -42,6 +42,7 @@ export async function POST(
       contentType,
       body,
       videoUrl,
+      quizData,
       order
     }).returning()
 
