@@ -79,8 +79,12 @@ export async function proxy(request: NextRequest) {
   response.headers.set('x-pathname', pathname)
   
   // Cache static assets
-  if (pathname.match(/\.(jpg|jpeg|png|gif|svg|ico|webp|woff|woff2|ttf|eot)$/)) {
+  if (pathname.startsWith('/_next/static/')) {
     response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+  } else if (pathname.startsWith('/_next/image')) {
+    response.headers.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+  } else if (pathname.match(/\.(jpg|jpeg|png|gif|svg|ico|webp|avif|woff|woff2|ttf|eot)$/)) {
+    response.headers.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
   }
   
   // Cache API responses
