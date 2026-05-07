@@ -53,7 +53,7 @@ export function CourseSelector() {
     try {
       const res = await fetch("/api/courses")
       const data = await res.json()
-      setCourses(data.courses || [])
+      setCourses(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error("Failed to fetch courses:", error)
     } finally {
