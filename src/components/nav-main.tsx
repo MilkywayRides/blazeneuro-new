@@ -7,14 +7,9 @@ import {
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuItem,
+  SidebarMenuButton,
   useSidebar,
 } from "@/components/ui/sidebar"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 
 export function NavMain({
   items,
@@ -32,42 +27,24 @@ export function NavMain({
     <SidebarGroup>
       <SidebarGroupContent>
         <SidebarMenu>
-          <TooltipProvider>
-            {items.map((item) => {
-              const isActive = pathname === item.url
-              
-              const linkElement = (
-                <Link 
-                  href={item.url}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors w-full ${
-                    isActive 
-                      ? 'bg-accent text-accent-foreground' 
-                      : 'hover:bg-accent/50'
-                  } ${!open ? 'justify-center' : ''}`}
+          {items.map((item) => {
+            const isActive = pathname === item.url
+            
+            return (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive}
+                  tooltip={item.title}
                 >
-                  <span className="flex-shrink-0">{item.icon}</span>
-                  {open && <span className="flex-1 text-left">{item.title}</span>}
-                </Link>
-              )
-              
-              return (
-                <SidebarMenuItem key={item.title}>
-                  {!open ? (
-                    <Tooltip>
-                      <TooltipTrigger>
-                        {linkElement}
-                      </TooltipTrigger>
-                      <TooltipContent side="right">
-                        {item.title}
-                      </TooltipContent>
-                    </Tooltip>
-                  ) : (
-                    linkElement
-                  )}
-                </SidebarMenuItem>
-              )
-            })}
-          </TooltipProvider>
+                  <Link href={item.url}>
+                    {item.icon}
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          })}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
