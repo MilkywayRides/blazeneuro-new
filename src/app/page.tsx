@@ -76,7 +76,7 @@ export default function Home() {
       <div className="relative min-h-screen flex flex-col">
         <section className="relative min-h-screen flex items-center justify-center px-4 md:items-center md:pt-0">
           <div className="absolute inset-0 flex items-center justify-center md:-mt-20">
-            <div className="relative w-[95%] md:w-[90%] h-[70%] md:h-[80%] rounded-2xl md:rounded-3xl overflow-hidden mt-16 md:mt-0">
+            <div className="relative w-[95%] md:w-[90%] h-[70%] md:h-[80%] rounded-2xl md:rounded-3xl overflow-hidden -mt-4 md:mt-0">
               {mounted && (
                 <MeshGradient
                   width={1800}
@@ -222,7 +222,7 @@ export default function Home() {
       <div className="relative min-h-screen flex flex-col">
         <section className="relative min-h-screen flex items-center justify-center px-4 md:items-center md:pt-0">
           <div className="absolute inset-0 flex items-center justify-center md:-mt-20">
-            <div className="relative w-[95%] md:w-[90%] h-[70%] md:h-[80%] rounded-2xl md:rounded-3xl overflow-hidden mt-16 md:mt-0">
+            <div className="relative w-[95%] md:w-[90%] h-[70%] md:h-[80%] rounded-2xl md:rounded-3xl overflow-hidden -mt-4 md:mt-0">
               {!mounted ? (
                 <Skeleton className="w-full h-full rounded-2xl md:rounded-3xl" />
               ) : (
