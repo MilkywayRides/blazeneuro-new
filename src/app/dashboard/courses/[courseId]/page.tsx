@@ -30,6 +30,23 @@ const TickIcon = ({ className }: { className?: string }) => (
   </svg>
 )
 
+const getYouTubeEmbedUrl = (url: string) => {
+  if (!url) return null
+  
+  // Extract video ID from various YouTube URL formats
+  let videoId = null
+  
+  if (url.includes('youtube.com/watch?v=')) {
+    videoId = url.split('watch?v=')[1]?.split('&')[0]
+  } else if (url.includes('youtu.be/')) {
+    videoId = url.split('youtu.be/')[1]?.split('?')[0]
+  } else if (url.includes('youtube.com/embed/')) {
+    videoId = url.split('embed/')[1]?.split('?')[0]
+  }
+  
+  return videoId ? `https://www.youtube.com/embed/${videoId}` : null
+}
+
 type Page = {
   id: string
   title: string
@@ -324,23 +341,29 @@ export default function CourseViewerPage() {
                 {selectedPage.contentType === "VIDEO" && (
                   <div className="space-y-4">
                     <div className="aspect-video bg-black rounded-xl overflow-hidden shadow-lg">
-                      {selectedPage.videoUrl?.includes('youtube.com') || selectedPage.videoUrl?.includes('youtu.be') ? (
-                        <iframe
-                          src={selectedPage.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
-                          className="w-full h-full"
-                          allowFullScreen
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        />
-                      ) : (
-                        <video
-                          src={selectedPage.videoUrl}
-                          className="w-full h-full"
-                          controls
-                          autoPlay
-                          loop
-                          muted
-                        />
-                      )}
+                      {(() => {
+                        const embedUrl = getYouTubeEmbedUrl(selectedPage.videoUrl || '')
+                        if (embedUrl) {
+                          return (
+                            <iframe
+                              src={embedUrl}
+                              className="w-full h-full"
+                              allowFullScreen
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            />
+                          )
+                        }
+                        return (
+                          <video
+                            src={selectedPage.videoUrl}
+                            className="w-full h-full"
+                            controls
+                            autoPlay
+                            loop
+                            muted
+                          />
+                        )
+                      })()}
                     </div>
                     
                     {/* YouTube-style title and info */}
