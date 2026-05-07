@@ -206,12 +206,11 @@ export function AppSidebar({ userData, isAdmin = true, ...props }: React.Compone
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-              asChild
-            >
-              <Link href={homeUrl}>
+            <Link href={homeUrl}>
+              <SidebarMenuButton
+                size="lg"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground w-full"
+              >
                 {!isDashboardHome && (
                   <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shrink-0">
                     <ShieldIcon className="size-4 shrink-0 transition-none" />
@@ -223,8 +222,8 @@ export function AppSidebar({ userData, isAdmin = true, ...props }: React.Compone
                   ) : (
                     <TooltipProvider>
                       <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="font-bold text-lg">Bn.</span>
+                        <TooltipTrigger className="font-bold text-lg">
+                          Bn.
                         </TooltipTrigger>
                         <TooltipContent side="right">
                           <p>{title}</p>
@@ -233,8 +232,8 @@ export function AppSidebar({ userData, isAdmin = true, ...props }: React.Compone
                     </TooltipProvider>
                   )}
                 </div>
-              </Link>
-            </SidebarMenuButton>
+              </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
