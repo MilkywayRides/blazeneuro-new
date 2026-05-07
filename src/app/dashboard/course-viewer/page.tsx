@@ -81,6 +81,10 @@ export default function CourseViewerPage() {
   const handleNext = () => {
     if (!course || !page) return
     const currentIndex = course.pages.findIndex(p => p.id === page.id)
+    
+    // Mark current page as complete
+    markComplete(page.id)
+    
     if (currentIndex < course.pages.length - 1) {
       const nextPage = course.pages[currentIndex + 1]
       router.push(`/dashboard/course-viewer?courseId=${courseId}&pageId=${nextPage.id}`)
@@ -94,6 +98,23 @@ export default function CourseViewerPage() {
       const prevPage = course.pages[currentIndex - 1]
       router.push(`/dashboard/course-viewer?courseId=${courseId}&pageId=${prevPage.id}`)
     }
+  }
+
+  const markComplete = async (pageId: string) => {
+    if (!course) return
+    
+    // Optimistically update UI
+    const updatedPages = course.pages.map(p => 
+      p.id === pageId ? { ...p, completed: true } : p
+    )
+    setCourse({ ...course, pages: updatedPages })
+
+    // Update in background
+    fetch(`/api/courses/${courseId}/progress`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pageId, completed: true })
+    }).catch(err => console.error("Failed to save progress:", err))
   }
 
   const completedCount = course?.pages.filter(p => p.completed).length || 0
@@ -229,37 +250,34 @@ export default function CourseViewerPage() {
 
     {/* Bottom Navigation */}
     {course && page && (
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] md:w-full md:max-w-3xl px-2 md:px-6 z-10">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-2 md:gap-4 px-3 md:px-6 py-3 rounded-xl border bg-card/95 backdrop-blur-md shadow-lg">
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrevious}
-              disabled={currentIndex === 0}
-              className="flex-1 md:flex-none"
-            >
-              <ChevronLeft className="h-4 w-4 md:mr-2" />
-              <span className="hidden md:inline">Previous</span>
-            </Button>
-            
-            <Button
-              size="sm"
-              onClick={handleNext}
-              disabled={currentIndex === totalPages - 1}
-              className="bg-foreground text-background hover:bg-foreground/90 flex-1 md:flex-none"
-            >
-              <span className="hidden md:inline">Next</span>
-              <ChevronRight className="h-4 w-4 md:ml-2" />
-            </Button>
-          </div>
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] md:w-full md:max-w-4xl px-2 md:px-6 z-10">
+        <div className="flex items-center justify-between gap-2 md:gap-4 px-3 md:px-6 py-3 rounded-xl border bg-card/95 backdrop-blur-md shadow-lg">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePrevious}
+            disabled={currentIndex === 0}
+          >
+            <ChevronLeft className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Previous</span>
+          </Button>
           
-          <div className="flex items-center gap-2 w-full md:flex-1 md:max-w-md">
-            <Play className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+          <div className="flex items-center gap-2 flex-1 max-w-md">
+            <Play className="h-4 w-4 text-muted-foreground shrink-0" />
             <Progress value={progress} className="flex-1 h-2" />
-            <Flag className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <Flag className="h-4 w-4 text-muted-foreground shrink-0" />
             <span className="text-xs text-muted-foreground whitespace-nowrap">{completedCount}/{totalPages}</span>
           </div>
+          
+          <Button
+            size="sm"
+            onClick={handleNext}
+            disabled={currentIndex === totalPages - 1}
+            className="bg-foreground text-background hover:bg-foreground/90"
+          >
+            <span className="hidden md:inline">Next</span>
+            <ChevronRight className="h-4 w-4 md:ml-2" />
+          </Button>
         </div>
       </div>
     )}
