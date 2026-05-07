@@ -36,15 +36,15 @@ const getYouTubeEmbedUrl = (url: string) => {
   // Extract video ID from various YouTube URL formats
   let videoId = null
   
-  if (url.includes('youtube.com/watch?v=')) {
+  if (url.includes('youtube.com/watch?v=') || url.includes('www.youtube.com/watch?v=')) {
     videoId = url.split('watch?v=')[1]?.split('&')[0]
   } else if (url.includes('youtu.be/')) {
     videoId = url.split('youtu.be/')[1]?.split('?')[0]
-  } else if (url.includes('youtube.com/embed/')) {
+  } else if (url.includes('youtube.com/embed/') || url.includes('www.youtube.com/embed/')) {
     videoId = url.split('embed/')[1]?.split('?')[0]
   }
   
-  return videoId ? `https://www.youtube.com/embed/${videoId}` : null
+  return videoId ? `https://www.youtube-nocookie.com/embed/${videoId}` : null
 }
 
 type Page = {
