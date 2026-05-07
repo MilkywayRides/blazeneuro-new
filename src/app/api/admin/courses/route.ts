@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
       })
       .from(courses)
       .leftJoin(coursePages, eq(courses.id, coursePages.courseId))
-      .groupBy(courses.id)
+      .groupBy(courses.id, courses.title, courses.type, courses.coverImage, courses.createdAt)
 
     return NextResponse.json(result)
   } catch (error: any) {
