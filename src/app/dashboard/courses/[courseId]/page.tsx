@@ -1,20 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Progress } from "@/components/ui/progress"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import ReactMarkdown from "react-markdown"
-import { Quiz } from "@/components/quiz"
 import { useParams, useSearchParams, useRouter } from "next/navigation"
-import { authClient } from "@/lib/auth-client"
-import Link from "next/link"
-import { Check, ChevronLeft, ChevronRight, Play, Flag, Video, FileText, HelpCircle, Menu, X } from "lucide-react"
-import { PageReactions } from "@/components/page-reactions"
+import { Spinner } from "@/components/ui/spinner"
 
 const ArrowRightIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" className={className}>
@@ -102,9 +90,9 @@ export default function CourseViewerPage() {
 
   return (
     <div className="flex items-center justify-center h-full">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-        <p className="text-muted-foreground">Redirecting...</p>
+      <div className="text-center space-y-4">
+        <Spinner className="mx-auto" />
+        <p className="text-muted-foreground">Redirecting to course viewer...</p>
       </div>
     </div>
   )
