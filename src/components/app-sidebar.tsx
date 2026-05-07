@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import { usePathname } from "next/navigation"
+import Link from "next/link"
 
 import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
@@ -15,7 +17,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { LayoutDashboardIcon, UsersIcon, Settings2Icon, CircleHelpIcon, SearchIcon, ShieldIcon, ActivityIcon, DatabaseIcon, FileTextIcon, MessageSquareIcon, BellIcon, BookOpenIcon } from "lucide-react"
 
 const adminData = {
@@ -193,6 +197,9 @@ export function AppSidebar({ userData, isAdmin = true, ...props }: React.Compone
   const data = isAdmin ? adminData : userDashboardData;
   const homeUrl = isAdmin ? "/admin" : "/dashboard";
   const title = isAdmin ? "BlazeNeuro Admin" : "BlazeNeuro";
+  const pathname = usePathname();
+  const { open } = useSidebar();
+  const isDashboardHome = pathname === "/dashboard";
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -202,13 +209,31 @@ export function AppSidebar({ userData, isAdmin = true, ...props }: React.Compone
             <SidebarMenuButton
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              asChild
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <ShieldIcon className="size-4 shrink-0" />
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{title}</span>
-              </div>
+              <Link href={homeUrl}>
+                {!isDashboardHome && (
+                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground shrink-0">
+                    <ShieldIcon className="size-4 shrink-0 transition-none" />
+                  </div>
+                )}
+                <div className={`grid flex-1 text-left leading-tight ${isDashboardHome ? 'text-center' : ''}`}>
+                  {open ? (
+                    <span className={`truncate font-semibold ${isDashboardHome ? 'text-2xl' : 'text-sm'}`}>{title}</span>
+                  ) : (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="font-bold text-lg">Bn.</span>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>{title}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                </div>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

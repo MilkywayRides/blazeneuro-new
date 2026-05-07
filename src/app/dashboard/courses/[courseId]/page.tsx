@@ -322,7 +322,25 @@ export default function CourseViewerPage() {
                     {/* Article content */}
                     <Card className="border-border">
                       <CardContent className="pt-6 space-y-6">
-                        <div className="prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-a:text-primary prose-code:text-orange-500 prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded">
+                        <div className="prose prose-slate dark:prose-invert max-w-none 
+                          prose-headings:font-semibold prose-headings:tracking-tight
+                          prose-h1:text-3xl prose-h1:mb-4 prose-h1:mt-6
+                          prose-h2:text-2xl prose-h2:mb-3 prose-h2:mt-5 prose-h2:border-b prose-h2:pb-2
+                          prose-h3:text-xl prose-h3:mb-2 prose-h3:mt-4
+                          prose-p:text-base prose-p:leading-7 prose-p:mb-4
+                          prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                          prose-strong:font-semibold prose-strong:text-foreground
+                          prose-code:text-orange-500 prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
+                          prose-pre:bg-muted prose-pre:border prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto
+                          prose-ul:my-4 prose-ul:list-disc prose-ul:pl-6
+                          prose-ol:my-4 prose-ol:list-decimal prose-ol:pl-6
+                          prose-li:my-1 prose-li:leading-7
+                          prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:my-4
+                          prose-img:rounded-lg prose-img:shadow-md prose-img:my-6
+                          prose-hr:my-8 prose-hr:border-border
+                          prose-table:my-6 prose-table:border-collapse
+                          prose-th:border prose-th:border-border prose-th:bg-muted prose-th:p-2 prose-th:font-semibold
+                          prose-td:border prose-td:border-border prose-td:p-2">
                           <ReactMarkdown>{selectedPage.body}</ReactMarkdown>
                         </div>
                       </CardContent>
@@ -413,7 +431,25 @@ export default function CourseViewerPage() {
                       {selectedPage.body && (
                         <Card className="border-border">
                           <CardContent className="pt-6">
-                            <div className="prose dark:prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-a:text-primary prose-code:text-orange-500 prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded">
+                            <div className="prose prose-slate dark:prose-invert max-w-none 
+                              prose-headings:font-semibold prose-headings:tracking-tight
+                              prose-h1:text-3xl prose-h1:mb-4 prose-h1:mt-6
+                              prose-h2:text-2xl prose-h2:mb-3 prose-h2:mt-5 prose-h2:border-b prose-h2:pb-2
+                              prose-h3:text-xl prose-h3:mb-2 prose-h3:mt-4
+                              prose-p:text-base prose-p:leading-7 prose-p:mb-4
+                              prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                              prose-strong:font-semibold prose-strong:text-foreground
+                              prose-code:text-orange-500 prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
+                              prose-pre:bg-muted prose-pre:border prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto
+                              prose-ul:my-4 prose-ul:list-disc prose-ul:pl-6
+                              prose-ol:my-4 prose-ol:list-decimal prose-ol:pl-6
+                              prose-li:my-1 prose-li:leading-7
+                              prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:my-4
+                              prose-img:rounded-lg prose-img:shadow-md prose-img:my-6
+                              prose-hr:my-8 prose-hr:border-border
+                              prose-table:my-6 prose-table:border-collapse
+                              prose-th:border prose-th:border-border prose-th:bg-muted prose-th:p-2 prose-th:font-semibold
+                              prose-td:border prose-td:border-border prose-td:p-2">
                               <ReactMarkdown>{selectedPage.body}</ReactMarkdown>
                             </div>
                           </CardContent>

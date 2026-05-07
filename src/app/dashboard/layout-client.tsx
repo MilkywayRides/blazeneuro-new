@@ -35,7 +35,7 @@ export function DashboardLayoutClient({
 
   useEffect(() => {
     if (userPreference === null) {
-      const isCoursePage = /\/dashboard\/courses\/[^/]+$/.test(pathname)
+      const isCoursePage = /\/dashboard\/courses\/[^/]+/.test(pathname)
       setOpen(!isCoursePage)
     }
   }, [pathname, userPreference])

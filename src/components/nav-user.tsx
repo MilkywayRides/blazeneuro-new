@@ -53,10 +53,10 @@ export function NavUser({
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <SidebarMenuButton size="lg" className="aria-expanded:bg-muted data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground" />
+              <SidebarMenuButton size="lg" className="aria-expanded:bg-muted data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground justify-center data-[state=collapsed]:justify-center" />
             }
           >
-            <Avatar className="size-8 rounded-lg">
+            <Avatar className="size-8 rounded-lg shrink-0">
               <AvatarImage 
                 src={user.avatar} 
                 alt={user.name}
@@ -71,7 +71,7 @@ export function NavUser({
                 {user.email}
               </span>
             </div>
-            <EllipsisVerticalIcon className="ml-auto size-4" />
+            <EllipsisVerticalIcon className="ml-auto size-4 shrink-0" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="min-w-56"

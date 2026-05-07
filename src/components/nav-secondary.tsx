@@ -29,7 +29,7 @@ export function NavSecondary({
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton>
                 <Link href={item.url} className="flex items-center gap-2 w-full">
-                  {item.icon}
+                  <span className="[&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:transition-none">{item.icon}</span>
                   <span>{item.title}</span>
                 </Link>
               </SidebarMenuButton>

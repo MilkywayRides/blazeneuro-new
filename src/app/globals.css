@@ -127,6 +127,16 @@
   html {
     @apply font-sans;
   }
+  
+  /* Prevent sidebar icon size changes */
+  [data-sidebar] svg {
+    transition: none !important;
+  }
+  
+  [data-sidebar] [data-state="collapsed"] svg {
+    width: 1rem !important;
+    height: 1rem !important;
+  }
 }
 
 
