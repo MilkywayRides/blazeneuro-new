@@ -24,28 +24,28 @@ const adminData = {
       title: "Dashboard",
       url: "/admin",
       icon: (
-        <LayoutDashboardIcon className="size-4 shrink-0 text-gray-500" />
+        <LayoutDashboardIcon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
     {
       title: "Courses",
       url: "/admin/courses",
       icon: (
-        <BookOpenIcon className="size-4 shrink-0 text-gray-500" />
+        <BookOpenIcon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
     {
       title: "Notifications",
       url: "/admin/notifications",
       icon: (
-        <BellIcon className="size-4 shrink-0 text-gray-500" />
+        <BellIcon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
     {
       title: "Live Globe",
       url: "/admin/globe",
       icon: (
-        <svg className="size-4 shrink-0 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="size-4 shrink-0 text-muted-foreground/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
@@ -54,56 +54,56 @@ const adminData = {
       title: "Community",
       url: "/admin/community",
       icon: (
-        <MessageSquareIcon className="size-4 shrink-0 text-gray-500" />
+        <MessageSquareIcon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
     {
       title: "Deploy",
       url: "/admin/deploy",
       icon: (
-        <ActivityIcon className="size-4 shrink-0 text-gray-500" />
+        <ActivityIcon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
     {
       title: "Users",
       url: "/admin/users",
       icon: (
-        <UsersIcon className="size-4 shrink-0 text-gray-500" />
+        <UsersIcon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
     {
       title: "Blogs",
       url: "/admin/blogs",
       icon: (
-        <FileTextIcon className="size-4 shrink-0 text-gray-500" />
+        <FileTextIcon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
     {
       title: "Create oAuth Apps",
       url: "/admin/oauth",
       icon: (
-        <ShieldIcon className="size-4 shrink-0 text-gray-500" />
+        <ShieldIcon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
     {
       title: "Analytics",
       url: "/admin/analytics",
       icon: (
-        <ActivityIcon className="size-4 shrink-0 text-gray-500" />
+        <ActivityIcon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
     {
       title: "Database",
       url: "/admin/database",
       icon: (
-        <DatabaseIcon className="size-4 shrink-0 text-gray-500" />
+        <DatabaseIcon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
     {
       title: "Security",
       url: "/admin/security",
       icon: (
-        <ShieldIcon className="size-4 shrink-0 text-gray-500" />
+        <ShieldIcon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
   ],
@@ -112,28 +112,28 @@ const adminData = {
       title: "OAuth Settings",
       url: "/admin/settings/oauth",
       icon: (
-        <ShieldIcon className="size-4 shrink-0 text-gray-500" />
+        <ShieldIcon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
     {
       title: "Settings",
       url: "/admin/settings",
       icon: (
-        <Settings2Icon className="size-4 shrink-0 text-gray-500" />
+        <Settings2Icon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
     {
       title: "Get Help",
       url: "/admin/help",
       icon: (
-        <CircleHelpIcon className="size-4 shrink-0 text-gray-500" />
+        <CircleHelpIcon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
     {
       title: "Search",
       url: "/admin/search",
       icon: (
-        <SearchIcon className="size-4 shrink-0 text-gray-500" />
+        <SearchIcon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
   ],
@@ -146,28 +146,28 @@ const userDashboardData = {
       title: "Dashboard",
       url: "/dashboard",
       icon: (
-        <LayoutDashboardIcon className="size-4 shrink-0 text-gray-500" />
+        <LayoutDashboardIcon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
     {
       title: "Courses",
       url: "/dashboard/courses",
       icon: (
-        <BookOpenIcon className="size-4 shrink-0 text-gray-500" />
+        <BookOpenIcon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
     {
       title: "Linked Accounts",
       url: "/dashboard/linked-accounts",
       icon: (
-        <UsersIcon className="size-4 shrink-0 text-gray-500" />
+        <UsersIcon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
     {
       title: "Create oAuth Apps",
       url: "/dashboard/oauth",
       icon: (
-        <ShieldIcon className="size-4 shrink-0 text-gray-500" />
+        <ShieldIcon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
   ],
@@ -176,7 +176,7 @@ const userDashboardData = {
       title: "Settings",
       url: "/dashboard/settings",
       icon: (
-        <Settings2Icon className="size-4 shrink-0 text-gray-500" />
+        <Settings2Icon className="size-4 shrink-0 text-muted-foreground/70" />
       ),
     },
   ],
