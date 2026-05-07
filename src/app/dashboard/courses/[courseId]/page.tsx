@@ -13,7 +13,7 @@ import { Quiz } from "@/components/quiz"
 import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { authClient } from "@/lib/auth-client"
 import Link from "next/link"
-import { Check, ChevronLeft, ChevronRight, Play, Flag, Video, FileText, HelpCircle } from "lucide-react"
+import { Check, ChevronLeft, ChevronRight, Play, Flag, Video, FileText, HelpCircle, Menu, X } from "lucide-react"
 import { PageReactions } from "@/components/page-reactions"
 
 const ArrowRightIcon = ({ className }: { className?: string }) => (
@@ -70,6 +70,7 @@ export default function CourseViewerPage() {
   const [selectedPage, setSelectedPage] = useState<Page | null>(null)
   const [hasPurchased, setHasPurchased] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const { data: session } = authClient.useSession()
 
   const isAdmin = (session?.user as any)?.role === "admin"
@@ -107,6 +108,7 @@ export default function CourseViewerPage() {
   const handlePageSelect = (page: Page) => {
     setSelectedPage(page)
     localStorage.setItem(`course-${courseId}-last-page`, page.id)
+    setSidebarOpen(false)
     router.replace(`/dashboard/courses/${courseId}?pageId=${page.id}`, { scroll: false })
   }
 
@@ -227,7 +229,13 @@ export default function CourseViewerPage() {
       )}
 
       {/* Left Sidebar - Page List */}
-      <div className="w-64 border-r flex flex-col h-full">
+      <div className={`${sidebarOpen ? 'fixed inset-0 z-40 bg-background' : 'hidden'} md:block md:relative md:w-64 border-r md:flex md:flex-col h-full`}>
+        <div className="flex items-center justify-between p-2 md:hidden border-b">
+          <h2 className="font-semibold">Course Content</h2>
+          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
         <ScrollArea className="flex-1">
           <div className="p-2">
             {course.pages.map((page) => {
@@ -253,8 +261,20 @@ export default function CourseViewerPage() {
 
       {/* Right Content Area */}
       <div className="flex-1 flex flex-col relative h-full">
+        {/* Mobile Menu Button */}
+        <div className="md:hidden fixed top-16 left-4 z-30">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setSidebarOpen(true)}
+            className="rounded-full shadow-lg bg-background"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        </div>
+
         <ScrollArea className="flex-1">
-          <div className="p-6 pb-24">
+          <div className="p-4 md:p-6 pb-32 md:pb-24">
             {selectedPage ? (
               <>
                 {selectedPage.contentType === "ARTICLE" && (
@@ -424,43 +444,46 @@ export default function CourseViewerPage() {
         </ScrollArea>
 
         {/* Bottom Navigation */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full max-w-3xl px-6">
-          <div className="flex items-center justify-between gap-4 px-6 py-3 rounded-xl border bg-card/95 backdrop-blur-md shadow-lg">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrevious}
-              disabled={!course || !selectedPage || course.pages.findIndex(p => p.id === selectedPage.id) === 0}
-            >
-              <ChevronLeft className="h-4 w-4 mr-2" />
-              Previous
-            </Button>
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] md:w-full md:max-w-3xl px-2 md:px-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-2 md:gap-4 px-3 md:px-6 py-3 rounded-xl border bg-card/95 backdrop-blur-md shadow-lg">
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrevious}
+                disabled={!course || !selectedPage || course.pages.findIndex(p => p.id === selectedPage.id) === 0}
+                className="flex-1 md:flex-none"
+              >
+                <ChevronLeft className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Previous</span>
+              </Button>
+              
+              <Button
+                size="sm"
+                onClick={handleNext}
+                disabled={!course || !selectedPage || allCompleted}
+                className="bg-foreground text-background hover:bg-foreground/90 flex-1 md:flex-none md:order-last"
+              >
+                {isLastPage ? (
+                  <>
+                    <TickIcon className="h-4 w-4 md:mr-2" />
+                    <span className="hidden md:inline">Complete</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="hidden md:inline">Next</span>
+                    <ArrowRightIcon className="h-4 w-4 md:ml-2" />
+                  </>
+                )}
+              </Button>
+            </div>
             
-            <div className="flex items-center gap-2 flex-1 max-w-md">
+            <div className="flex items-center gap-2 w-full md:flex-1 md:max-w-md">
               <Play className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <Progress value={progress} className="flex-1 transition-all duration-300 h-2" />
               <Flag className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <span className="text-xs text-muted-foreground whitespace-nowrap transition-all duration-300">{completedCount}/{totalPages}</span>
             </div>
-
-            <Button
-              size="sm"
-              onClick={handleNext}
-              disabled={!course || !selectedPage || allCompleted}
-              className="bg-foreground text-background hover:bg-foreground/90"
-            >
-              {isLastPage ? (
-                <>
-                  <TickIcon className="h-4 w-4 mr-2" />
-                  Complete
-                </>
-              ) : (
-                <>
-                  Next
-                  <ArrowRightIcon className="h-4 w-4 ml-2" />
-                </>
-              )}
-            </Button>
           </div>
         </div>
       </div>
