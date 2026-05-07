@@ -47,6 +47,7 @@ export function CourseSelector() {
     fetchCourses()
     const saved = localStorage.getItem("selected-course-id")
     if (saved) {
+      setShowPages(true)
       fetchCourseDetails(saved)
     }
   }, [])

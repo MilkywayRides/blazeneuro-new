@@ -101,20 +101,23 @@ export default function CourseViewerPage() {
   }
 
   const markComplete = async (pageId: string) => {
-    if (!course) return
+    if (!course || !courseId) return
     
-    // Optimistically update UI
-    const updatedPages = course.pages.map(p => 
-      p.id === pageId ? { ...p, completed: true } : p
-    )
-    setCourse({ ...course, pages: updatedPages })
-
     // Update in background
-    fetch(`/api/courses/${courseId}/progress`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pageId, completed: true })
-    }).catch(err => console.error("Failed to save progress:", err))
+    try {
+      await fetch(`/api/courses/${courseId}/progress`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pageId, completed: true })
+      })
+      
+      // Refetch course to get updated progress
+      const res = await fetch(`/api/courses/${courseId}`)
+      const data = await res.json()
+      setCourse(data)
+    } catch (err) {
+      console.error("Failed to save progress:", err)
+    }
   }
 
   const completedCount = course?.pages.filter(p => p.completed).length || 0
@@ -251,7 +254,7 @@ export default function CourseViewerPage() {
     {/* Bottom Navigation */}
     {course && page && (
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] md:w-full md:max-w-4xl px-2 md:px-6 z-10">
-        <div className="flex items-center justify-between gap-2 md:gap-4 px-3 md:px-6 py-3 rounded-xl border bg-card/95 backdrop-blur-md shadow-lg">
+        <div className="flex items-center gap-2 md:gap-4 px-3 md:px-6 py-3 rounded-xl border bg-card/95 backdrop-blur-md shadow-lg">
           <Button
             variant="outline"
             size="sm"
@@ -262,7 +265,7 @@ export default function CourseViewerPage() {
             <span className="hidden md:inline">Previous</span>
           </Button>
           
-          <div className="flex items-center gap-2 flex-1 max-w-md">
+          <div className="flex items-center gap-2 flex-1">
             <Play className="h-4 w-4 text-muted-foreground shrink-0" />
             <Progress value={progress} className="flex-1 h-2" />
             <Flag className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -273,7 +276,7 @@ export default function CourseViewerPage() {
             size="sm"
             onClick={handleNext}
             disabled={currentIndex === totalPages - 1}
-            className="bg-foreground text-background hover:bg-foreground/90"
+            className="bg-foreground text-background hover:bg-foreground/90 ml-auto"
           >
             <span className="hidden md:inline">Next</span>
             <ChevronRight className="h-4 w-4 md:ml-2" />
