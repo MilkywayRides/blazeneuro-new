@@ -11,11 +11,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft } from "lucide-react"
 import { QuizBuilder } from "@/components/quiz-builder"
 
-export default function PageEditorPage({ params }: { params: { courseId: string } }) {
+export default function PageEditorPage({ params }: { params: Promise<{ courseId: string }> }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const pageId = searchParams.get("pageId")
-  const courseId = params.courseId
+  const [courseId, setCourseId] = useState<string>("")
 
   const [pageTitle, setPageTitle] = useState("")
   const [contentType, setContentType] = useState<"ARTICLE" | "VIDEO" | "QUIZ">("ARTICLE")
@@ -25,10 +25,14 @@ export default function PageEditorPage({ params }: { params: { courseId: string 
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (pageId) {
+    params.then(p => setCourseId(p.courseId))
+  }, [params])
+
+  useEffect(() => {
+    if (pageId && courseId) {
       fetchPage()
     }
-  }, [pageId])
+  }, [pageId, courseId])
 
   const fetchPage = async () => {
     try {
