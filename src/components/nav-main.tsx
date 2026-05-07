@@ -54,7 +54,7 @@ export function NavMain({
                 <SidebarMenuItem key={item.title}>
                   {!open ? (
                     <Tooltip>
-                      <TooltipTrigger>
+                      <TooltipTrigger asChild>
                         {linkElement}
                       </TooltipTrigger>
                       <TooltipContent side="right">

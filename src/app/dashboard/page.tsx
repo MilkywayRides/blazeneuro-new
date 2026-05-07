@@ -1,13 +1,14 @@
 import { Metadata } from "next";
 import { requireAuth } from "@/lib/auth-check";
 import { db } from "@/lib/db";
-import { session as sessionTable } from "@/lib/schema";
+import { session as sessionTable, courseEnrollments, courses, coursePages, courseProgress } from "@/lib/schema";
 import { eq, and, gte, sql } from "drizzle-orm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { User, Mail, Shield, Activity } from "lucide-react";
 import { AccountActiveChart } from "@/components/account-active-chart";
+import { EnrolledCourses } from "@/components/enrolled-courses";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -63,6 +64,29 @@ export default async function Page() {
     };
   });
 
+  // Fetch enrolled courses with progress
+  const enrolledCoursesData = await db
+    .select({
+      id: courses.id,
+      title: courses.title,
+      description: courses.description,
+      totalPages: sql<number>`count(distinct ${coursePages.id})::int`,
+      completedPages: sql<number>`count(distinct case when ${courseProgress.completed} = true then ${courseProgress.pageId} end)::int`,
+    })
+    .from(courseEnrollments)
+    .innerJoin(courses, eq(courseEnrollments.courseId, courses.id))
+    .leftJoin(coursePages, eq(coursePages.courseId, courses.id))
+    .leftJoin(
+      courseProgress,
+      and(
+        eq(courseProgress.pageId, coursePages.id),
+        eq(courseProgress.userId, session.user.id)
+      )
+    )
+    .where(eq(courseEnrollments.userId, session.user.id))
+    .groupBy(courses.id, courses.title, courses.description)
+    .orderBy(courses.createdAt);
+
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 md:gap-8 md:p-8">
       <div className="flex flex-col gap-2">
@@ -105,6 +129,8 @@ export default async function Page() {
               </CardContent>
             </Card>
           </div>
+
+          <EnrolledCourses courses={enrolledCoursesData} />
 
           <div className="grid gap-6 grid-cols-1 lg:grid-cols-7">
             <Card className="lg:col-span-4">

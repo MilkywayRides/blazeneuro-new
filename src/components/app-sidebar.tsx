@@ -195,16 +195,19 @@ export function AppSidebar({ userData, isAdmin = true, ...props }: React.Compone
   const title = isAdmin ? "BlazeNeuro Admin" : "BlazeNeuro";
 
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              className="data-[slot=sidebar-menu-button]:p-1.5!"
-              render={<a href={homeUrl} />}
-            >
-              <ShieldIcon className="size-5!" />
-              <span className="text-base font-semibold">{title}</span>
+            <SidebarMenuButton size="lg" asChild>
+              <a href={homeUrl}>
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                  <ShieldIcon className="size-4" />
+                </div>
+                <div className="flex flex-col gap-0.5 leading-none">
+                  <span className="font-semibold">{title}</span>
+                </div>
+              </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

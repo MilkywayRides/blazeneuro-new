@@ -3,6 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Separator } from "@/components/ui/separator"
@@ -24,7 +25,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ModeToggle } from "@/components/mode-toggle"
+
+const ModeToggle = dynamic(() => import("@/components/mode-toggle").then(m => ({ default: m.ModeToggle })), { ssr: false })
 
 const navLinks = [
   { href: "/", label: "Home", icon: Home },
@@ -65,11 +67,11 @@ export function Navbar() {
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10)
-    window.addEventListener("scroll", onScroll)
+    window.addEventListener("scroll", onScroll, { passive: true })
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
-  const handleLogout = async () => {
+  const handleLogout = React.useCallback(async () => {
     const accountInfo = localStorage.getItem("lastAccount")
     await authClient.signOut({
       fetchOptions: {
@@ -89,16 +91,17 @@ export function Navbar() {
         }
       }
     })
-  }
+  }, [authUrl])
 
-  const isActive = (href: string) => {
+  const isActive = React.useCallback((href: string) => {
     if (href === "/") return pathname === "/"
     return pathname.startsWith(href)
-  }
+  }, [pathname])
 
-  const allLinks = isAdmin
-    ? [...navLinks, { href: "/admin", label: "Admin", icon: Shield }]
-    : navLinks
+  const allLinks = React.useMemo(() => 
+    isAdmin ? [...navLinks, { href: "/admin", label: "Admin", icon: Shield }] : navLinks,
+    [isAdmin]
+  )
 
   const activeIndex = allLinks.findIndex((link) => isActive(link.href))
 
@@ -121,12 +124,11 @@ export function Navbar() {
     }
 
     updateActivePill()
-    window.addEventListener("resize", updateActivePill)
+    window.addEventListener("resize", updateActivePill, { passive: true })
     return () => window.removeEventListener("resize", updateActivePill)
   }, [activeIndex, isAdmin])
 
   const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/")
-  const isTermsOrPrivacy = pathname === "/terms" || pathname === "/privacy"
 
   if (isDashboardRoute || isAdminRoute) {
     return null
@@ -141,7 +143,6 @@ export function Navbar() {
       }`}
     >
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group shrink-0">
           <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-foreground group-hover:scale-105 transition-transform duration-200">
             <Brain className="h-4 w-4 text-background" />
@@ -151,7 +152,6 @@ export function Navbar() {
           </span>
         </Link>
 
-        {/* Desktop Nav — Center */}
         <nav
           ref={navRef}
           className="relative hidden md:flex items-center gap-1 rounded-full border border-border/60 bg-muted/40 px-1 py-0.5"
@@ -183,11 +183,9 @@ export function Navbar() {
           ))}
         </nav>
 
-        {/* Right side */}
         <div className="flex items-center gap-1.5">
           <ModeToggle />
 
-          {/* User / Login — Desktop */}
           {session?.user ? (
             <DropdownMenu>
               <DropdownMenuTrigger className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
@@ -196,6 +194,7 @@ export function Navbar() {
                     src={session.user.image}
                     alt={session.user.name || "User"}
                     className="h-8 w-8 rounded-full object-cover ring-1 ring-border hover:ring-2 hover:ring-foreground/20 transition-all"
+                    loading="lazy"
                   />
                 ) : (
                   <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center ring-1 ring-border hover:ring-2 hover:ring-foreground/20 transition-all">
@@ -210,6 +209,7 @@ export function Navbar() {
                       src={session.user.image}
                       alt={session.user.name || "User"}
                       className="h-9 w-9 rounded-full object-cover"
+                      loading="lazy"
                     />
                   ) : (
                     <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center">
@@ -236,7 +236,6 @@ export function Navbar() {
             </Link>
           )}
 
-          {/* Mobile menu — use render prop to avoid nested buttons */}
           <div className="md:hidden">
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger
@@ -280,7 +279,7 @@ export function Navbar() {
                     <div className="space-y-3">
                       <div className="flex items-center gap-3 px-3 py-2">
                         {session.user.image ? (
-                          <img src={session.user.image} alt="" className="h-8 w-8 rounded-full object-cover" />
+                          <img src={session.user.image} alt="" className="h-8 w-8 rounded-full object-cover" loading="lazy" />
                         ) : (
                           <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
                             <User className="h-4 w-4" />

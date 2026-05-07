@@ -22,29 +22,28 @@ export function DashboardLayoutClient({
 }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(true)
-  const [userChanged, setUserChanged] = useState(false)
+  const [userPreference, setUserPreference] = useState<boolean | null>(null)
 
   useEffect(() => {
-    // Check if user has manually changed sidebar state
-    const savedState = localStorage.getItem('sidebar:state')
-    if (savedState) {
-      setUserChanged(true)
-      setOpen(savedState === 'true')
+    const saved = localStorage.getItem('sidebar:user-preference')
+    if (saved) {
+      const pref = saved === 'true'
+      setUserPreference(pref)
+      setOpen(pref)
     }
   }, [])
 
   useEffect(() => {
-    // Only auto-collapse if user hasn't manually changed it
-    if (!userChanged) {
-      const isCoursePage = pathname.includes("/courses/") && pathname.split("/").length > 3
+    if (userPreference === null) {
+      const isCoursePage = /\/dashboard\/courses\/[^/]+$/.test(pathname)
       setOpen(!isCoursePage)
     }
-  }, [pathname, userChanged])
+  }, [pathname, userPreference])
 
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen)
-    setUserChanged(true)
-    localStorage.setItem('sidebar:state', String(newOpen))
+    setUserPreference(newOpen)
+    localStorage.setItem('sidebar:user-preference', String(newOpen))
   }
 
   return (
