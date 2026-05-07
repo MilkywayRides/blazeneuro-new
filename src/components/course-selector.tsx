@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/popover"
 import { useRouter } from "next/navigation"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type Page = {
   id: string
@@ -38,6 +39,7 @@ export function CourseSelector() {
   const [selectedCourse, setSelectedCourse] = React.useState<Course | null>(null)
   const [courses, setCourses] = React.useState<Course[]>([])
   const [loading, setLoading] = React.useState(true)
+  const [loadingPages, setLoadingPages] = React.useState(false)
   const [showPages, setShowPages] = React.useState(false)
   const router = useRouter()
 
@@ -62,12 +64,15 @@ export function CourseSelector() {
   }
 
   const fetchCourseDetails = async (courseId: string) => {
+    setLoadingPages(true)
     try {
       const res = await fetch(`/api/courses/${courseId}`)
       const data = await res.json()
       setSelectedCourse(data)
     } catch (error) {
       console.error("Failed to fetch course details:", error)
+    } finally {
+      setLoadingPages(false)
     }
   }
 
@@ -136,22 +141,30 @@ export function CourseSelector() {
         </PopoverContent>
       </Popover>
 
-      {showPages && selectedCourse?.pages && selectedCourse.pages.length > 0 && (
-        <ScrollArea className="h-[calc(100vh-28rem)]">
-          <div className="space-y-1">
-            {selectedCourse.pages.map((page) => (
-              <Button
-                key={page.id}
-                variant="ghost"
-                className="w-full justify-start text-sm h-9 px-2"
-                onClick={() => handlePageClick(page.id)}
-              >
-                {getIcon(page.contentType)}
-                <span className="ml-2 truncate">{page.title}</span>
-              </Button>
-            ))}
+      {showPages && (
+        loadingPages ? (
+          <div className="space-y-1 px-2">
+            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-9 w-full" />
           </div>
-        </ScrollArea>
+        ) : selectedCourse?.pages && selectedCourse.pages.length > 0 ? (
+          <ScrollArea className="h-[calc(100vh-28rem)]">
+            <div className="space-y-1">
+              {selectedCourse.pages.map((page) => (
+                <Button
+                  key={page.id}
+                  variant="ghost"
+                  className="w-full justify-start text-sm h-9 px-2"
+                  onClick={() => handlePageClick(page.id)}
+                >
+                  {getIcon(page.contentType)}
+                  <span className="ml-2 truncate">{page.title}</span>
+                </Button>
+              ))}
+            </div>
+          </ScrollArea>
+        ) : null
       )}
     </div>
   )

@@ -1,12 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import ReactMarkdown from "react-markdown"
 import { Quiz } from "@/components/quiz"
 import { PageReactions } from "@/components/page-reactions"
+import { ChevronLeft, ChevronRight, Play, Flag } from "lucide-react"
 
 type Page = {
   id: string
@@ -18,6 +21,13 @@ type Page = {
   userReaction?: boolean | null
   likeCount?: number
   dislikeCount?: number
+  completed?: boolean
+}
+
+type Course = {
+  id: string
+  title: string
+  pages: Page[]
 }
 
 const getYouTubeEmbedUrl = (url: string) => {
@@ -37,8 +47,10 @@ const getYouTubeEmbedUrl = (url: string) => {
 
 export default function CourseViewerPage() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const courseId = searchParams.get('courseId')
   const pageId = searchParams.get('pageId')
+  const [course, setCourse] = useState<Course | null>(null)
   const [page, setPage] = useState<Page | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -54,6 +66,7 @@ export default function CourseViewerPage() {
     try {
       const res = await fetch(`/api/courses/${courseId}`)
       const data = await res.json()
+      setCourse(data)
       const foundPage = data.pages?.find((p: Page) => p.id === pageId)
       if (foundPage) {
         setPage(foundPage)
@@ -64,6 +77,29 @@ export default function CourseViewerPage() {
       setLoading(false)
     }
   }
+
+  const handleNext = () => {
+    if (!course || !page) return
+    const currentIndex = course.pages.findIndex(p => p.id === page.id)
+    if (currentIndex < course.pages.length - 1) {
+      const nextPage = course.pages[currentIndex + 1]
+      router.push(`/dashboard/course-viewer?courseId=${courseId}&pageId=${nextPage.id}`)
+    }
+  }
+
+  const handlePrevious = () => {
+    if (!course || !page) return
+    const currentIndex = course.pages.findIndex(p => p.id === page.id)
+    if (currentIndex > 0) {
+      const prevPage = course.pages[currentIndex - 1]
+      router.push(`/dashboard/course-viewer?courseId=${courseId}&pageId=${prevPage.id}`)
+    }
+  }
+
+  const completedCount = course?.pages.filter(p => p.completed).length || 0
+  const totalPages = course?.pages.length || 0
+  const progress = totalPages > 0 ? Math.round((completedCount / totalPages) * 100) : 0
+  const currentIndex = course && page ? course.pages.findIndex(p => p.id === page.id) : -1
 
   if (loading) {
     return (
@@ -82,7 +118,8 @@ export default function CourseViewerPage() {
   }
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-auto p-6 pb-24 space-y-4">
       {page.contentType === "ARTICLE" && (
         <Card>
           <CardContent className="pt-6">
@@ -189,5 +226,43 @@ export default function CourseViewerPage() {
         </div>
       )}
     </div>
+
+    {/* Bottom Navigation */}
+    {course && page && (
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] md:w-full md:max-w-3xl px-2 md:px-6 z-10">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-2 md:gap-4 px-3 md:px-6 py-3 rounded-xl border bg-card/95 backdrop-blur-md shadow-lg">
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrevious}
+              disabled={currentIndex === 0}
+              className="flex-1 md:flex-none"
+            >
+              <ChevronLeft className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Previous</span>
+            </Button>
+            
+            <Button
+              size="sm"
+              onClick={handleNext}
+              disabled={currentIndex === totalPages - 1}
+              className="bg-foreground text-background hover:bg-foreground/90 flex-1 md:flex-none"
+            >
+              <span className="hidden md:inline">Next</span>
+              <ChevronRight className="h-4 w-4 md:ml-2" />
+            </Button>
+          </div>
+          
+          <div className="flex items-center gap-2 w-full md:flex-1 md:max-w-md">
+            <Play className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <Progress value={progress} className="flex-1 h-2" />
+            <Flag className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <span className="text-xs text-muted-foreground whitespace-nowrap">{completedCount}/{totalPages}</span>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
   )
 }
