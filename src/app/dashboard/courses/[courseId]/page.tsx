@@ -348,8 +348,9 @@ export default function CourseViewerPage() {
                             <iframe
                               src={embedUrl}
                               className="w-full h-full"
+                              frameBorder="0"
                               allowFullScreen
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                             />
                           )
                         }
@@ -358,9 +359,6 @@ export default function CourseViewerPage() {
                             src={selectedPage.videoUrl}
                             className="w-full h-full"
                             controls
-                            autoPlay
-                            loop
-                            muted
                           />
                         )
                       })()}
