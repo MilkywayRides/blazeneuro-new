@@ -106,6 +106,7 @@ export default function CourseViewerPage() {
 
   const handlePageSelect = (page: Page) => {
     setSelectedPage(page)
+    localStorage.setItem(`course-${courseId}-last-page`, page.id)
     router.replace(`/dashboard/courses/${courseId}?pageId=${page.id}`, { scroll: false })
   }
 

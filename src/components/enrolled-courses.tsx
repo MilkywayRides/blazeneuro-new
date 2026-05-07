@@ -1,7 +1,10 @@
+"use client"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { BookOpenIcon } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type EnrolledCourse = {
   id: string;
@@ -12,6 +15,17 @@ type EnrolledCourse = {
 };
 
 export function EnrolledCourses({ courses }: { courses: EnrolledCourse[] }) {
+  const router = useRouter();
+
+  const handleCourseClick = (courseId: string) => {
+    const lastPage = localStorage.getItem(`course-${courseId}-last-page`);
+    if (lastPage) {
+      router.push(`/dashboard/courses/${courseId}?page=${lastPage}`);
+    } else {
+      router.push(`/dashboard/courses/${courseId}`);
+    }
+  };
+
   if (courses.length === 0) {
     return (
       <Card>
@@ -45,25 +59,27 @@ export function EnrolledCourses({ courses }: { courses: EnrolledCourse[] }) {
             : 0;
 
           return (
-            <Link key={course.id} href={`/dashboard/courses/${course.id}`}>
-              <div className="space-y-2 p-4 rounded-lg border hover:bg-accent transition-colors">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="space-y-1 flex-1">
-                    <h3 className="font-semibold leading-none">{course.title}</h3>
-                    {course.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {course.description}
-                      </p>
-                    )}
-                  </div>
-                  <span className="text-sm font-medium">{progress}%</span>
+            <div 
+              key={course.id} 
+              onClick={() => handleCourseClick(course.id)}
+              className="space-y-2 p-4 rounded-lg border hover:bg-accent transition-colors cursor-pointer"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="space-y-1 flex-1">
+                  <h3 className="font-semibold leading-none">{course.title}</h3>
+                  {course.description && (
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {course.description}
+                    </p>
+                  )}
                 </div>
-                <Progress value={progress} className="h-2" />
-                <p className="text-xs text-muted-foreground">
-                  {course.completedPages} of {course.totalPages} lessons completed
-                </p>
+                <span className="text-sm font-medium">{progress}%</span>
               </div>
-            </Link>
+              <Progress value={progress} className="h-2" />
+              <p className="text-xs text-muted-foreground">
+                {course.completedPages} of {course.totalPages} lessons completed
+              </p>
+            </div>
           );
         })}
       </CardContent>
