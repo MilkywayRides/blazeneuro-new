@@ -105,10 +105,10 @@ export default function Home() {
           
           <div className="relative z-10 px-4 text-center">
             <Badge className="mb-4 md:mb-6 bg-white/10 backdrop-blur-md border-white/20 text-white text-xs md:text-sm">AI-Powered Neural Solutions</Badge>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 md:mb-6 text-white [text-shadow:_0_4px_20px_rgb(0_0_0_/_40%)]">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 md:mb-6 text-white drop-shadow-lg">
               BlazeNeuro
             </h1>
-            <p className="text-base md:text-xl text-white/95 max-w-2xl mx-auto mb-6 md:mb-8 [text-shadow:_0_2px_12px_rgb(0_0_0_/_30%)]">
+            <p className="text-base md:text-xl text-white/95 max-w-2xl mx-auto mb-6 md:mb-8 drop-shadow-md">
               Next-generation neural solutions for modern applications. Fast, scalable, and secure.
             </p>
             
