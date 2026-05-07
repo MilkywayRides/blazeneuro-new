@@ -340,29 +340,36 @@ export default function CourseViewerPage() {
 
                 {selectedPage.contentType === "VIDEO" && (
                   <div className="space-y-4">
-                    <div className="aspect-video bg-black rounded-xl overflow-hidden shadow-lg">
-                      {(() => {
-                        const embedUrl = getYouTubeEmbedUrl(selectedPage.videoUrl || '')
-                        if (embedUrl) {
+                    {selectedPage.videoUrl ? (
+                      <div className="aspect-video bg-black rounded-xl overflow-hidden shadow-lg">
+                        {(() => {
+                          const embedUrl = getYouTubeEmbedUrl(selectedPage.videoUrl)
+                          if (embedUrl) {
+                            return (
+                              <iframe
+                                src={embedUrl}
+                                className="w-full h-full"
+                                frameBorder="0"
+                                allowFullScreen
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                title="YouTube video player"
+                              />
+                            )
+                          }
                           return (
-                            <iframe
-                              src={embedUrl}
+                            <video
+                              src={selectedPage.videoUrl}
                               className="w-full h-full"
-                              frameBorder="0"
-                              allowFullScreen
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                              controls
                             />
                           )
-                        }
-                        return (
-                          <video
-                            src={selectedPage.videoUrl}
-                            className="w-full h-full"
-                            controls
-                          />
-                        )
-                      })()}
-                    </div>
+                        })()}
+                      </div>
+                    ) : (
+                      <div className="aspect-video bg-muted rounded-xl flex items-center justify-center">
+                        <p className="text-muted-foreground">No video URL provided</p>
+                      </div>
+                    )}
                     
                     {/* YouTube-style title and info */}
                     <div className="space-y-4">
