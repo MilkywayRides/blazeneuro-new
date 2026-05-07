@@ -33,11 +33,9 @@ export function NavMain({
             return (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
-                  asChild
-                  isActive={isActive}
-                  tooltip={item.title}
+                  className={isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
                 >
-                  <Link href={item.url}>
+                  <Link href={item.url} className="flex items-center gap-2 w-full">
                     {item.icon}
                     <span>{item.title}</span>
                   </Link>
