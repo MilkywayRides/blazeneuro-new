@@ -199,8 +199,8 @@ export function AppSidebar({ userData, isAdmin = true, ...props }: React.Compone
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href={homeUrl}>
+            <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+              <a href={homeUrl} className="flex items-center gap-2 w-full">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <ShieldIcon className="size-4" />
                 </div>
