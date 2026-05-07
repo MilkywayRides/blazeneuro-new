@@ -5,7 +5,6 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import { io, Socket } from "socket.io-client"
 
 type Course = {
   id: string
@@ -20,7 +19,7 @@ export default function CourseCatalogPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
 
-  useEffect(() => {
+  const fetchCourses = () => {
     fetch("/api/courses")
       .then(res => res.json())
       .then(data => {
@@ -34,28 +33,12 @@ export default function CourseCatalogPage() {
       })
       .catch(err => setError("Failed to load courses"))
       .finally(() => setLoading(false))
+  }
 
-    const socket: Socket = io({ path: '/api/community/socket' })
-    
-    socket.on('connect', () => {
-      socket.emit('courses:join')
-    })
-
-    socket.on('courses:created', (course: Course) => {
-      setCourses(prev => [...prev, { ...course, pageCount: 0 }])
-    })
-
-    socket.on('courses:updated', (course: Course) => {
-      setCourses(prev => prev.map(c => c.id === course.id ? { ...course, pageCount: c.pageCount } : c))
-    })
-
-    socket.on('courses:deleted', ({ id }: { id: string }) => {
-      setCourses(prev => prev.filter(c => c.id !== id))
-    })
-
-    return () => {
-      socket.disconnect()
-    }
+  useEffect(() => {
+    fetchCourses()
+    const interval = setInterval(fetchCourses, 3000)
+    return () => clearInterval(interval)
   }, [])
 
   if (loading) {

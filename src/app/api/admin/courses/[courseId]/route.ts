@@ -4,7 +4,6 @@ import { courses, coursePages } from "@/lib/schema"
 import { eq, asc } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
-import { getSocketServer } from "@/lib/socket"
 
 export async function GET(
   req: NextRequest,
@@ -78,11 +77,6 @@ export async function PUT(
       .where(eq(courses.id, courseId))
       .returning()
 
-    const io = getSocketServer()
-    if (io) {
-      io.to('courses').emit('courses:updated', course)
-    }
-
     return NextResponse.json(course)
   } catch (error: any) {
     console.error("Update course error:", error)
@@ -114,11 +108,6 @@ export async function DELETE(
     const { courseId } = await params
 
     await db.delete(courses).where(eq(courses.id, courseId))
-
-    const io = getSocketServer()
-    if (io) {
-      io.to('courses').emit('courses:deleted', { id: courseId })
-    }
 
     return NextResponse.json({ success: true })
   } catch (error: any) {

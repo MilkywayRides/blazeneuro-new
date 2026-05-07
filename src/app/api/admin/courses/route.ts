@@ -4,7 +4,6 @@ import { courses, coursePages } from "@/lib/schema"
 import { eq, sql } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
-import { getSocketServer } from "@/lib/socket"
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,11 +31,6 @@ export async function POST(req: NextRequest) {
       type: type || "FREE",
       coverImage: coverImage || null
     }).returning()
-
-    const io = getSocketServer()
-    if (io) {
-      io.to('courses').emit('courses:created', course)
-    }
 
     return NextResponse.json(course)
   } catch (error: any) {
