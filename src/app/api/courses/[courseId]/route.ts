@@ -16,6 +16,8 @@ export async function GET(
     return NextResponse.json({ error: "Course not found" }, { status: 404 })
   }
 
+  console.log("Course publisherId:", course.publisherId)
+
   const pages = await db
     .select()
     .from(coursePages)
@@ -35,6 +37,9 @@ export async function GET(
         image: true
       }
     })
+    console.log("Publisher found:", publisher)
+  } else {
+    console.log("No publisherId on course")
   }
 
   // Get user progress if authenticated

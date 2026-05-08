@@ -191,44 +191,44 @@ export default function CourseViewerPage() {
       )}
 
       {page.contentType === "VIDEO" && (
-        <div className="space-y-4">
-          {page.videoUrl ? (
-            <div className="aspect-video bg-black rounded-xl overflow-hidden shadow-lg">
-              {(() => {
-                const embedUrl = getYouTubeEmbedUrl(page.videoUrl)
-                if (embedUrl) {
+        <Card>
+          <CardContent className="p-0">
+            {page.videoUrl ? (
+              <div className="aspect-video bg-black rounded-t-xl overflow-hidden">
+                {(() => {
+                  const embedUrl = getYouTubeEmbedUrl(page.videoUrl)
+                  if (embedUrl) {
+                    return (
+                      <iframe
+                        src={embedUrl}
+                        className="w-full h-full"
+                        frameBorder="0"
+                        allowFullScreen
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        title="YouTube video player"
+                      />
+                    )
+                  }
                   return (
-                    <iframe
-                      src={embedUrl}
+                    <video
+                      src={page.videoUrl}
                       className="w-full h-full"
-                      frameBorder="0"
-                      allowFullScreen
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      title="YouTube video player"
+                      controls
                     />
                   )
-                }
-                return (
-                  <video
-                    src={page.videoUrl}
-                    className="w-full h-full"
-                    controls
-                  />
-                )
-              })()}
-            </div>
-          ) : (
-            <div className="aspect-video bg-muted rounded-xl flex items-center justify-center">
-              <p className="text-muted-foreground">No video URL provided</p>
-            </div>
-          )}
-          
-          <Card>
-            <CardContent className="pt-6 space-y-4">
+                })()}
+              </div>
+            ) : (
+              <div className="aspect-video bg-muted rounded-t-xl flex items-center justify-center">
+                <p className="text-muted-foreground">No video URL provided</p>
+              </div>
+            )}
+            
+            <div className="p-6 space-y-4">
               <VideoInfo
                 title={page.title}
-                publisher={course?.publisher}
-                isFollowing={course?.isFollowing}
+                publisher={course?.publisher || null}
+                isFollowing={course?.isFollowing || false}
                 courseId={courseId!}
                 pageId={page.id}
                 userReaction={page.userReaction}
@@ -241,9 +241,9 @@ export default function CourseViewerPage() {
                   <ReactMarkdown>{page.body}</ReactMarkdown>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {page.contentType === "QUIZ" && (
