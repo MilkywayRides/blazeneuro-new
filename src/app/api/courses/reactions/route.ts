@@ -4,6 +4,43 @@ import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { eq, and, sql } from "drizzle-orm"
 
+export async function GET(req: Request) {
+  const session = await auth.api.getSession({ headers: await headers() })
+  const url = new URL(req.url)
+  const pageId = url.pathname.split('/').pop()
+
+  if (!pageId) {
+    return Response.json({ error: "Page ID required" }, { status: 400 })
+  }
+
+  // Get page counts
+  const [page] = await db.select({
+    likeCount: coursePages.likeCount,
+    dislikeCount: coursePages.dislikeCount
+  }).from(coursePages).where(eq(coursePages.id, pageId))
+
+  if (!page) {
+    return Response.json({ error: "Page not found" }, { status: 404 })
+  }
+
+  let reaction = null
+  if (session?.user) {
+    const userReaction = await db.query.coursePageReactions.findFirst({
+      where: and(
+        eq(coursePageReactions.userId, session.user.id),
+        eq(coursePageReactions.pageId, pageId)
+      )
+    })
+    reaction = userReaction ? userReaction.liked : null
+  }
+
+  return Response.json({
+    reaction,
+    likeCount: page.likeCount || 0,
+    dislikeCount: page.dislikeCount || 0
+  })
+}
+
 export async function POST(req: Request) {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session) {

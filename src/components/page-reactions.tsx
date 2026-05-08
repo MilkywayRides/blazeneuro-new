@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react"
 import { ThumbsUp, ThumbsDown } from "lucide-react"
 import { cn } from "@/lib/utils"
+import useSWR, { mutate } from "swr"
+
+const fetcher = (url: string) => fetch(url).then(r => r.json())
 
 export function PageReactions({ 
   pageId, 
@@ -15,24 +18,35 @@ export function PageReactions({
   initialLikeCount?: number
   initialDislikeCount?: number
 }) {
-  const [reaction, setReaction] = useState<boolean | null>(initialReaction ?? null)
-  const [likeCount, setLikeCount] = useState(initialLikeCount)
-  const [dislikeCount, setDislikeCount] = useState(initialDislikeCount)
+  const { data } = useSWR(`/api/courses/reactions/${pageId}`, fetcher, {
+    fallbackData: {
+      reaction: initialReaction,
+      likeCount: initialLikeCount,
+      dislikeCount: initialDislikeCount
+    },
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true
+  })
+
+  const [reaction, setReaction] = useState<boolean | null>(data?.reaction ?? initialReaction ?? null)
+  const [likeCount, setLikeCount] = useState(data?.likeCount ?? initialLikeCount)
+  const [dislikeCount, setDislikeCount] = useState(data?.dislikeCount ?? initialDislikeCount)
 
   useEffect(() => {
-    setReaction(initialReaction ?? null)
-    setLikeCount(initialLikeCount)
-    setDislikeCount(initialDislikeCount)
-  }, [pageId])
+    if (data) {
+      setReaction(data.reaction ?? null)
+      setLikeCount(data.likeCount ?? 0)
+      setDislikeCount(data.dislikeCount ?? 0)
+    }
+  }, [data])
 
   const handleReaction = async (liked: boolean) => {
     const prevReaction = reaction
     const prevLikeCount = likeCount
     const prevDislikeCount = dislikeCount
 
-    // Instant UI update (YouTube-style)
+    // Instant UI update
     if (reaction === liked) {
-      // Remove reaction
       setReaction(null)
       if (liked) {
         setLikeCount(prev => Math.max(0, prev - 1))
@@ -40,10 +54,8 @@ export function PageReactions({
         setDislikeCount(prev => Math.max(0, prev - 1))
       }
     } else {
-      // Add/switch reaction
       setReaction(liked)
       if (reaction !== null) {
-        // Switching
         if (liked) {
           setLikeCount(prev => prev + 1)
           setDislikeCount(prev => Math.max(0, prev - 1))
@@ -52,7 +64,6 @@ export function PageReactions({
           setDislikeCount(prev => prev + 1)
         }
       } else {
-        // New reaction
         if (liked) {
           setLikeCount(prev => prev + 1)
         } else {
@@ -61,7 +72,6 @@ export function PageReactions({
       }
     }
 
-    // Background API call
     try {
       if (prevReaction === liked) {
         await fetch("/api/courses/reactions", {
@@ -76,6 +86,9 @@ export function PageReactions({
           body: JSON.stringify({ pageId, liked })
         })
       }
+      
+      // Revalidate to sync with server
+      mutate(`/api/courses/reactions/${pageId}`)
     } catch (error) {
       // Revert on error
       setReaction(prevReaction)
