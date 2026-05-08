@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import ReactMarkdown from "react-markdown"
 import { Quiz } from "@/components/quiz"
 import { PageReactions } from "@/components/page-reactions"
+import { VideoInfo } from "@/components/video-info"
 import { ChevronLeft, ChevronRight, Play, Flag } from "lucide-react"
 
 type Page = {
@@ -24,9 +25,17 @@ type Page = {
   completed?: boolean
 }
 
+type Publisher = {
+  id: string
+  name: string
+  image?: string
+}
+
 type Course = {
   id: string
   title: string
+  publisher?: Publisher
+  isFollowing?: boolean
   pages: Page[]
 }
 
@@ -214,22 +223,28 @@ export default function CourseViewerPage() {
           )}
           
           <Card>
-            <CardContent className="pt-6">
-              <h1 className="text-2xl font-semibold mb-4">{page.title}</h1>
-              {page.body && (
-                <div className="prose prose-slate dark:prose-invert max-w-none">
-                  <ReactMarkdown>{page.body}</ReactMarkdown>
-                </div>
-              )}
-            </CardContent>
-            <CardFooter className="flex justify-center pt-4 border-t">
+            <CardContent className="pt-6 space-y-4">
+              <VideoInfo
+                title={page.title}
+                publisher={course?.publisher}
+                isFollowing={course?.isFollowing}
+                courseId={courseId!}
+                pageId={page.id}
+              />
+              
               <PageReactions 
                 pageId={page.id} 
                 initialReaction={page.userReaction}
                 initialLikeCount={page.likeCount || 0}
                 initialDislikeCount={page.dislikeCount || 0}
               />
-            </CardFooter>
+
+              {page.body && (
+                <div className="prose prose-slate dark:prose-invert max-w-none pt-4 border-t">
+                  <ReactMarkdown>{page.body}</ReactMarkdown>
+                </div>
+              )}
+            </CardContent>
           </Card>
         </div>
       )}
