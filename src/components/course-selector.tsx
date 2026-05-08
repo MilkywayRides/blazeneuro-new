@@ -85,6 +85,14 @@ export function CourseSelector() {
     setShowPages(true)
   }
 
+  const handleAllCourses = () => {
+    setSelectedCourse(null)
+    localStorage.removeItem("selected-course-id")
+    setShowPages(false)
+    setOpen(false)
+    router.push("/dashboard/courses")
+  }
+
   const handlePageClick = (pageId: string) => {
     if (selectedCourse) {
       router.push(`/dashboard/course-viewer?courseId=${selectedCourse.id}&pageId=${pageId}`)
@@ -109,7 +117,6 @@ export function CourseSelector() {
             role="combobox"
             aria-expanded={open}
             className="w-full justify-between h-9 px-2"
-            onClick={() => setShowPages(!showPages)}
           >
             <span className="truncate">{selectedCourse ? selectedCourse.title : "All Courses"}</span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -121,6 +128,18 @@ export function CourseSelector() {
             <CommandList>
               <CommandEmpty>No course found.</CommandEmpty>
               <CommandGroup>
+                <CommandItem
+                  value="all-courses"
+                  onSelect={handleAllCourses}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      !selectedCourse ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  All Courses
+                </CommandItem>
                 {courses.map((course) => (
                   <CommandItem
                     key={course.id}
