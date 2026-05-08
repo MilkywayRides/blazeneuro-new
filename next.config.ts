@@ -27,14 +27,6 @@ const nextConfig: NextConfig = {
       'react-markdown',
       'framer-motion',
     ],
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-    },
   },
   output: 'standalone',
   generateBuildId: async () => {
