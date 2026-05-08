@@ -238,7 +238,7 @@ export default function CourseViewerPage() {
 
               {page.body && (
                 <div className="bg-muted/50 rounded-xl p-4">
-                  <details className="group">
+                  <details className="group" open>
                     <summary className="cursor-pointer font-medium text-sm mb-2 list-none flex items-center justify-between">
                       <span>Description</span>
                       <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
