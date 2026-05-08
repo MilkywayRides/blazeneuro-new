@@ -18,7 +18,14 @@ export function MarkdownRenderer({ content }: { content: string }) {
   }
 
   return (
-    <div className="prose prose-sm prose-slate dark:prose-invert max-w-none">
+    <div className="prose prose-sm prose-slate dark:prose-invert max-w-none 
+      prose-p:mb-4 prose-p:leading-relaxed
+      prose-headings:mb-4 prose-headings:mt-6
+      prose-ul:my-4 prose-ul:space-y-2
+      prose-ol:my-4 prose-ol:space-y-2
+      prose-li:leading-relaxed
+      prose-pre:my-4
+      prose-blockquote:my-4">
       <ReactMarkdown
         components={{
           code({ node, inline, className, children, ...props }: any) {
