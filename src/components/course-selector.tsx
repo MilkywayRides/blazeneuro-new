@@ -26,6 +26,7 @@ type Page = {
   title: string
   contentType: "ARTICLE" | "VIDEO" | "QUIZ"
   order: number
+  createdAt?: string
 }
 
 type Course = {
@@ -175,11 +176,26 @@ export function CourseSelector() {
                 <Button
                   key={page.id}
                   variant="ghost"
-                  className="w-full justify-start text-sm h-9 px-2"
+                  className="w-full justify-start text-sm h-auto py-2 px-2 flex-col items-start"
                   onClick={() => handlePageClick(page.id)}
                 >
-                  {getIcon(page.contentType)}
-                  <span className="ml-2 truncate">{page.title}</span>
+                  <div className="flex items-center gap-2 w-full">
+                    {getIcon(page.contentType)}
+                    <span className="truncate flex-1 text-left">{page.title}</span>
+                  </div>
+                  {page.createdAt && (
+                    <span className="text-xs text-muted-foreground ml-6">
+                      {new Date(page.createdAt).toLocaleDateString('en-GB', { 
+                        day: 'numeric', 
+                        month: 'short', 
+                        year: 'numeric' 
+                      })} {new Date(page.createdAt).toLocaleTimeString('en-US', { 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        hour12: false
+                      })}
+                    </span>
+                  )}
                 </Button>
               ))}
             </div>
