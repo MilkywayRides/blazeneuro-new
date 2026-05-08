@@ -237,8 +237,18 @@ export default function CourseViewerPage() {
               />
 
               {page.body && (
-                <div className="prose prose-slate dark:prose-invert max-w-none pt-4 border-t">
-                  <ReactMarkdown>{page.body}</ReactMarkdown>
+                <div className="bg-muted/50 rounded-xl p-4">
+                  <details className="group">
+                    <summary className="cursor-pointer font-medium text-sm mb-2 list-none flex items-center justify-between">
+                      <span>Description</span>
+                      <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </summary>
+                    <div className="prose prose-sm prose-slate dark:prose-invert max-w-none mt-2">
+                      <ReactMarkdown>{page.body}</ReactMarkdown>
+                    </div>
+                  </details>
                 </div>
               )}
             </div>
