@@ -191,8 +191,8 @@ export default function CourseViewerPage() {
       )}
 
       {page.contentType === "VIDEO" && (
-        <Card className="overflow-hidden">
-          <CardContent className="p-0">
+        <div className="rounded-xl border bg-card overflow-hidden">
+          <div className="p-0">
             {page.videoUrl ? (
               <div className="aspect-video bg-black rounded-t-xl overflow-hidden">
                 {(() => {
@@ -252,8 +252,8 @@ export default function CourseViewerPage() {
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {page.contentType === "QUIZ" && (
