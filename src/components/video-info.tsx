@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Share2, UserPlus, UserCheck } from "lucide-react"
 import { toast } from "sonner"
+import { PageReactions } from "@/components/page-reactions"
 
 type Publisher = {
   id: string
@@ -17,13 +18,19 @@ export function VideoInfo({
   publisher,
   isFollowing: initialFollowing,
   courseId,
-  pageId
+  pageId,
+  userReaction,
+  likeCount,
+  dislikeCount
 }: {
   title: string
   publisher?: Publisher | null
   isFollowing?: boolean
   courseId: string
   pageId: string
+  userReaction?: boolean | null
+  likeCount?: number
+  dislikeCount?: number
 }) {
   const [isFollowing, setIsFollowing] = useState(initialFollowing || false)
 
@@ -48,16 +55,17 @@ export function VideoInfo({
     }
   }
 
-  const handleShare = async () => {
+  const handleShare = () => {
     const url = `${window.location.origin}/dashboard/course-viewer?courseId=${courseId}&pageId=${pageId}`
     
     if (navigator.share) {
-      try {
-        await navigator.share({ title, url })
-      } catch {}
+      navigator.share({ title, url }).catch(() => {
+        navigator.clipboard.writeText(url)
+        toast.success("Link copied!")
+      })
     } else {
-      await navigator.clipboard.writeText(url)
-      toast.success("Link copied to clipboard")
+      navigator.clipboard.writeText(url)
+      toast.success("Link copied!")
     }
   }
 
@@ -65,13 +73,13 @@ export function VideoInfo({
     <div className="space-y-4">
       <h1 className="text-xl font-semibold">{title}</h1>
       
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
-          {publisher && (
+          {publisher ? (
             <>
               <Avatar className="h-10 w-10">
-                <AvatarImage src={publisher.image} />
-                <AvatarFallback>{publisher.name[0]}</AvatarFallback>
+                <AvatarImage src={publisher.image || undefined} />
+                <AvatarFallback>{publisher.name?.[0] || "U"}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col">
                 <span className="font-medium text-sm">{publisher.name}</span>
@@ -95,18 +103,28 @@ export function VideoInfo({
                 )}
               </Button>
             </>
+          ) : (
+            <span className="text-sm text-muted-foreground">No creator info</span>
           )}
         </div>
 
-        <Button
-          onClick={handleShare}
-          size="sm"
-          variant="secondary"
-          className="rounded-full"
-        >
-          <Share2 className="w-4 h-4 mr-2" />
-          Share
-        </Button>
+        <div className="flex items-center gap-2">
+          <PageReactions 
+            pageId={pageId} 
+            initialReaction={userReaction}
+            initialLikeCount={likeCount || 0}
+            initialDislikeCount={dislikeCount || 0}
+          />
+          <Button
+            onClick={handleShare}
+            size="sm"
+            variant="secondary"
+            className="rounded-full h-10 px-4"
+          >
+            <Share2 className="w-4 h-4 mr-2" />
+            Share
+          </Button>
+        </div>
       </div>
     </div>
   )

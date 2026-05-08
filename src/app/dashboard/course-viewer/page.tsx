@@ -75,6 +75,7 @@ export default function CourseViewerPage() {
     try {
       const res = await fetch(`/api/courses/${courseId}`)
       const data = await res.json()
+      console.log("Course data:", data)
       setCourse(data)
       const foundPage = data.pages?.find((p: Page) => p.id === pageId)
       if (foundPage) {
@@ -230,13 +231,9 @@ export default function CourseViewerPage() {
                 isFollowing={course?.isFollowing}
                 courseId={courseId!}
                 pageId={page.id}
-              />
-              
-              <PageReactions 
-                pageId={page.id} 
-                initialReaction={page.userReaction}
-                initialLikeCount={page.likeCount || 0}
-                initialDislikeCount={page.dislikeCount || 0}
+                userReaction={page.userReaction}
+                likeCount={page.likeCount}
+                dislikeCount={page.dislikeCount}
               />
 
               {page.body && (
