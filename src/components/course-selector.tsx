@@ -117,7 +117,7 @@ export function CourseSelector() {
             variant="ghost"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between h-9 px-2"
+            className="w-full justify-between h-9 px-2 bg-muted/50 hover:bg-muted"
           >
             <span className="truncate">{selectedCourse ? selectedCourse.title : "All Courses"}</span>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
