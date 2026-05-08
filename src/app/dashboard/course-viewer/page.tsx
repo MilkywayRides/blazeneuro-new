@@ -6,10 +6,10 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
-import ReactMarkdown from "react-markdown"
 import { Quiz } from "@/components/quiz"
 import { PageReactions } from "@/components/page-reactions"
 import { VideoInfo } from "@/components/video-info"
+import { MarkdownRenderer } from "@/components/markdown-renderer"
 import { ChevronLeft, ChevronRight, Play, Flag } from "lucide-react"
 
 type Page = {
@@ -165,8 +165,6 @@ export default function CourseViewerPage() {
               prose-p:text-base prose-p:leading-7 prose-p:mb-4
               prose-a:text-primary prose-a:no-underline hover:prose-a:underline
               prose-strong:font-semibold prose-strong:text-foreground
-              prose-code:text-orange-500 prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono prose-code:before:content-none prose-code:after:content-none
-              prose-pre:bg-muted prose-pre:border prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto
               prose-ul:my-4 prose-ul:list-disc prose-ul:pl-6
               prose-ol:my-4 prose-ol:list-decimal prose-ol:pl-6
               prose-li:my-1 prose-li:leading-7
@@ -176,7 +174,7 @@ export default function CourseViewerPage() {
               prose-table:my-6 prose-table:border-collapse
               prose-th:border prose-th:border-border prose-th:bg-muted prose-th:p-2 prose-th:font-semibold
               prose-td:border prose-td:border-border prose-td:p-2">
-              <ReactMarkdown>{page.body}</ReactMarkdown>
+              <MarkdownRenderer content={page.body || ""} />
             </div>
           </CardContent>
           <CardFooter className="flex justify-center pt-4 border-t">
@@ -245,8 +243,8 @@ export default function CourseViewerPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </summary>
-                    <div className="prose prose-sm prose-slate dark:prose-invert max-w-none mt-2">
-                      <ReactMarkdown>{page.body}</ReactMarkdown>
+                    <div className="mt-2">
+                      <MarkdownRenderer content={page.body} />
                     </div>
                   </details>
                 </div>
