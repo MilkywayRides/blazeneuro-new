@@ -58,14 +58,12 @@ export function VideoInfo({
   const handleShare = () => {
     const url = `${window.location.origin}/dashboard/course-viewer?courseId=${courseId}&pageId=${pageId}`
     
-    if (navigator.share) {
-      navigator.share({ title, url }).catch(() => {
-        navigator.clipboard.writeText(url)
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => {
         toast.success("Link copied!")
+      }).catch(() => {
+        toast.error("Failed to copy")
       })
-    } else {
-      navigator.clipboard.writeText(url)
-      toast.success("Link copied!")
     }
   }
 
