@@ -191,7 +191,7 @@ export default function CourseViewerPage() {
       )}
 
       {page.contentType === "VIDEO" && (
-        <Card>
+        <Card className="overflow-hidden">
           <CardContent className="p-0">
             {page.videoUrl ? (
               <div className="aspect-video bg-black rounded-t-xl overflow-hidden">
