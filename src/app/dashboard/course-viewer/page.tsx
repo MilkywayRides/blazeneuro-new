@@ -87,7 +87,7 @@ export default function CourseViewerPage() {
     
     if (currentIndex < course.pages.length - 1) {
       const nextPage = course.pages[currentIndex + 1]
-      router.push(`/dashboard/course-viewer?courseId=${courseId}&pageId=${nextPage.id}`)
+      router.push(`/dashboard/course-viewer?courseId=${courseId}&pageId=${nextPage.id}`, { scroll: false })
     }
   }
 
@@ -96,7 +96,7 @@ export default function CourseViewerPage() {
     const currentIndex = course.pages.findIndex(p => p.id === page.id)
     if (currentIndex > 0) {
       const prevPage = course.pages[currentIndex - 1]
-      router.push(`/dashboard/course-viewer?courseId=${courseId}&pageId=${prevPage.id}`)
+      router.push(`/dashboard/course-viewer?courseId=${courseId}&pageId=${prevPage.id}`, { scroll: false })
     }
   }
 

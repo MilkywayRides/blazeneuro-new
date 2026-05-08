@@ -90,12 +90,12 @@ export function CourseSelector() {
     localStorage.removeItem("selected-course-id")
     setShowPages(false)
     setOpen(false)
-    router.push("/dashboard/courses")
+    router.push("/dashboard/courses", { scroll: false })
   }
 
   const handlePageClick = (pageId: string) => {
     if (selectedCourse) {
-      router.push(`/dashboard/course-viewer?courseId=${selectedCourse.id}&pageId=${pageId}`)
+      router.push(`/dashboard/course-viewer?courseId=${selectedCourse.id}&pageId=${pageId}`, { scroll: false })
     }
   }
 
