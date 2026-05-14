@@ -1,17 +1,18 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState, useEffect, useCallback } from "react"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useParams, useRouter } from "next/navigation"
-import { Trash2, Pencil, GripVertical, Users } from "lucide-react"
+import { Trash2, Pencil, GripVertical, Users, Video, FileText, HelpCircle, Loader2 } from "lucide-react"
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { cn } from "@/lib/utils"
 
 type Page = {
   id: string
@@ -19,52 +20,81 @@ type Page = {
   contentType: "ARTICLE" | "VIDEO" | "QUIZ"
   body?: string
   videoUrl?: string
-  quizData?: any
+  quizData?: unknown
   order: number
-}
-
-type EnrolledUser = {
-  id: string
-  name: string
-  email: string
-  enrolledAt: string
-}
-
-type Course = {
-  id: string
-  title: string
-  type: "FREE" | "PAID"
-  pages: Page[]
 }
 
 function SortableRow({ page, courseId, onDelete }: { page: Page, courseId: string, onDelete: (id: string) => void }) {
   const router = useRouter()
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: page.id })
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: page.id })
   
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   }
 
+  const getIcon = (type: string) => {
+    switch (type) {
+      case "VIDEO": return <Video className="h-4 w-4" />
+      case "ARTICLE": return <FileText className="h-4 w-4" />
+      case "QUIZ": return <HelpCircle className="h-4 w-4" />
+      default: return <FileText className="h-4 w-4" />
+    }
+  }
+
   return (
-    <TableRow ref={setNodeRef} style={style}>
-      <TableCell>
-        <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+    <TableRow 
+      ref={setNodeRef} 
+      style={style}
+      className={cn(
+        "group transition-colors",
+        isDragging && "bg-muted/50 z-50 relative shadow-lg"
+      )}
+    >
+      <TableCell className="w-10">
+        <div 
+          {...attributes} 
+          {...listeners} 
+          className="cursor-grab active:cursor-grabbing p-2 hover:bg-muted rounded-md transition-colors text-muted-foreground hover:text-foreground"
+        >
           <GripVertical className="h-4 w-4" />
         </div>
       </TableCell>
-      <TableCell>{page.order + 1}</TableCell>
-      <TableCell className="font-medium">{page.title}</TableCell>
-      <TableCell>
-        <Badge variant="outline">{page.contentType}</Badge>
+      <TableCell className="w-16">
+        <span className="text-xs font-black tabular-nums text-muted-foreground/60">
+          {(page.order + 1).toString().padStart(2, '0')}
+        </span>
       </TableCell>
       <TableCell>
-        <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={() => router.push(`/admin/courses/${courseId}/page-editor?pageId=${page.id}`)}>
-            <Pencil className="h-4 w-4" />
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/5 text-primary">
+            {getIcon(page.contentType)}
+          </div>
+          <span className="font-semibold text-sm tracking-tight">{page.title}</span>
+        </div>
+      </TableCell>
+      <TableCell>
+        <Badge variant="secondary" className="font-bold text-[10px] uppercase tracking-wider px-2 py-0">
+          {page.contentType}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-right">
+        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button 
+            variant="ghost" 
+            size="icon-sm" 
+            onClick={() => router.push(`/admin/courses/${courseId}/page-editor?pageId=${page.id}`)}
+            className="hover:bg-primary/10 hover:text-primary"
+          >
+            <Pencil className="h-3.5 w-3.5" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => onDelete(page.id)}>
-            <Trash2 className="h-4 w-4 text-destructive" />
+          <Button 
+            variant="ghost" 
+            size="icon-sm" 
+            onClick={() => onDelete(page.id)}
+            className="hover:bg-destructive/10 hover:text-destructive"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
           </Button>
         </div>
       </TableCell>
@@ -80,6 +110,8 @@ export default function CourseBuilderPage() {
   const [enrolledUsers, setEnrolledUsers] = useState<EnrolledUser[]>([])
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [pageToDelete, setPageToDelete] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -87,12 +119,7 @@ export default function CourseBuilderPage() {
     })
   )
 
-  useEffect(() => {
-    fetchCourse()
-    fetchEnrolledUsers()
-  }, [courseId])
-
-  const fetchCourse = async () => {
+  const fetchCourse = useCallback(async () => {
     try {
       const res = await fetch(`/api/admin/courses/${courseId}`)
       const data = await res.json()
@@ -104,9 +131,9 @@ export default function CourseBuilderPage() {
     } catch (error) {
       console.error("Failed to fetch course:", error)
     }
-  }
+  }, [courseId])
 
-  const fetchEnrolledUsers = async () => {
+  const fetchEnrolledUsers = useCallback(async () => {
     try {
       const res = await fetch(`/api/admin/courses/${courseId}/enrollments`)
       const data = await res.json()
@@ -114,7 +141,12 @@ export default function CourseBuilderPage() {
     } catch (error) {
       console.error("Failed to fetch enrollments:", error)
     }
-  }
+  }, [courseId])
+
+  useEffect(() => {
+    fetchCourse()
+    fetchEnrolledUsers()
+  }, [fetchCourse, fetchEnrolledUsers])
 
   const handleDeletePage = async (pageId: string) => {
     setPageToDelete(pageId)
@@ -123,12 +155,17 @@ export default function CourseBuilderPage() {
 
   const confirmDelete = async () => {
     if (!pageToDelete) return
-    await fetch(`/api/admin/courses/${courseId}/pages/${pageToDelete}`, {
-      method: "DELETE"
-    })
-    setDeleteDialogOpen(false)
-    setPageToDelete(null)
-    fetchCourse()
+    setIsSaving(true)
+    try {
+      await fetch(`/api/admin/courses/${courseId}/pages/${pageToDelete}`, {
+        method: "DELETE"
+      })
+      setDeleteDialogOpen(false)
+      setPageToDelete(null)
+      await fetchCourse()
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -141,6 +178,7 @@ export default function CourseBuilderPage() {
     const newPages = arrayMove(course.pages, oldIndex, newIndex).map((p, i) => ({ ...p, order: i }))
     setCourse({ ...course, pages: newPages })
 
+    setIsSaving(true)
     try {
       await fetch(`/api/admin/courses/${courseId}/pages/reorder`, {
         method: "POST",
@@ -150,59 +188,84 @@ export default function CourseBuilderPage() {
     } catch (error) {
       console.error("Failed to reorder:", error)
       fetchCourse()
+    } finally {
+      setIsSaving(false)
     }
   }
 
-  if (!course) return <div className="p-6">Loading...</div>
+  if (!course) return <div className="p-6 flex items-center justify-center min-h-[400px]"><Loader2 className="h-8 w-8 animate-spin text-primary/20" /></div>
 
   return (
-    <div className="p-6 space-y-6">
-      <Card>
-        <CardHeader>
+    <div className="p-6 space-y-6 relative">
+      {isSaving && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/40 backdrop-blur-[2px] transition-all">
+          <Card className="shadow-2xl border-primary/20 ring-1 ring-primary/10">
+            <CardContent className="py-6 px-8 flex items-center gap-4">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <span className="font-bold tracking-tight">Syncing changes...</span>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <Card className="border-none shadow-none bg-transparent">
+        <CardHeader className="px-0">
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>{course.title}</CardTitle>
-              <div className="flex items-center gap-2 mt-2">
-                <Badge variant={course.type === "FREE" ? "default" : "destructive"}>
-                  {course.type}
+            <div className="space-y-1">
+              <h1 className="text-3xl font-extrabold tracking-tight">{course.title}</h1>
+              <div className="flex items-center gap-2">
+                <Badge variant={course.type === "FREE" ? "secondary" : "destructive"} className="font-black text-[10px] uppercase px-2 py-0.5">
+                  {course.type} Access
                 </Badge>
-                <span className="text-sm text-muted-foreground">{course.pages?.length || 0} pages</span>
+                <div className="h-1 w-1 rounded-full bg-border" />
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">{course.pages?.length || 0} Modules</span>
               </div>
             </div>
+            <Button onClick={() => router.push(`/admin/courses/${courseId}/page-editor`)} className="font-bold gap-2">
+              <Pencil className="h-4 w-4" />
+              Build Module
+            </Button>
           </div>
         </CardHeader>
       </Card>
 
       <Tabs defaultValue="pages" className="w-full">
-        <TabsList>
-          <TabsTrigger value="pages">Pages</TabsTrigger>
-          <TabsTrigger value="enrolled">
+        <TabsList className="bg-muted/50 p-1 rounded-xl">
+          <TabsTrigger value="pages" className="rounded-lg font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">Modules</TabsTrigger>
+          <TabsTrigger value="enrolled" className="rounded-lg font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
             <Users className="h-4 w-4 mr-2" />
-            Enrolled Users ({enrolledUsers.length})
+            Enrollments
+            <Badge variant="secondary" className="ml-2 h-5 min-w-5 p-0 flex items-center justify-center rounded-full text-[10px]">
+              {enrolledUsers.length}
+            </Badge>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="pages">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Pages</CardTitle>
-              <Button onClick={() => router.push(`/admin/courses/${courseId}/page-editor`)}>+ Add Page</Button>
-            </CardHeader>
-            <CardContent>
+        <TabsContent value="pages" className="mt-6">
+          <Card className="border-border/50 shadow-sm overflow-hidden">
+            <CardContent className="p-0">
               {!course.pages || course.pages.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No pages yet. Add your first page to get started.
+                <div className="text-center py-20 bg-muted/20">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="p-4 rounded-full bg-background shadow-inner">
+                      <FileText className="h-10 w-10 text-muted-foreground/20" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="font-bold text-foreground/80">No modules found</p>
+                      <p className="text-sm text-muted-foreground">Start by adding your first educational module.</p>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                   <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12"></TableHead>
-                        <TableHead>Order</TableHead>
-                        <TableHead>Title</TableHead>
-                        <TableHead>Content Type</TableHead>
-                        <TableHead>Actions</TableHead>
+                    <TableHeader className="bg-muted/30">
+                      <TableRow className="hover:bg-transparent border-none">
+                        <TableHead className="w-10"></TableHead>
+                        <TableHead className="w-16 text-[10px] uppercase font-black tracking-widest">Rank</TableHead>
+                        <TableHead className="text-[10px] uppercase font-black tracking-widest text-foreground">Content Title</TableHead>
+                        <TableHead className="text-[10px] uppercase font-black tracking-widest">Format</TableHead>
+                        <TableHead className="text-right text-[10px] uppercase font-black tracking-widest pr-6">Management</TableHead>
                       </TableRow>
                     </TableHeader>
                 <TableBody>
@@ -219,31 +282,36 @@ export default function CourseBuilderPage() {
       </Card>
         </TabsContent>
 
-        <TabsContent value="enrolled">
-          <Card>
-            <CardHeader>
-              <CardTitle>Enrolled Users</CardTitle>
-            </CardHeader>
-            <CardContent>
+        <TabsContent value="enrolled" className="mt-6">
+          <Card className="border-border/50 shadow-sm overflow-hidden">
+            <CardContent className="p-0">
               {enrolledUsers.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No users enrolled yet.
+                <div className="text-center py-20 bg-muted/20">
+                   <div className="flex flex-col items-center gap-3">
+                    <div className="p-4 rounded-full bg-background shadow-inner">
+                      <Users className="h-10 w-10 text-muted-foreground/20" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="font-bold text-foreground/80">Zero enrollments</p>
+                      <p className="text-sm text-muted-foreground">Waiting for your first student to join.</p>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Enrolled At</TableHead>
+                  <TableHeader className="bg-muted/30">
+                    <TableRow className="hover:bg-transparent border-none">
+                      <TableHead className="text-[10px] uppercase font-black tracking-widest text-foreground">Student Name</TableHead>
+                      <TableHead className="text-[10px] uppercase font-black tracking-widest">Contact Email</TableHead>
+                      <TableHead className="text-[10px] uppercase font-black tracking-widest">Enrollment Date</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {enrolledUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.name}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>{new Date(user.enrolledAt).toLocaleDateString()}</TableCell>
+                      <TableRow key={user.id} className="group hover:bg-muted/30 transition-colors">
+                        <TableCell className="font-bold text-sm tracking-tight">{user.name}</TableCell>
+                        <TableCell className="text-sm font-medium text-muted-foreground">{user.email}</TableCell>
+                        <TableCell className="text-sm font-black tabular-nums text-muted-foreground/60">{new Date(user.enrolledAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
