@@ -26,31 +26,41 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
 
   return (
     <div className={cn(
-      "prose prose-slate dark:prose-invert max-w-none transition-all duration-200",
-      "prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-foreground",
-      "prose-h1:text-4xl prose-h1:mt-8 prose-h1:mb-6 prose-h1:pb-2 prose-h1:border-b",
-      "prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h2:pb-1 prose-h2:border-b/50",
-      "prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3",
-      "prose-p:text-base prose-p:leading-7 prose-p:mb-5 prose-p:text-muted-foreground/90 dark:prose-p:text-slate-300",
-      "prose-a:text-primary prose-a:font-medium prose-a:no-underline hover:prose-a:underline prose-a:decoration-primary/30 hover:prose-a:decoration-primary/100 transition-colors",
-      "prose-strong:text-foreground prose-strong:font-bold",
-      "prose-ul:my-6 prose-ul:list-disc prose-ul:pl-6 prose-li:my-2",
-      "prose-ol:my-6 prose-ol:list-decimal prose-ol:pl-6 prose-li:my-2",
-      "prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-muted/30 prose-blockquote:py-2 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-blockquote:italic prose-blockquote:my-8 prose-blockquote:text-muted-foreground",
-      "prose-img:rounded-2xl prose-img:shadow-xl prose-img:my-10 prose-img:mx-auto prose-img:border prose-img:border-border",
-      "prose-hr:my-12 prose-hr:border-border/60",
-      "prose-table:my-8 prose-table:border-collapse prose-table:w-full prose-table:overflow-hidden prose-table:rounded-xl prose-table:border prose-table:border-border",
-      "prose-th:bg-muted prose-th:p-4 prose-th:text-left prose-th:font-bold prose-th:border prose-th:border-border",
-      "prose-td:p-4 prose-td:border prose-td:border-border prose-td:align-top",
-      "prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:text-sm prose-code:font-medium prose-code:before:content-none prose-code:after:content-none",
-      "prose-pre:p-0 prose-pre:bg-transparent prose-pre:border-none",
+      "prose prose-slate dark:prose-invert max-w-none transition-all duration-300",
+      "prose-headings:font-extrabold prose-headings:tracking-tight prose-headings:text-foreground/90",
+      "prose-h1:text-4xl md:prose-h1:text-5xl prose-h1:mt-12 prose-h1:mb-8 prose-h1:pb-4 prose-h1:border-b-2 prose-h1:border-primary/10",
+      "prose-h2:text-2xl md:prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-6 prose-h2:pb-2 prose-h2:border-b prose-h2:border-border/50",
+      "prose-h3:text-xl md:prose-h3:text-2xl prose-h3:mt-10 prose-h3:mb-4",
+      "prose-p:text-base md:prose-p:text-lg prose-p:leading-relaxed prose-p:mb-6 prose-p:text-foreground/80 dark:prose-p:text-slate-300/90",
+      "prose-a:text-primary prose-a:font-semibold prose-a:no-underline hover:prose-a:underline prose-a:decoration-2 prose-a:underline-offset-4 transition-all",
+      "prose-strong:text-foreground prose-strong:font-bold prose-strong:bg-primary/5 dark:prose-strong:bg-primary/10 prose-strong:px-1 prose-strong:rounded",
+      "prose-ul:my-8 prose-ul:list-none prose-ul:pl-0",
+      "prose-ol:my-8 prose-ol:list-decimal prose-ol:pl-6 prose-ol:marker:text-primary prose-ol:marker:font-bold",
+      "prose-li:relative prose-li:pl-7 prose-li:my-3 prose-li:leading-relaxed",
+      "prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-primary/5 dark:prose-blockquote:bg-primary/10 prose-blockquote:py-4 prose-blockquote:px-8 prose-blockquote:rounded-r-2xl prose-blockquote:italic prose-blockquote:my-10 prose-blockquote:text-foreground/90 prose-blockquote:shadow-sm",
+      "prose-img:rounded-3xl prose-img:shadow-2xl prose-img:my-12 prose-img:mx-auto prose-img:border-4 prose-img:border-background prose-img:ring-1 prose-img:ring-border",
+      "prose-hr:my-16 prose-hr:border-border/40",
+      "prose-table:my-10 prose-table:border-hidden prose-table:w-full prose-table:rounded-2xl prose-table:shadow-lg prose-table:ring-1 prose-table:ring-border",
+      "prose-th:bg-muted/80 prose-th:p-5 prose-th:text-sm prose-th:uppercase prose-th:tracking-widest prose-th:font-black prose-th:border-b prose-th:border-border",
+      "prose-td:p-5 prose-td:border-b prose-td:border-border/50 prose-td:text-sm prose-td:align-middle",
+      "prose-code:bg-muted/50 prose-code:text-primary prose-code:px-2 prose-code:py-1 prose-code:rounded-lg prose-code:text-sm prose-code:font-bold prose-code:before:content-none prose-code:after:content-none prose-code:border prose-code:border-border/50",
+      "prose-pre:p-0 prose-pre:bg-transparent prose-pre:border-none prose-pre:shadow-none",
       className
     )}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          h1: ({ className, ...props }) => <h1 className={cn("text-3xl md:text-4xl", className)} {...props} />,
-          h2: ({ className, ...props }) => <h2 className={cn("text-2xl md:text-3xl", className)} {...props} />,
+          h1: ({ ...props }) => <h1 className="flex items-center gap-3" {...props} />,
+          h2: ({ ...props }) => <h2 className="flex items-center gap-2" {...props} />,
+          li: ({ children, ...props }: React.ComponentPropsWithoutRef<'li'> & { node?: any }) => {
+            const isOrdered = (props as any).node?.parent?.tagName === 'ol';
+            if (isOrdered) return <li {...props}>{children}</li>;
+            return (
+              <li className="before:content-[''] before:absolute before:left-0 before:top-[0.6em] before:h-2 before:w-2 before:rounded-full before:bg-primary/60" {...props}>
+                {children}
+              </li>
+            );
+          },
           a: ({ ...props }) => {
             const isExternal = props.href?.startsWith('http')
             return (
@@ -70,7 +80,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
               <table className={cn("w-full border-collapse", props.className)} {...props} />
             </div>
           ),
-          code({ inline, className, children, ...props }: any) {
+          code({ inline, className, children, ...props }: React.ComponentPropsWithoutRef<'code'> & { inline?: boolean }) {
             const match = /language-(\w+)/.exec(className || "")
             const code = String(children).replace(/\n$/, "")
             const language = match ? match[1] : ""
