@@ -227,7 +227,7 @@ export function AppSidebar({ userData, isAdmin = true, ...props }: React.Compone
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger className="font-bold text-lg">
-                          Bn.
+                          Bn
                         </TooltipTrigger>
                         <TooltipContent side="right">
                           <p>{title}</p>
