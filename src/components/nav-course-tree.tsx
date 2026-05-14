@@ -76,7 +76,7 @@ export function NavCourseTree() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <TooltipProvider delayDuration={0}>
+        <TooltipProvider delay={0}>
           <Tooltip onOpenChange={(open) => {
             setIsOpen(open)
             if (open) fetchCoursesWithPages()
