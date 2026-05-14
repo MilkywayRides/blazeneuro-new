@@ -81,17 +81,19 @@ export function NavCourseTree() {
             setIsOpen(open)
             if (open) fetchCoursesWithPages()
           }}>
-            <TooltipTrigger asChild>
-              <SidebarMenuButton 
-                className={cn(
-                  "transition-all duration-200",
-                  isOpen && "bg-sidebar-accent text-sidebar-accent-foreground"
-                )}
-              >
-                <BookOpen className="size-4" />
-                <span className="sr-only">Course Tree</span>
-              </SidebarMenuButton>
-            </TooltipTrigger>
+            <TooltipTrigger 
+              render={
+                <SidebarMenuButton 
+                  className={cn(
+                    "transition-all duration-200",
+                    isOpen && "bg-sidebar-accent text-sidebar-accent-foreground"
+                  )}
+                >
+                  <BookOpen className="size-4" />
+                  <span className="sr-only">Course Tree</span>
+                </SidebarMenuButton>
+              }
+            />
             <TooltipContent 
               side="right" 
               align="start" 
