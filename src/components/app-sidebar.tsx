@@ -10,6 +10,7 @@ import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
 import { NavCourses } from "@/components/nav-courses"
 import { CourseSelector } from "@/components/course-selector"
+import { NavCourseTree } from "@/components/nav-course-tree"
 import {
   Sidebar,
   SidebarContent,
@@ -242,9 +243,10 @@ export function AppSidebar({ userData, isAdmin = true, ...props }: React.Compone
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
+        {!isAdmin && <NavCourseTree />}
         <NavMain items={data.navMain} />
         {!isAdmin && (
-          <SidebarGroup>
+          <SidebarGroup className="group-data-[collapsible=icon]:hidden">
             <SidebarGroupLabel>My Courses</SidebarGroupLabel>
             <SidebarGroupContent>
               <CourseSelector />
