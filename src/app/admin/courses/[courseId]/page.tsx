@@ -24,6 +24,20 @@ type Page = {
   order: number
 }
 
+type EnrolledUser = {
+  id: string
+  name: string
+  email: string
+  enrolledAt: string
+}
+
+type Course = {
+  id: string
+  title: string
+  type: "FREE" | "PAID"
+  pages: Page[]
+}
+
 function SortableRow({ page, courseId, onDelete }: { page: Page, courseId: string, onDelete: (id: string) => void }) {
   const router = useRouter()
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: page.id })
