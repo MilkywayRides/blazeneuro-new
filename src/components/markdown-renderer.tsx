@@ -50,10 +50,20 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          h1: ({ ...props }) => <h1 className="flex items-center gap-3" {...props} />,
-          h2: ({ ...props }) => <h2 className="flex items-center gap-2" {...props} />,
-          li: ({ children, ...props }: React.ComponentPropsWithoutRef<'li'> & { node?: any }) => {
-            const isOrdered = (props as any).node?.parent?.tagName === 'ol';
+          h1: ({ className, ...props }) => (
+            <h1 className={cn("text-3xl md:text-5xl font-extrabold tracking-tight mt-12 mb-8 pb-4 border-b-2 border-primary/10 flex items-center gap-3", className)} {...props} />
+          ),
+          h2: ({ className, ...props }) => (
+            <h2 className={cn("text-2xl md:text-3xl font-extrabold tracking-tight mt-12 mb-6 pb-2 border-b border-border/50 flex items-center gap-2", className)} {...props} />
+          ),
+          h3: ({ className, ...props }) => (
+            <h3 className={cn("text-xl md:text-2xl font-bold tracking-tight mt-10 mb-4", className)} {...props} />
+          ),
+          h4: ({ className, ...props }) => (
+            <h4 className={cn("text-lg md:text-xl font-bold tracking-tight mt-8 mb-4", className)} {...props} />
+          ),
+          li: ({ children, ...props }: React.ComponentPropsWithoutRef<'li'> & { node?: unknown }) => {
+            const isOrdered = (props as { node?: { parent?: { tagName?: string } } }).node?.parent?.tagName === 'ol';
             if (isOrdered) return <li {...props}>{children}</li>;
             return (
               <li className="before:content-[''] before:absolute before:left-0 before:top-[0.6em] before:h-2 before:w-2 before:rounded-full before:bg-primary/60" {...props}>
