@@ -122,6 +122,7 @@ export default function CourseBuilderPage() {
   const courseId = params.courseId as string
   const [course, setCourse] = useState<Course | null>(null)
   const [enrolledUsers, setEnrolledUsers] = useState<EnrolledUser[]>([])
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [pageToDelete, setPageToDelete] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
@@ -148,12 +149,15 @@ export default function CourseBuilderPage() {
   }, [courseId])
 
   const fetchEnrolledUsers = useCallback(async () => {
+    setIsLoadingUsers(true)
     try {
       const res = await fetch(`/api/admin/courses/${courseId}/enrollments`)
       const data = await res.json()
       setEnrolledUsers(data.users || [])
     } catch (error) {
       console.error("Failed to fetch enrollments:", error)
+    } finally {
+      setIsLoadingUsers(false)
     }
   }, [courseId])
 
@@ -207,35 +211,30 @@ export default function CourseBuilderPage() {
     }
   }
 
-  if (!course) return <div className="p-6 flex items-center justify-center min-h-[400px]"><Loader2 className="h-8 w-8 animate-spin text-primary/20" /></div>
-
   return (
     <div className="p-6 space-y-6 relative">
-      {isSaving && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/40 backdrop-blur-[2px] transition-all">
-          <Card className="shadow-2xl border-primary/20 ring-1 ring-primary/10">
-            <CardContent className="py-6 px-8 flex items-center gap-4">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              <span className="font-bold tracking-tight">Syncing changes...</span>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
       <Card className="border-none shadow-none bg-transparent">
         <CardHeader className="px-0">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <h1 className="text-3xl font-extrabold tracking-tight">{course.title}</h1>
+              <h1 className="text-3xl font-extrabold tracking-tight">
+                {course ? course.title : <div className="h-9 w-64 bg-muted animate-pulse rounded-md" />}
+              </h1>
               <div className="flex items-center gap-2">
-                <Badge variant={course.type === "FREE" ? "secondary" : "destructive"} className="font-black text-[10px] uppercase px-2 py-0.5">
-                  {course.type} Access
-                </Badge>
-                <div className="h-1 w-1 rounded-full bg-border" />
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">{course.pages?.length || 0} Modules</span>
+                {course ? (
+                  <>
+                    <Badge variant={course.type === "FREE" ? "secondary" : "destructive"} className="font-black text-[10px] uppercase px-2 py-0.5">
+                      {course.type} Access
+                    </Badge>
+                    <div className="h-1 w-1 rounded-full bg-border" />
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">{course.pages?.length || 0} Modules</span>
+                  </>
+                ) : (
+                  <div className="h-4 w-32 bg-muted animate-pulse rounded-md" />
+                )}
               </div>
             </div>
-            <Button onClick={() => router.push(`/admin/courses/${courseId}/page-editor`)} className="font-bold gap-2">
+            <Button onClick={() => router.push(`/admin/courses/${courseId}/page-editor`)} className="font-bold gap-2" disabled={!course}>
               <Pencil className="h-4 w-4" />
               Build Module
             </Button>
@@ -249,16 +248,34 @@ export default function CourseBuilderPage() {
           <TabsTrigger value="enrolled" className="rounded-lg font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm">
             <Users className="h-4 w-4 mr-2" />
             Enrollments
-            <Badge variant="secondary" className="ml-2 h-5 min-w-5 p-0 flex items-center justify-center rounded-full text-[10px]">
-              {enrolledUsers.length}
-            </Badge>
+            {course && (
+              <Badge variant="secondary" className="ml-2 h-5 min-w-5 p-0 flex items-center justify-center rounded-full text-[10px]">
+                {enrolledUsers.length}
+              </Badge>
+            )}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="pages" className="mt-6">
-          <Card className="border-border/50 shadow-sm overflow-hidden">
+          <Card className="border-border/50 shadow-sm overflow-hidden relative min-h-[400px]">
+            {isSaving && (
+              <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/40 backdrop-blur-[1px]">
+                <div className="bg-background/90 border shadow-lg rounded-xl px-4 py-3 flex items-center gap-3">
+                   <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                   <span className="text-sm font-bold tracking-tight text-foreground">Syncing changes...</span>
+                </div>
+              </div>
+            )}
             <CardContent className="p-0">
-              {!course.pages || course.pages.length === 0 ? (
+              {!course ? (
+                <div className="flex flex-col items-center justify-center py-32 gap-4">
+                  <div className="relative">
+                    <div className="h-12 w-12 rounded-full border-4 border-primary/10" />
+                    <Loader2 className="h-12 w-12 animate-spin text-primary absolute inset-0" />
+                  </div>
+                  <p className="text-sm font-bold text-muted-foreground animate-pulse">Loading modules...</p>
+                </div>
+              ) : !course.pages || course.pages.length === 0 ? (
                 <div className="text-center py-20 bg-muted/20">
                   <div className="flex flex-col items-center gap-3">
                     <div className="p-4 rounded-full bg-background shadow-inner">
@@ -297,9 +314,17 @@ export default function CourseBuilderPage() {
         </TabsContent>
 
         <TabsContent value="enrolled" className="mt-6">
-          <Card className="border-border/50 shadow-sm overflow-hidden">
+          <Card className="border-border/50 shadow-sm overflow-hidden min-h-[400px]">
             <CardContent className="p-0">
-              {enrolledUsers.length === 0 ? (
+              {isLoadingUsers ? (
+                <div className="flex flex-col items-center justify-center py-32 gap-4">
+                  <div className="relative">
+                    <div className="h-12 w-12 rounded-full border-4 border-primary/10" />
+                    <Loader2 className="h-12 w-12 animate-spin text-primary absolute inset-0" />
+                  </div>
+                  <p className="text-sm font-bold text-muted-foreground animate-pulse">Loading students...</p>
+                </div>
+              ) : enrolledUsers.length === 0 ? (
                 <div className="text-center py-20 bg-muted/20">
                    <div className="flex flex-col items-center gap-3">
                     <div className="p-4 rounded-full bg-background shadow-inner">
