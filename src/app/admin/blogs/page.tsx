@@ -34,7 +34,14 @@ export default async function BlogsPage() {
     console.log("Failed to load blogs:", error.message);
     // Fallback if there are schema mismatches
     const result: any = await db.execute(sql`SELECT * FROM blog ORDER BY "createdAt" DESC`);
-    blogs = (Array.isArray(result) ? result : (result.rows || [])) as BlogPost[];
+    const rows = Array.isArray(result) ? result : (result.rows || []);
+    // Normalize keys to handle case sensitivity from raw SQL
+    blogs = rows.map((row: any) => ({
+      ...row,
+      coverImage: row.coverImage || row.coverimage || row.cover_image || null,
+      createdAt: row.createdAt || row.createdat || row.created_at || new Date(),
+      updatedAt: row.updatedAt || row.updatedat || row.updated_at || new Date(),
+    })) as BlogPost[];
   }
 
   return (

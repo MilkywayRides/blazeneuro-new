@@ -20,13 +20,15 @@ export default async function EditBlogPage({
   try {
     post = await db.select().from(blog).where(eq(blog.id, id)).limit(1);
   } catch (error: any) {
-    // Fallback if coverImage column doesn't exist
-    if (error.message?.includes('coverImage')) {
-      const result: any = await db.execute(sql`SELECT * FROM blog WHERE id = ${id} LIMIT 1`);
-      post = Array.isArray(result) ? result : (result.rows || []);
-    } else {
-      throw error;
-    }
+    // Fallback if coverImage column doesn't exist or casing mismatch
+    const result: any = await db.execute(sql`SELECT * FROM blog WHERE id = ${id} LIMIT 1`);
+    const rows = Array.isArray(result) ? result : (result.rows || []);
+    post = rows.map((row: any) => ({
+      ...row,
+      coverImage: row.coverImage || row.coverimage || row.cover_image || null,
+      createdAt: row.createdAt || row.createdat || row.created_at || new Date(),
+      updatedAt: row.updatedAt || row.updatedat || row.updated_at || new Date(),
+    }));
   }
 
   if (!post[0]) {
