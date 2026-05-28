@@ -10,7 +10,16 @@ import { Lock, Unlock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-export function SiteHeader({ notifications }: { notifications?: unknown[] }) {
+type Notification = {
+  id: string;
+  title: string;
+  description: string | null;
+  type: string;
+  read: boolean;
+  createdAt: Date;
+};
+
+export function SiteHeader({ notifications }: { notifications?: Notification[] }) {
   const pathname = usePathname()
   const showCourseSwitcher = pathname.startsWith("/admin/courses")
   const isAdminDashboard = pathname === "/admin"
@@ -32,11 +41,17 @@ export function SiteHeader({ notifications }: { notifications?: unknown[] }) {
         .catch(() => {
           if (isMounted) setCourseTitle(null);
         })
-    } else {
-      setCourseTitle(null)
     }
     return () => { isMounted = false; };
   }, [pathname, isCoursePage])
+
+  useEffect(() => {
+    if (!isCoursePage) {
+      requestAnimationFrame(() => {
+        setCourseTitle(null);
+      });
+    }
+  }, [isCoursePage]);
 
   const toggleLock = (locked: boolean) => {
     setIsLocked(locked)
