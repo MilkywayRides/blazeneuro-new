@@ -67,31 +67,45 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
         id: "tab-1",
         name: "Overview",
         blocks: [
-          { id: "b1", type: "sectionCards" },
-          { id: "b2", type: "chartArea" },
-          { id: "b3", type: "dataTable" },
+          { id: "b1", type: "revenueCard" },
+          { id: "b2", type: "customersCard" },
+          { id: "b3", type: "accountsCard" },
+          { id: "b4", type: "growthCard" },
+          { id: "b5", type: "chartArea" },
+          { id: "b6", type: "dataTable" },
         ],
       },
     ];
   });
   
   const [activeTab, setActiveTab] = useState(tabs[0]?.id || "tab-1");
+  const [isSaving, setIsSaving] = useState(false);
 
   // Save changes to DB
   const saveLayout = React.useCallback(async (config: TabConfig[]) => {
+    setIsSaving(true);
     try {
       await saveDashboardLayout(config);
+      console.log("Dashboard layout saved successfully");
     } catch (error) {
       console.error("Failed to save layout:", error);
       toast.error("Failed to save dashboard layout");
+    } finally {
+      setIsSaving(false);
     }
   }, []);
+
+  // Use a ref to track the latest tabs for debounced saving
+  const tabsRef = React.useRef(tabs);
+  React.useEffect(() => {
+    tabsRef.current = tabs;
+  }, [tabs]);
 
   // Debounced save effect
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      saveLayout(tabs);
-    }, 1000);
+      saveLayout(tabsRef.current);
+    }, 2000); // 2 second debounce for stability
     return () => clearTimeout(timer);
   }, [tabs, saveLayout]);
 
@@ -102,7 +116,7 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5, // Requires moving 5px before dragging starts to allow clicks
+        distance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -114,8 +128,8 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      setTabs((currentTabs) =>
-        currentTabs.map((tab) => {
+      setTabs((currentTabs) => {
+        const newTabs = currentTabs.map((tab) => {
           if (tab.id === activeTab) {
             const oldIndex = tab.blocks.findIndex((b) => b.id === active.id);
             const newIndex = tab.blocks.findIndex((b) => b.id === over.id);
@@ -125,8 +139,9 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
             };
           }
           return tab;
-        })
-      );
+        });
+        return newTabs;
+      });
     }
   };
 
@@ -136,7 +151,7 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
       ...current,
       {
         id: newTabId,
-        name: `Tab ${current.length + 1}`,
+        name: `New Tab`,
         blocks: [],
       },
     ]);
@@ -157,14 +172,14 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
             type,
           };
 
+          const newBlocks = [...tab.blocks];
           if (insertAfterBlockId) {
             const index = tab.blocks.findIndex((b) => b.id === insertAfterBlockId);
-            const newBlocks = [...tab.blocks];
             newBlocks.splice(index + 1, 0, newBlock);
-            return { ...tab, blocks: newBlocks };
           } else {
-            return { ...tab, blocks: [...tab.blocks, newBlock] };
+            newBlocks.push(newBlock);
           }
+          return { ...tab, blocks: newBlocks };
         }
         return tab;
       })
@@ -191,22 +206,33 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
   return (
     <div className="flex flex-1 flex-col">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="flex items-center px-4 lg:px-6 mb-4">
-          <TabsList className="flex-wrap h-auto">
+        <div className="flex items-center px-4 lg:px-6 mb-4 overflow-x-auto no-scrollbar">
+          <TabsList className="flex-shrink-0 h-auto bg-transparent p-0 gap-2">
             {tabs.map((tab) => (
-              <TabsTrigger key={tab.id} value={tab.id}>
+              <TabsTrigger 
+                key={tab.id} 
+                value={tab.id}
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground border rounded-md px-4 py-2"
+              >
                 {tab.name}
               </TabsTrigger>
             ))}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleAddTab}
+              className="h-10 w-10 p-0 rounded-md"
+              title="Add new tab"
+            >
+              <Plus size={18} />
+            </Button>
           </TabsList>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleAddTab}
-            className="ml-2"
-          >
-            <Plus size={16} className="mr-1" /> Add Tab
-          </Button>
+          
+          {isSaving && (
+            <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground animate-pulse">
+              Saving changes...
+            </div>
+          )}
         </div>
 
         {tabs.map((tab) => (
