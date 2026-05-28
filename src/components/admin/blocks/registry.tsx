@@ -24,6 +24,7 @@ type DataTableItem = z.infer<typeof DataTableSchema>;
 export interface BlockConfig {
   id: BlockType;
   name: string;
+  className?: string;
   render: (props: { tableData: DataTableItem[] }) => React.ReactNode;
 }
 
@@ -31,56 +32,43 @@ export const blockRegistry: Record<BlockType, BlockConfig> = {
   sectionCards: {
     id: "sectionCards",
     name: "All Stats Cards (Grid)",
+    className: "col-span-full",
     render: () => <SectionCards />,
   },
   revenueCard: {
     id: "revenueCard",
     name: "Revenue Card",
-    render: () => (
-      <div className="px-4 lg:px-6">
-        <RevenueCard />
-      </div>
-    ),
+    className: "col-span-1",
+    render: () => <RevenueCard />,
   },
   customersCard: {
     id: "customersCard",
     name: "Customers Card",
-    render: () => (
-      <div className="px-4 lg:px-6">
-        <CustomersCard />
-      </div>
-    ),
+    className: "col-span-1",
+    render: () => <CustomersCard />,
   },
   accountsCard: {
     id: "accountsCard",
     name: "Accounts Card",
-    render: () => (
-      <div className="px-4 lg:px-6">
-        <AccountsCard />
-      </div>
-    ),
+    className: "col-span-1",
+    render: () => <AccountsCard />,
   },
   growthCard: {
     id: "growthCard",
     name: "Growth Card",
-    render: () => (
-      <div className="px-4 lg:px-6">
-        <GrowthCard />
-      </div>
-    ),
+    className: "col-span-1",
+    render: () => <GrowthCard />,
   },
   chartArea: {
     id: "chartArea",
     name: "Interactive Chart",
-    render: () => (
-      <div className="px-4 lg:px-6">
-        <ChartAreaInteractive />
-      </div>
-    ),
+    className: "col-span-full",
+    render: () => <ChartAreaInteractive />,
   },
   dataTable: {
     id: "dataTable",
     name: "Data Table",
+    className: "col-span-full",
     render: ({ tableData }) => <DataTable data={tableData} />,
   },
 };

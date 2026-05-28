@@ -14,7 +14,7 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
+  rectSortingStrategy,
 } from "@dnd-kit/sortable";
 import { Plus } from "lucide-react";
 
@@ -31,6 +31,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 import { BlockType, blockRegistry } from "./blocks/registry";
 import { SortableBlock } from "./blocks/sortable-block";
@@ -265,32 +266,39 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
             >
               <SortableContext
                 items={tab.blocks.map((b) => b.id)}
-                strategy={verticalListSortingStrategy}
+                strategy={rectSortingStrategy}
               >
-                <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 px-4 lg:px-6 py-4 md:gap-6 md:py-6">
                   {tab.blocks.map((block) => (
-                    <SortableBlock
-                      key={block.id}
-                      id={block.id}
-                      onAdd={() => openAddBlockDialog(block.id)}
-                      onRemove={() => removeBlock(block.id)}
-                      isLocked={isLocked}
-                    >
-                      {blockRegistry[block.type] ? (
-                        blockRegistry[block.type].render({
-                          tableData: initialTableData,
-                        })
-                      ) : (
-                        <div className="p-4 border border-destructive text-destructive rounded-md">
-                          Unknown block type: {block.type}
-                        </div>
+                    <div 
+                      key={block.id} 
+                      className={cn(
+                        "flex flex-col",
+                        blockRegistry[block.type]?.className || "col-span-full"
                       )}
-                    </SortableBlock>
+                    >
+                      <SortableBlock
+                        id={block.id}
+                        onAdd={() => openAddBlockDialog(block.id)}
+                        onRemove={() => removeBlock(block.id)}
+                        isLocked={isLocked}
+                      >
+                        {blockRegistry[block.type] ? (
+                          blockRegistry[block.type].render({
+                            tableData: initialTableData,
+                          })
+                        ) : (
+                          <div className="p-4 border border-destructive text-destructive rounded-md">
+                            Unknown block type: {block.type}
+                          </div>
+                        )}
+                      </SortableBlock>
+                    </div>
                   ))}
 
                   {/* Empty state / Add first block button */}
                   {tab.blocks.length === 0 && !isLocked && (
-                    <div className="flex items-center justify-center p-12 border-2 border-dashed rounded-lg">
+                    <div className="col-span-full flex items-center justify-center p-12 border-2 border-dashed rounded-lg">
                       <Button onClick={() => openAddBlockDialog(null)}>
                         <Plus size={16} className="mr-2" /> Add Block
                       </Button>
