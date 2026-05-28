@@ -359,6 +359,14 @@ export const courseFollows = pgTable("course_follows", {
   uniqueUserPublisher: unique().on(table.userId, table.publisherId)
 }))
 
+export const adminDashboardLayout = pgTable("admin_dashboard_layout", {
+  id: text("id").primaryKey(),
+  userId: text("userId").notNull().references(() => user.id),
+  config: jsonb("config").notNull(), // Stores the tabs and blocks structure
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow()
+})
+
 export const schema = {
   user,
   session,
@@ -392,6 +400,7 @@ export const schema = {
   courseProgress,
   courseEnrollments,
   coursePageReactions,
-  courseFollows
+  courseFollows,
+  adminDashboardLayout
 }
 

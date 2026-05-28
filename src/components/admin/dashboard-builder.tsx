@@ -34,6 +34,8 @@ import { Button } from "@/components/ui/button";
 
 import { BlockType, blockRegistry } from "./blocks/registry";
 import { SortableBlock } from "./blocks/sortable-block";
+import { saveDashboardLayout } from "@/app/admin/dashboard-actions";
+import { toast } from "sonner";
 
 interface BlockInstance {
   id: string;
@@ -48,21 +50,46 @@ interface TabConfig {
 
 interface DashboardBuilderProps {
   initialTableData: Record<string, unknown>[];
+  initialConfig?: TabConfig[] | null;
 }
 
-export function DashboardBuilder({ initialTableData }: DashboardBuilderProps) {
-  const [tabs, setTabs] = useState<TabConfig[]>([
-    {
-      id: "tab-1",
-      name: "Overview",
-      blocks: [
-        { id: "b1", type: "sectionCards" },
-        { id: "b2", type: "chartArea" },
-        { id: "b3", type: "dataTable" },
-      ],
-    },
-  ]);
-  const [activeTab, setActiveTab] = useState("tab-1");
+export function DashboardBuilder({ initialTableData, initialConfig }: DashboardBuilderProps) {
+  const [tabs, setTabs] = React.useState<TabConfig[]>(() => {
+    if (initialConfig && initialConfig.length > 0) {
+      return initialConfig;
+    }
+    return [
+      {
+        id: "tab-1",
+        name: "Overview",
+        blocks: [
+          { id: "b1", type: "sectionCards" },
+          { id: "b2", type: "chartArea" },
+          { id: "b3", type: "dataTable" },
+        ],
+      },
+    ];
+  });
+  
+  const [activeTab, setActiveTab] = useState(tabs[0]?.id || "tab-1");
+
+  // Save changes to DB
+  const saveLayout = React.useCallback(async (config: TabConfig[]) => {
+    try {
+      await saveDashboardLayout(config);
+    } catch (error) {
+      console.error("Failed to save layout:", error);
+      toast.error("Failed to save dashboard layout");
+    }
+  }, []);
+
+  // Debounced save effect
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      saveLayout(tabs);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [tabs, saveLayout]);
 
   // Add Block Dialog State
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
