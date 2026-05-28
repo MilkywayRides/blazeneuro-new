@@ -1,7 +1,5 @@
 import { requireAdmin } from "@/lib/auth-check";
-import { ChartAreaInteractive } from "@/components/chart-area-interactive"
-import { DataTable } from "@/components/data-table"
-import { SectionCards } from "@/components/section-cards"
+import { DashboardBuilder } from "@/components/admin/dashboard-builder";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -14,18 +12,10 @@ export default async function AdminPage() {
   await requireAdmin();
 
   return (
-    
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              <SectionCards />
-              <div className="px-4 lg:px-6">
-                <ChartAreaInteractive />
-              </div>
-              <DataTable data={data} />
-            </div>
-          </div>
-        </div>
-      
+    <div className="flex flex-1 flex-col">
+      <div className="@container/main flex flex-1 flex-col gap-2 pt-4">
+        <DashboardBuilder initialTableData={data} />
+      </div>
+    </div>
   )
 }
