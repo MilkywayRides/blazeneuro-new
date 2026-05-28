@@ -36,6 +36,10 @@ import { BlockType, blockRegistry } from "./blocks/registry";
 import { SortableBlock } from "./blocks/sortable-block";
 import { saveDashboardLayout } from "@/app/admin/dashboard-actions";
 import { toast } from "sonner";
+import { schema as DataTableSchema } from "@/components/data-table";
+import { z } from "zod";
+
+type DataTableItem = z.infer<typeof DataTableSchema>;
 
 interface BlockInstance {
   id: string;
@@ -49,7 +53,7 @@ interface TabConfig {
 }
 
 interface DashboardBuilderProps {
-  initialTableData: Record<string, unknown>[];
+  initialTableData: DataTableItem[];
   initialConfig?: TabConfig[] | null;
 }
 

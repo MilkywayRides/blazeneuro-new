@@ -1,14 +1,17 @@
 import React from "react";
 import { SectionCards } from "@/components/section-cards";
 import { ChartAreaInteractive } from "@/components/chart-area-interactive";
-import { DataTable } from "@/components/data-table";
+import { DataTable, schema as DataTableSchema } from "@/components/data-table";
+import { z } from "zod";
 
 export type BlockType = "sectionCards" | "chartArea" | "dataTable";
+
+type DataTableItem = z.infer<typeof DataTableSchema>;
 
 export interface BlockConfig {
   id: BlockType;
   name: string;
-  render: (props: { tableData: Record<string, unknown>[] }) => React.ReactNode;
+  render: (props: { tableData: DataTableItem[] }) => React.ReactNode;
 }
 
 export const blockRegistry: Record<BlockType, BlockConfig> = {
