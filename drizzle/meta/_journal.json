@@ -120,6 +120,13 @@
       "when": 1778065500082,
       "tag": "0016_complex_husk",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1779951667176,
+      "tag": "0017_thin_bloodstrike",
+      "breakpoints": true
     }
   ]
 }
