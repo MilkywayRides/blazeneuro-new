@@ -10,9 +10,10 @@ interface SortableBlockProps {
   children: React.ReactNode;
   onAdd: () => void;
   onRemove: () => void;
+  isLocked?: boolean;
 }
 
-export function SortableBlock({ id, children, onAdd, onRemove }: SortableBlockProps) {
+export function SortableBlock({ id, children, onAdd, onRemove, isLocked }: SortableBlockProps) {
   const {
     attributes,
     listeners,
@@ -20,7 +21,10 @@ export function SortableBlock({ id, children, onAdd, onRemove }: SortableBlockPr
     transform,
     transition,
     isDragging,
-  } = useSortable({ id });
+  } = useSortable({ 
+    id,
+    disabled: isLocked 
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -32,33 +36,35 @@ export function SortableBlock({ id, children, onAdd, onRemove }: SortableBlockPr
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative group ${isDragging ? "opacity-50" : ""}`}
+      className={`relative group ${isDragging ? "opacity-50" : ""} ${isLocked ? "" : "hover:ring-1 ring-primary/20 rounded-lg transition-all"}`}
     >
       {/* Floating Toolbar on Hover */}
-      <div className="absolute -top-3 right-8 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-background border shadow-md rounded-md p-1 z-50">
-        <button
-          {...attributes}
-          {...listeners}
-          className="p-1.5 hover:bg-muted rounded text-muted-foreground cursor-grab active:cursor-grabbing"
-          title="Drag to move"
-        >
-          <GripVertical size={16} />
-        </button>
-        <button
-          onClick={onAdd}
-          className="p-1.5 hover:bg-muted rounded text-muted-foreground"
-          title="Add block below"
-        >
-          <Plus size={16} />
-        </button>
-        <button
-          onClick={onRemove}
-          className="p-1.5 hover:bg-destructive/10 text-destructive rounded"
-          title="Remove block"
-        >
-          <Trash2 size={16} />
-        </button>
-      </div>
+      {!isLocked && (
+        <div className="absolute -top-3 right-8 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-background border shadow-md rounded-md p-1 z-50">
+          <button
+            {...attributes}
+            {...listeners}
+            className="p-1.5 hover:bg-muted rounded text-muted-foreground cursor-grab active:cursor-grabbing"
+            title="Drag to move"
+          >
+            <GripVertical size={16} />
+          </button>
+          <button
+            onClick={onAdd}
+            className="p-1.5 hover:bg-muted rounded text-muted-foreground"
+            title="Add block below"
+          >
+            <Plus size={16} />
+          </button>
+          <button
+            onClick={onRemove}
+            className="p-1.5 hover:bg-destructive/10 text-destructive rounded"
+            title="Remove block"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      )}
 
       {children}
     </div>

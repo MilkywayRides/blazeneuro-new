@@ -80,9 +80,26 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
   
   const [activeTab, setActiveTab] = useState(tabs[0]?.id || "tab-1");
   const [isSaving, setIsSaving] = useState(false);
+  const [isLocked, setIsLocked] = useState(true);
+
+  // Listen for lock events from the Header
+  React.useEffect(() => {
+    const handleLockChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ locked: boolean }>;
+      const locked = customEvent.detail.locked;
+      setIsLocked(locked);
+      if (locked) {
+        // Force an immediate save when locking
+        saveDashboardLayout(tabsRef.current);
+      }
+    };
+    window.addEventListener("dashboard-lock-change", handleLockChange);
+    return () => window.removeEventListener("dashboard-lock-change", handleLockChange);
+  }, [saveLayout]);
 
   // Save changes to DB
   const saveLayout = React.useCallback(async (config: TabConfig[]) => {
+    if (!isLocked) return; // Don't save if unlocked
     setIsSaving(true);
     try {
       await saveDashboardLayout(config);
@@ -93,7 +110,7 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
     } finally {
       setIsSaving(false);
     }
-  }, []);
+  }, [isLocked]);
 
   // Use a ref to track the latest tabs for debounced saving
   const tabsRef = React.useRef(tabs);
@@ -101,13 +118,14 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
     tabsRef.current = tabs;
   }, [tabs]);
 
-  // Debounced save effect
+  // Debounced save effect - only runs if locked
   React.useEffect(() => {
+    if (!isLocked) return;
     const timer = setTimeout(() => {
       saveLayout(tabsRef.current);
-    }, 2000); // 2 second debounce for stability
+    }, 2000);
     return () => clearTimeout(timer);
-  }, [tabs, saveLayout]);
+  }, [tabs, saveLayout, isLocked]);
 
   // Add Block Dialog State
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -217,15 +235,17 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
                 {tab.name}
               </TabsTrigger>
             ))}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleAddTab}
-              className="h-10 w-10 p-0 rounded-md"
-              title="Add new tab"
-            >
-              <Plus size={18} />
-            </Button>
+            {!isLocked && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAddTab}
+                className="h-10 w-10 p-0 rounded-md"
+                title="Add new tab"
+              >
+                <Plus size={18} />
+              </Button>
+            )}
           </TabsList>
           
           {isSaving && (
@@ -253,6 +273,7 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
                       id={block.id}
                       onAdd={() => openAddBlockDialog(block.id)}
                       onRemove={() => removeBlock(block.id)}
+                      isLocked={isLocked}
                     >
                       {blockRegistry[block.type] ? (
                         blockRegistry[block.type].render({
@@ -267,7 +288,7 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
                   ))}
 
                   {/* Empty state / Add first block button */}
-                  {tab.blocks.length === 0 && (
+                  {tab.blocks.length === 0 && !isLocked && (
                     <div className="flex items-center justify-center p-12 border-2 border-dashed rounded-lg">
                       <Button onClick={() => openAddBlockDialog(null)}>
                         <Plus size={16} className="mr-2" /> Add Block
