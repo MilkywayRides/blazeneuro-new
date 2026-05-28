@@ -113,6 +113,14 @@ export async function updateBlog(
 export async function deleteBlog(id: string) {
   await requireAdmin();
 
+  // Delete related records first
+  try {
+    const { blogFeedback } = await import("@/lib/schema");
+    await db.delete(blogFeedback).where(eq(blogFeedback.blogId, id));
+  } catch (error) {
+    console.error("Failed to delete related records:", error);
+  }
+
   await db.delete(blog).where(eq(blog.id, id));
 
   revalidatePath("/admin/blogs");
