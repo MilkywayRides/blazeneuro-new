@@ -6,6 +6,8 @@ import { requireAdmin } from "@/lib/auth-check";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
+import { randomUUID } from "crypto";
+
 export async function saveDashboardLayout(config: unknown) {
   const session = await requireAdmin();
   const userId = session.user.id;
@@ -26,7 +28,7 @@ export async function saveDashboardLayout(config: unknown) {
       .where(eq(adminDashboardLayout.userId, userId));
   } else {
     await db.insert(adminDashboardLayout).values({
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       userId,
       config: config as any,
     });

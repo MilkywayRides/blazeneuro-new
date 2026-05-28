@@ -85,7 +85,6 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
 
   // Save changes to DB
   const saveLayout = React.useCallback(async (config: TabConfig[]) => {
-    if (!isLocked) return; // Don't save if unlocked
     setIsSaving(true);
     try {
       await saveDashboardLayout(config);
@@ -96,7 +95,7 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
     } finally {
       setIsSaving(false);
     }
-  }, [isLocked]);
+  }, []);
 
   // Listen for lock events from the Header
   React.useEffect(() => {
@@ -106,7 +105,7 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
       setIsLocked(locked);
       if (locked) {
         // Force an immediate save when locking
-        // Using tabsRef.current to get the latest state without triggering effect dependencies
+        // Using tabsRef.current to get the latest state
         saveLayout(tabsRef.current);
       }
     };
@@ -120,7 +119,7 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
     tabsRef.current = tabs;
   }, [tabs]);
 
-  // Debounced save effect - only runs if locked
+  // Debounced save effect - only runs automatically if locked
   React.useEffect(() => {
     if (!isLocked) return;
     const timer = setTimeout(() => {
