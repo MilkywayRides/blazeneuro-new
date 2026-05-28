@@ -82,21 +82,6 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
   const [isSaving, setIsSaving] = useState(false);
   const [isLocked, setIsLocked] = useState(true);
 
-  // Listen for lock events from the Header
-  React.useEffect(() => {
-    const handleLockChange = (e: Event) => {
-      const customEvent = e as CustomEvent<{ locked: boolean }>;
-      const locked = customEvent.detail.locked;
-      setIsLocked(locked);
-      if (locked) {
-        // Force an immediate save when locking
-        saveDashboardLayout(tabsRef.current);
-      }
-    };
-    window.addEventListener("dashboard-lock-change", handleLockChange);
-    return () => window.removeEventListener("dashboard-lock-change", handleLockChange);
-  }, [saveLayout]);
-
   // Save changes to DB
   const saveLayout = React.useCallback(async (config: TabConfig[]) => {
     if (!isLocked) return; // Don't save if unlocked
@@ -111,6 +96,22 @@ export function DashboardBuilder({ initialTableData, initialConfig }: DashboardB
       setIsSaving(false);
     }
   }, [isLocked]);
+
+  // Listen for lock events from the Header
+  React.useEffect(() => {
+    const handleLockChange = (e: Event) => {
+      const customEvent = e as CustomEvent<{ locked: boolean }>;
+      const locked = customEvent.detail.locked;
+      setIsLocked(locked);
+      if (locked) {
+        // Force an immediate save when locking
+        // Using tabsRef.current to get the latest state without triggering effect dependencies
+        saveLayout(tabsRef.current);
+      }
+    };
+    window.addEventListener("dashboard-lock-change", handleLockChange);
+    return () => window.removeEventListener("dashboard-lock-change", handleLockChange);
+  }, [saveLayout]);
 
   // Use a ref to track the latest tabs for debounced saving
   const tabsRef = React.useRef(tabs);
