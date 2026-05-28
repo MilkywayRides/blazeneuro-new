@@ -36,15 +36,17 @@ export async function saveDashboardLayout(config: unknown) {
   return { success: true };
 }
 
-export async function getDashboardLayout() {
-  const session = await requireAdmin();
-  const userId = session.user.id;
+export async function getDashboardLayout(userId: string) {
+  try {
+    const result = await db
+      .select()
+      .from(adminDashboardLayout)
+      .where(eq(adminDashboardLayout.userId, userId))
+      .limit(1);
 
-  const result = await db
-    .select()
-    .from(adminDashboardLayout)
-    .where(eq(adminDashboardLayout.userId, userId))
-    .limit(1);
-
-  return result.length > 0 ? (result[0].config as any) : null;
+    return result.length > 0 ? (result[0].config as any) : null;
+  } catch (error) {
+    console.error("Failed to fetch dashboard layout:", error);
+    return null; // Return null if table doesn't exist or other error
+  }
 }

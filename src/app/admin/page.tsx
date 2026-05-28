@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 import data from "../dashboard/data.json"
 
 export default async function AdminPage() {
-  await requireAdmin();
-  const initialConfig = await getDashboardLayout();
+  const session = await requireAdmin();
+  const initialConfig = await getDashboardLayout(session.user.id);
 
   return (
     <div className="flex flex-1 flex-col">
