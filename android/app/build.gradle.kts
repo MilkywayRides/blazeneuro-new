@@ -7,22 +7,44 @@ android {
     namespace = "com.blazeneuro"
     compileSdk = 34
 
+    val envVersionCode = System.getenv("VERSION_CODE")?.toIntOrNull()
+    val envVersionName = System.getenv("VERSION_NAME")
+    val updateRepository = System.getenv("GITHUB_REPOSITORY")
+        ?: providers.gradleProperty("updateRepository").orNull
+        ?: ""
+
     defaultConfig {
         applicationId = "com.blazeneuro"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = envVersionCode ?: 1
+        versionName = envVersionName ?: "1.0"
+        buildConfigField("String", "UPDATE_REPOSITORY", "\"$updateRepository\"")
         vectorDrawables.useSupportLibrary = true
         renderscriptTargetApi = 24
         renderscriptSupportModeEnabled = false
         ndk.abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a"))
     }
 
+    signingConfigs {
+        create("release") {
+            val storeFilePath = System.getenv("ANDROID_KEYSTORE_PATH")
+            if (!storeFilePath.isNullOrBlank()) {
+                storeFile = file(storeFilePath)
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            if (!System.getenv("ANDROID_KEYSTORE_PATH").isNullOrBlank()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
