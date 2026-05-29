@@ -54,6 +54,7 @@ class HomeActivity : AppCompatActivity() {
         
         // Check for popup
         checkForPopup()
+        AppUpdateManager.checkForUpdates(this)
         
         // Set status bar appearance based on theme
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {

@@ -64,3 +64,27 @@ android/
 - Android SDK 24+
 - Kotlin 1.9.20
 - Gradle 8.2
+
+## GitHub Actions Android auto-update flow
+
+The app now checks the latest GitHub Release for this repository when it starts. If the release contains an APK and the release body includes a larger `Android versionCode`, the app shows a **New update available** popup, downloads the APK, and opens the Android installer.
+
+To publish an update:
+
+1. Push your code to GitHub.
+2. Create and push a version tag, for example:
+   ```bash
+   git tag v1.0.1
+   git push origin v1.0.1
+   ```
+3. GitHub Actions builds the Android APK and publishes it to a GitHub Release.
+4. Installed apps built by the pipeline detect the new release automatically.
+
+For production updates, configure these GitHub repository secrets so every update uses the same signing certificate:
+
+- `ANDROID_SIGNING_KEY_BASE64` — base64-encoded `.jks` keystore file.
+- `ANDROID_KEYSTORE_PASSWORD` — keystore password.
+- `ANDROID_KEY_ALIAS` — signing key alias.
+- `ANDROID_KEY_PASSWORD` — signing key password.
+
+Without signing secrets, the workflow still uploads a debug APK artifact/release for testing, but Android will only install updates over an existing app when the signatures match.

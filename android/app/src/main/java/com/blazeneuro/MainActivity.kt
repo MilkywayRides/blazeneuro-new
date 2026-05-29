@@ -20,6 +20,7 @@ class MainActivity : AppCompatActivity() {
         window.statusBarColor = android.graphics.Color.TRANSPARENT
 
         AuthApi.init(this)
+        AppUpdateManager.checkForUpdates(this)
         
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             val nightMode = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
