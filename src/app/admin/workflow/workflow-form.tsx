@@ -46,12 +46,14 @@ export function WorkflowForm() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="gap-2">
-          <PlusIcon className="size-4" />
-          Create Flow
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          <Button className="gap-2">
+            <PlusIcon className="size-4" />
+            Create Flow
+          </Button>
+        }
+      />
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
