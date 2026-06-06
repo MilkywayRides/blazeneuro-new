@@ -5,8 +5,13 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import Link from "next/link"
-import { BookOpen, Calendar, User as UserIcon, MapPin, Link as LinkIcon } from "lucide-react"
+import { BookOpen, Calendar, User as UserIcon, Flag } from "lucide-react"
 import { db } from "@/lib/db"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
+import { and, eq } from "drizzle-orm"
+import { courseFollows } from "@/lib/schema"
+import { FollowButton } from "@/components/follow-button"
 
 async function getProfile(username: string) {
   try {
@@ -28,9 +33,26 @@ async function getProfile(username: string) {
       where: (c, { eq }) => eq(c.publisherId, userRecord.id)
     })
 
+    const session = await auth.api.getSession({
+      headers: await headers()
+    })
+
+    let isFollowing = false
+    if (session?.user) {
+      const followRecord = await db.query.courseFollows.findFirst({
+        where: and(
+          eq(courseFollows.userId, session.user.id),
+          eq(courseFollows.publisherId, userRecord.id)
+        )
+      })
+      isFollowing = !!followRecord
+    }
+
     return {
       ...userRecord,
-      courses: userCourses
+      courses: userCourses,
+      isFollowing,
+      isLoggedIn: !!session?.user
     }
   } catch (error) {
     console.error("Error fetching profile:", error)
@@ -50,7 +72,6 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
     <div className="min-h-screen bg-background text-foreground">
       {/* YouTube Inspired Banner Area */}
       <div className="w-full h-[16vw] min-h-[150px] max-h-[300px] bg-muted relative overflow-hidden">
-        {/* Placeholder for banner - clean neutral look */}
         <div className="absolute inset-0 bg-gradient-to-b from-muted/50 to-muted" />
       </div>
       
@@ -82,9 +103,11 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
             )}
 
             <div className="flex items-center gap-4 pt-2">
-              <Button className="rounded-full px-6 font-bold bg-foreground text-background hover:bg-foreground/90">
-                Follow
-              </Button>
+              <FollowButton 
+                publisherId={profile.id} 
+                initialIsFollowing={profile.isFollowing} 
+                isLoggedIn={profile.isLoggedIn}
+              />
               <Button variant="outline" className="rounded-full px-6 font-bold">
                 Share
               </Button>
@@ -92,18 +115,18 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
           </div>
         </div>
 
-        {/* Navigation Tabs */}
+        {/* Navigation Tabs using shadcn line variant */}
         <Tabs defaultValue="courses" className="w-full mt-4">
-          <TabsList className="w-full justify-start h-12 bg-transparent border-b rounded-none p-0 gap-8">
+          <TabsList variant="line" className="w-full justify-start h-12 bg-transparent border-b rounded-none p-0 gap-8">
             <TabsTrigger 
               value="courses" 
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full px-0 font-bold text-base"
+              className="rounded-none h-full px-0 font-bold text-base"
             >
               Courses
             </TabsTrigger>
             <TabsTrigger 
               value="about" 
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none h-full px-0 font-bold text-base"
+              className="rounded-none h-full px-0 font-bold text-base"
             >
               About
             </TabsTrigger>
@@ -191,13 +214,5 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
         </Tabs>
       </div>
     </div>
-  )
-}
-
-function Flag({ className }: { className?: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/>
-    </svg>
   )
 }
