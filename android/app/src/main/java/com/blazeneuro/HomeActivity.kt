@@ -20,13 +20,18 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.blazeneuro.location.LocationService
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 
 class HomeActivity : AppCompatActivity() {
     private lateinit var drawerLayout: DrawerLayout
@@ -41,6 +46,8 @@ class HomeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         applyTheme()
         super.onCreate(savedInstanceState)
+        applySystemBars()
+        
         setContentView(R.layout.activity_home_bottom_nav)
         AuthApi.init(this)
         NotificationManager.init(this)
@@ -48,9 +55,7 @@ class HomeActivity : AppCompatActivity() {
         
         // Initialize and start location tracking
         locationService = LocationService(this)
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            locationService.startTracking()
-        }
+        checkLocationPermission()
         
         // Check for popup
         checkForPopup()
@@ -193,14 +198,36 @@ class HomeActivity : AppCompatActivity() {
         }
     }
     
+    private fun checkLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
+                101
+            )
+        } else {
+            locationService.startTracking()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 101) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                locationService.startTracking()
+            }
+        }
+    }
+    
     private fun checkForPopup() {
         Log.d("HomeActivity", "checkForPopup called")
-        lifecycleScope.launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val url = "https://blazeneuro.com/api/mobile/popup"
                 val request = okhttp3.Request.Builder().url(url).build()
                 val response = okhttp3.OkHttpClient().newCall(request).execute()
-                val json = org.json.JSONObject(response.body?.string() ?: "{}")
+                val responseBody = response.body?.string() ?: "{}"
+                val json = org.json.JSONObject(responseBody)
                 
                 Log.d("HomeActivity", "Popup response: $json")
                 
@@ -215,7 +242,7 @@ class HomeActivity : AppCompatActivity() {
                     
                     if (!shown) {
                         Log.d("HomeActivity", "Showing popup")
-                        runOnUiThread {
+                        withContext(Dispatchers.Main) {
                             PopupDialog(this@HomeActivity, popup).show()
                         }
                         prefs.edit().putBoolean(popupId, true).apply()
@@ -241,15 +268,32 @@ class HomeActivity : AppCompatActivity() {
         }
         androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(mode)
     }
+
+    private fun applySystemBars() {
+        val nightMode = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
+        val isLightTheme = nightMode != android.content.res.Configuration.UI_MODE_NIGHT_YES
+        var flags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        if (isLightTheme) {
+            flags = flags or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                flags = flags or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+            }
+        }
+        window.decorView.systemUiVisibility = flags
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
+        window.navigationBarColor = resources.getColor(R.color.background, null)
+    }
 }
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var viewPager: androidx.viewpager2.widget.ViewPager2
-    private lateinit var rvCourses: RecyclerView
+    private lateinit var llCourses: android.widget.LinearLayout
+    private lateinit var vpCourses: androidx.viewpager2.widget.ViewPager2
     private val topBlogs = mutableListOf<AuthApi.Blog>()
     private val courses = mutableListOf<AuthApi.Course>()
     private var isLoading = true
+    private var isCourseGridMode = false
     private lateinit var notificationBadge: View
     private val notificationListener = { updateNotificationBadge() }
 
@@ -268,7 +312,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         
         swipeRefresh = view.findViewById(R.id.swipeRefresh)
         viewPager = view.findViewById(R.id.vpCarousel)
-        rvCourses = view.findViewById(R.id.rvCourses)
+        llCourses = view.findViewById(R.id.llCourses)
+        vpCourses = view.findViewById(R.id.vpCourses)
+        
+        isCourseGridMode = requireContext()
+            .getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+            .getString("course_view_mode", "list") == "grid"
         
         swipeRefresh.setOnRefreshListener {
             loadTopBlogs()
@@ -314,12 +363,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         viewPager.adapter = adapter
         viewPager.offscreenPageLimit = 1
         
-        // Start at a high position to allow infinite scrolling
-        if (!isLoading && topBlogs.isNotEmpty()) {
-            val startPosition = Int.MAX_VALUE / 2
-            viewPager.setCurrentItem(startPosition - (startPosition % topBlogs.size), false)
-        }
-        
         val pageMargin = resources.getDimensionPixelOffset(R.dimen.space_md)
         viewPager.setPageTransformer { page, position ->
             page.translationX = -pageMargin * position
@@ -335,7 +378,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         lifecycleScope.launch {
             while (true) {
                 kotlinx.coroutines.delay(4000)
-                if (!isLoading && topBlogs.isNotEmpty()) {
+                if (!isLoading && topBlogs.isNotEmpty() && isAdded) {
                     val currentItem = viewPager.currentItem
                     viewPager.setCurrentItem(currentItem + 1, true)
                 }
@@ -354,17 +397,26 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun updateDots(position: Int) {
         val dotsLayout = view?.findViewById<android.widget.LinearLayout>(R.id.dotsIndicator) ?: return
         dotsLayout.removeAllViews()
+        val total = topBlogs.size
+        if (total == 0) return
+        val visibleDots = minOf(total, 5)
+        val activeDot = when {
+            total <= visibleDots -> position
+            position <= 1 -> position
+            position >= total - 2 -> visibleDots - (total - position)
+            else -> visibleDots / 2
+        }
         
-        for (i in topBlogs.indices) {
+        for (i in 0 until visibleDots) {
             val dot = View(context).apply {
                 layoutParams = android.widget.LinearLayout.LayoutParams(
-                    if (i == position) 24 else 16,
-                    if (i == position) 24 else 16
+                    if (i == activeDot) 24 else 16,
+                    if (i == activeDot) 24 else 16
                 ).apply {
                     setMargins(8, 0, 8, 0)
                 }
                 background = resources.getDrawable(
-                    if (i == position) R.drawable.dot_active else R.drawable.dot_inactive,
+                    if (i == activeDot) R.drawable.dot_active else R.drawable.dot_inactive,
                     null
                 )
             }
@@ -398,12 +450,89 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     }
 
     private fun setupCourses() {
-        rvCourses.layoutManager = LinearLayoutManager(requireContext())
-        rvCourses.adapter = CourseAdapter(courses) { course ->
+        val sliderAdapter = CourseSliderAdapter(courses) { course ->
             val intent = Intent(requireContext(), CourseDetailActivity::class.java).apply {
                 putExtra("courseId", course.id)
             }
             startActivity(intent)
+        }
+        vpCourses.adapter = sliderAdapter
+        vpCourses.offscreenPageLimit = 1
+        
+        val pageMargin = resources.getDimensionPixelOffset(R.dimen.space_md)
+        vpCourses.setPageTransformer { page, position ->
+            page.translationX = -pageMargin * position
+            page.scaleY = 1 - (0.15f * kotlin.math.abs(position))
+            page.alpha = 0.5f + (1 - kotlin.math.abs(position)) * 0.5f
+        }
+
+        applyCourseViewMode()
+        
+        view?.findViewById<ImageView>(R.id.btnCourseViewMode)?.setOnClickListener {
+            isCourseGridMode = !isCourseGridMode
+            requireContext()
+                .getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+                .edit()
+                .putString("course_view_mode", if (isCourseGridMode) "grid" else "list")
+                .apply()
+            applyCourseViewMode()
+        }
+    }
+
+    private fun applyCourseViewMode() {
+        llCourses.visibility = if (isCourseGridMode) View.GONE else View.VISIBLE
+        vpCourses.visibility = if (isCourseGridMode) View.VISIBLE else View.GONE
+        
+        if (isCourseGridMode && courses.isNotEmpty()) {
+            vpCourses.post {
+                val startPosition = Int.MAX_VALUE / 2
+                vpCourses.setCurrentItem(startPosition - (startPosition % courses.size), false)
+            }
+        } else {
+            renderCourseList()
+        }
+        
+        view?.findViewById<ImageView>(R.id.btnCourseViewMode)?.setImageResource(
+            if (isCourseGridMode) R.drawable.ic_list_view else R.drawable.ic_grid_view
+        )
+    }
+
+    private fun renderCourseList() {
+        llCourses.removeAllViews()
+        val inflater = LayoutInflater.from(requireContext())
+        val marginMd = (12 * resources.displayMetrics.density).toInt()
+        
+        courses.forEach { course ->
+            val itemView = inflater.inflate(R.layout.item_course_list, llCourses, false)
+            
+            val ivCover = itemView.findViewById<ImageView>(R.id.ivCourseCover)
+            val tvTitle = itemView.findViewById<TextView>(R.id.tvCourseTitle)
+            val tvType = itemView.findViewById<TextView>(R.id.tvCourseType)
+            val tvPageCount = itemView.findViewById<TextView>(R.id.tvPageCount)
+            
+            tvTitle.text = course.title
+            tvType.text = course.type
+            tvPageCount.text = "${course.pageCount} pages"
+            
+            if (!course.coverImage.isNullOrEmpty()) {
+                com.bumptech.glide.Glide.with(this)
+                    .load(course.coverImage)
+                    .centerCrop()
+                    .into(ivCover)
+            }
+            
+            val params = itemView.layoutParams as android.widget.LinearLayout.LayoutParams
+            params.setMargins(0, 0, 0, marginMd)
+            itemView.layoutParams = params
+            
+            itemView.setOnClickListener {
+                val intent = Intent(requireContext(), CourseDetailActivity::class.java).apply {
+                    putExtra("courseId", course.id)
+                }
+                startActivity(intent)
+            }
+            
+            llCourses.addView(itemView)
         }
     }
 
@@ -412,8 +541,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             try {
                 val result = AuthApi.getCourses()
                 courses.clear()
-                courses.addAll(result)
-                rvCourses.adapter?.notifyDataSetChanged()
+                courses.addAll(result.take(5))
+                
+                vpCourses.adapter?.notifyDataSetChanged()
+                applyCourseViewMode()
             } catch (e: Exception) {
                 Log.e("HomeFragment", "Failed to load courses", e)
             }
@@ -421,13 +552,83 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     }
 }
 
+class CourseSliderAdapter(
+    private val courses: List<AuthApi.Course>,
+    private val onClick: (AuthApi.Course) -> Unit
+) : RecyclerView.Adapter<CourseSliderAdapter.ViewHolder>() {
+
+    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val ivCover: ImageView = view.findViewById(R.id.ivCourseCover)
+        val tvTitle: TextView = view.findViewById(R.id.tvCourseTitle)
+        val tvType: TextView = view.findViewById(R.id.tvCourseType)
+        val tvPageCount: TextView = view.findViewById(R.id.tvPageCount)
+        val blurPages: eightbitlab.com.blurview.BlurView = view.findViewById(R.id.blurPages)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_course_grid, parent, false)
+        val holder = ViewHolder(view)
+        
+        // Setup blur effect
+        val decorView = (parent.context as? android.app.Activity)?.window?.decorView
+        val rootView = decorView?.findViewById<ViewGroup>(android.R.id.content)
+        if (rootView != null) {
+            holder.blurPages.setupWith(rootView, eightbitlab.com.blurview.RenderScriptBlur(parent.context))
+                .setBlurRadius(20f)
+                .setBlurAutoUpdate(true)
+            
+            holder.blurPages.outlineProvider = object : android.view.ViewOutlineProvider() {
+                override fun getOutline(view: android.view.View, outline: android.graphics.Outline) {
+                    outline.setRoundRect(0, 0, view.width, view.height, 100f * view.resources.displayMetrics.density)
+                }
+            }
+            holder.blurPages.clipToOutline = true
+        }
+        
+        return holder
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        if (courses.isEmpty()) return
+        val actualPosition = position % courses.size
+        val course = courses[actualPosition]
+        
+        holder.tvTitle.text = course.title
+        holder.tvType.text = course.type
+        holder.tvPageCount.text = "${course.pageCount} pages"
+        
+        if (!course.coverImage.isNullOrEmpty()) {
+            val radius = (12 * holder.itemView.resources.displayMetrics.density).toInt()
+            com.bumptech.glide.Glide.with(holder.ivCover)
+                .load(course.coverImage)
+                .transform(com.bumptech.glide.load.resource.bitmap.CenterCrop(), com.bumptech.glide.load.resource.bitmap.RoundedCorners(radius))
+                .into(holder.ivCover)
+        }
+        
+        holder.itemView.setOnClickListener { onClick(course) }
+    }
+
+    override fun getItemCount() = if (courses.isEmpty()) 0 else Int.MAX_VALUE
+}
+
 class CourseAdapter(
     private val courses: List<AuthApi.Course>,
+    private var isGridMode: Boolean,
     private val onClick: (AuthApi.Course) -> Unit
 ) : RecyclerView.Adapter<CourseAdapter.CourseViewHolder>() {
 
+    fun setGridMode(gridMode: Boolean) {
+        isGridMode = gridMode
+        notifyDataSetChanged()
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return if (isGridMode) 0 else 1
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CourseViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_course, parent, false)
+        val layout = if (viewType == 0) R.layout.item_course_grid else R.layout.item_course_list
+        val view = LayoutInflater.from(parent.context).inflate(layout, parent, false)
         return CourseViewHolder(view)
     }
 
@@ -438,14 +639,38 @@ class CourseAdapter(
     override fun getItemCount() = courses.size
 
     inner class CourseViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        private val ivCover: ImageView = view.findViewById(R.id.ivCourseCover)
         private val tvTitle: TextView = view.findViewById(R.id.tvCourseTitle)
         private val tvType: TextView = view.findViewById(R.id.tvCourseType)
         private val tvPageCount: TextView = view.findViewById(R.id.tvPageCount)
 
         fun bind(course: AuthApi.Course) {
+            val marginMd = (12 * itemView.resources.displayMetrics.density).toInt()
+            
+            if (isGridMode) {
+                itemView.layoutParams = (itemView.layoutParams as RecyclerView.LayoutParams).apply {
+                    setMargins(0, 0, 0, marginMd * 2)
+                }
+            } else {
+                itemView.layoutParams = (itemView.layoutParams as RecyclerView.LayoutParams).apply {
+                    setMargins(0, 0, 0, marginMd)
+                }
+            }
+
             tvTitle.text = course.title
             tvType.text = course.type
             tvPageCount.text = "${course.pageCount} pages"
+            
+            if (!course.coverImage.isNullOrEmpty()) {
+                val radius = (12 * itemView.resources.displayMetrics.density).toInt()
+                com.bumptech.glide.Glide.with(itemView.context)
+                    .load(course.coverImage)
+                    .transform(CenterCrop(), RoundedCorners(radius))
+                    .into(ivCover)
+            } else {
+                ivCover.setImageResource(R.drawable.skeleton_shimmer)
+            }
+            
             itemView.setOnClickListener { onClick(course) }
         }
     }
@@ -675,35 +900,68 @@ class BlogsFragment : Fragment(R.layout.fragment_blogs) {
     private lateinit var swipeRefresh: SwipeRefreshLayout
     private val blogs = mutableListOf<AuthApi.Blog>()
     private lateinit var adapter: BlogAdapter
+    private var isLoading = false
+    private var currentOffset = 0
+    private val pageSize = 6
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         rvBlogs = view.findViewById(R.id.rvBlogs)
         swipeRefresh = view.findViewById(R.id.swipeRefresh)
         adapter = BlogAdapter(blogs)
-        rvBlogs.layoutManager = LinearLayoutManager(context)
+        val layoutManager = LinearLayoutManager(context)
+        rvBlogs.layoutManager = layoutManager
         rvBlogs.adapter = adapter
         
+        rvBlogs.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                if (!isLoading && layoutManager.findLastVisibleItemPosition() >= blogs.size - 2) {
+                    loadMoreBlogs()
+                }
+            }
+        })
+        
         swipeRefresh.setOnRefreshListener {
+            currentOffset = 0
+            blogs.clear()
             loadBlogs()
         }
         
-        // Load blogs immediately
         swipeRefresh.isRefreshing = true
         loadBlogs()
     }
 
     private fun loadBlogs() {
         lifecycleScope.launch {
+            isLoading = true
             try {
-                val result = AuthApi.getBlogs()
-                android.util.Log.d("BlogsFragment", "Loaded ${result.size} blogs")
-                blogs.clear()
+                val result = AuthApi.getBlogs(pageSize, currentOffset)
                 blogs.addAll(result)
                 adapter.notifyDataSetChanged()
+                currentOffset += result.size
             } catch (e: Exception) {
                 android.util.Log.e("BlogsFragment", "Error loading blogs", e)
             } finally {
+                isLoading = false
                 swipeRefresh.isRefreshing = false
+            }
+        }
+    }
+
+    private fun loadMoreBlogs() {
+        lifecycleScope.launch {
+            isLoading = true
+            try {
+                val result = AuthApi.getBlogs(pageSize, currentOffset)
+                if (result.isNotEmpty()) {
+                    val startPos = blogs.size
+                    blogs.addAll(result)
+                    adapter.notifyItemRangeInserted(startPos, result.size)
+                    currentOffset += result.size
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("BlogsFragment", "Error loading more blogs", e)
+            } finally {
+                isLoading = false
             }
         }
     }
@@ -1339,6 +1597,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             }
             activity?.let {
                 androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(mode)
+                it.recreate()
             }
         }
         

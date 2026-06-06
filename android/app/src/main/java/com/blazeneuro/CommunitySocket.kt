@@ -23,6 +23,13 @@ object CommunitySocket {
             
             socket = IO.socket("https://blazeneuro.com", opts)
             
+            // Register existing listeners
+            listeners.forEach { (event, callbacks) ->
+                socket?.on(event) { args ->
+                    callbacks.forEach { it(args.firstOrNull() ?: Unit) }
+                }
+            }
+            
             socket?.on(Socket.EVENT_CONNECT) {
                 android.util.Log.d("CommunitySocket", "Connected")
                 socket?.emit("community:join")

@@ -30,7 +30,8 @@ export async function POST(req: NextRequest) {
       title,
       type: type || "FREE",
       price: price || 0,
-      coverImage: coverImage || null
+      coverImage: coverImage || null,
+      updatedAt: new Date()
     }).returning()
 
     return NextResponse.json(course)

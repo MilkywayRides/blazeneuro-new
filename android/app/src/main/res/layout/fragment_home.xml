@@ -10,15 +10,19 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <ScrollView
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:fillViewport="true">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="@dimen/space_lg">
+                android:paddingStart="@dimen/space_lg"
+                android:paddingEnd="@dimen/space_lg"
+                android:paddingTop="16dp"
+                android:paddingBottom="@dimen/space_lg">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -101,25 +105,56 @@
                     android:layout_marginTop="@dimen/space_md"
                     android:orientation="horizontal" />
 
-                <TextView
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Available Courses"
-                    android:textColor="@color/foreground"
-                    android:textSize="@dimen/text_xl"
-                    android:textStyle="bold"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
                     android:layout_marginTop="24dp"
-                    android:layout_marginBottom="@dimen/space_md" />
+                    android:layout_marginBottom="@dimen/space_md">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvCourses"
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Available Courses"
+                        android:textColor="@color/foreground"
+                        android:textSize="@dimen/text_xl"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:id="@+id/btnCourseViewMode"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:src="@drawable/ic_grid_view"
+                        android:contentDescription="Change course view"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="@drawable/menu_button_bg"
+                        android:padding="8dp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/llCourses"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:nestedScrollingEnabled="false" />
+                    android:orientation="vertical"
+                    android:visibility="visible" />
+
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/vpCourses"
+                    android:layout_width="match_parent"
+                    android:layout_height="260dp"
+                    android:clipToPadding="false"
+                    android:clipChildren="false"
+                    android:paddingStart="32dp"
+                    android:paddingEnd="32dp"
+                    android:visibility="gone" />
 
             </LinearLayout>
 
-        </ScrollView>
+        </androidx.core.widget.NestedScrollView>
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

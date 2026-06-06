@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Pencil, Trash2 } from "lucide-react"
+import { toast } from "sonner"
 
 type Course = {
   id: string
@@ -44,12 +45,14 @@ export default function AdminCoursesPage() {
     setLoading(true)
     try {
       const res = await fetch("/api/admin/courses", {
-        credentials: "include"
+        credentials: "include",
+        cache: "no-store"
       })
       const data = await res.json()
       
       if (data.error) {
         setError(data.error)
+        toast.error(data.error)
       } else if (Array.isArray(data)) {
         setCourses(data)
         setError("")
@@ -58,6 +61,7 @@ export default function AdminCoursesPage() {
       }
     } catch (err) {
       setError("Failed to load courses")
+      toast.error("Failed to load courses")
     } finally {
       setLoading(false)
     }
@@ -65,31 +69,44 @@ export default function AdminCoursesPage() {
 
   const handleCreate = async () => {
     setLoading(true)
-    const priceInCents = type === "PAID" ? Math.round(parseFloat(price) * 100) : 0
-    
-    if (editingCourse) {
-      await fetch(`/api/admin/courses/${editingCourse.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ title, type, price: priceInCents, coverImage })
-      })
-    } else {
-      await fetch("/api/admin/courses", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ title, type, price: priceInCents, coverImage })
-      })
+    try {
+      const priceInCents = type === "PAID" ? Math.round(parseFloat(price) * 100) : 0
+      
+      let res;
+      if (editingCourse) {
+        res = await fetch(`/api/admin/courses/${editingCourse.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ title, type, price: priceInCents, coverImage })
+        })
+      } else {
+        res = await fetch("/api/admin/courses", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ title, type, price: priceInCents, coverImage })
+        })
+      }
+
+      const data = await res.json()
+      if (data.error) {
+        toast.error(data.error)
+      } else {
+        toast.success(editingCourse ? "Course updated" : "Course created")
+        setDialogOpen(false)
+        setTitle("")
+        setType("FREE")
+        setPrice("0")
+        setCoverImage("")
+        setEditingCourse(null)
+        fetchCourses()
+      }
+    } catch (err) {
+      toast.error("An error occurred")
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
-    setDialogOpen(false)
-    setTitle("")
-    setType("FREE")
-    setPrice("0")
-    setCoverImage("")
-    setEditingCourse(null)
-    fetchCourses()
   }
 
   const handleEdit = (course: Course) => {

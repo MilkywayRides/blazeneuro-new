@@ -4,22 +4,27 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/card"
-    android:padding="@dimen/space_lg">
+    android:paddingStart="@dimen/space_lg"
+    android:paddingEnd="@dimen/space_lg"
+    android:paddingTop="48dp"
+    android:paddingBottom="@dimen/space_lg"
+    android:fitsSystemWindows="true">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Menu"
         android:textColor="@color/foreground"
-        android:textSize="@dimen/text_xl"
+        android:textSize="20sp"
         android:textStyle="bold"
-        android:layout_marginBottom="@dimen/space_lg" />
+        android:layout_marginStart="4dp"
+        android:layout_marginBottom="24dp" />
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@color/border"
-        android:layout_marginBottom="@dimen/space_md" />
+        android:layout_marginBottom="16dp" />
 
     <LinearLayout
         android:id="@+id/menuHelp"
@@ -27,24 +32,29 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="12dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
+        android:layout_marginBottom="6dp"
         android:clickable="true"
         android:focusable="true"
         android:background="@drawable/menu_item_bg">
         
         <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:src="@drawable/ic_help"
-            android:layout_marginEnd="12dp" />
+            android:layout_marginEnd="16dp"
+            android:tint="@color/foreground" />
         
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Help"
+            android:text="Help &amp; Support"
             android:textColor="@color/foreground"
-            android:textSize="@dimen/text_base" />
+            android:textSize="16sp" />
     </LinearLayout>
 
     <LinearLayout
@@ -53,17 +63,21 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="12dp"
-        android:layout_marginTop="4dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
+        android:layout_marginBottom="6dp"
         android:clickable="true"
         android:focusable="true"
         android:background="@drawable/menu_item_bg">
         
         <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:src="@drawable/ic_oauth"
-            android:layout_marginEnd="12dp" />
+            android:layout_marginEnd="16dp"
+            android:tint="@color/foreground" />
         
         <TextView
             android:layout_width="0dp"
@@ -71,7 +85,7 @@
             android:layout_weight="1"
             android:text="OAuth Apps"
             android:textColor="@color/foreground"
-            android:textSize="@dimen/text_base" />
+            android:textSize="16sp" />
     </LinearLayout>
 
     <LinearLayout
@@ -80,25 +94,29 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="12dp"
-        android:layout_marginTop="4dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
+        android:layout_marginBottom="6dp"
         android:clickable="true"
         android:focusable="true"
         android:background="@drawable/menu_item_bg">
         
         <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:src="@drawable/ic_feedback"
-            android:layout_marginEnd="12dp" />
+            android:layout_marginEnd="16dp"
+            android:tint="@color/foreground" />
         
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Feedback"
+            android:text="Send Feedback"
             android:textColor="@color/foreground"
-            android:textSize="@dimen/text_base" />
+            android:textSize="16sp" />
     </LinearLayout>
 
     <LinearLayout
@@ -107,25 +125,28 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="12dp"
-        android:layout_marginTop="4dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
         android:clickable="true"
         android:focusable="true"
         android:background="@drawable/menu_item_bg">
         
         <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:src="@drawable/ic_report"
-            android:layout_marginEnd="12dp" />
+            android:layout_marginEnd="16dp"
+            android:tint="@color/foreground" />
         
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Report"
+            android:text="Report Issue"
             android:textColor="@color/foreground"
-            android:textSize="@dimen/text_base" />
+            android:textSize="16sp" />
     </LinearLayout>
 
     <View
@@ -138,7 +159,7 @@
         android:layout_height="wrap_content"
         android:text="BlazeNeuro"
         android:textColor="@color/muted_foreground"
-        android:textSize="@dimen/text_lg"
+        android:textSize="16sp"
         android:fontFamily="@font/lexend_deca"
         android:textStyle="bold"
         android:gravity="center"
@@ -150,7 +171,7 @@
         android:layout_height="wrap_content"
         android:text="Version 1.0"
         android:textColor="@color/muted_foreground"
-        android:textSize="@dimen/text_xs"
+        android:textSize="12sp"
         android:fontFamily="@font/lexend_deca"
         android:gravity="center" />
 

@@ -15,4 +15,9 @@
         <item name="android:fontFamily">@font/lexend_deca</item>
         <item name="fontFamily">@font/lexend_deca</item>
     </style>
+
+    <style name="SplashTheme" parent="AppTheme">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
 </resources>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="60dp"
+    android:height="12dp"
+    android:viewportWidth="60"
+    android:viewportHeight="12">
+    <!-- A smooth, continuous curve (bump) with no sharp corners -->
+    <path
+        android:fillColor="@color/glass_bg"
+        android:pathData="M0,12 L0,12 C0,12 10,12 15,12 C20,12 22,0 30,0 C38,0 40,12 45,12 C50,12 60,12 60,12 L60,12 Z" />
+    <path
+        android:strokeColor="@color/glass_border"
+        android:strokeWidth="1"
+        android:pathData="M15,12 C20,12 22,0 30,0 C38,0 40,12 45,12" />
+</vector>

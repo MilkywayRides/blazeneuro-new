@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { BookOpen, ChevronRight, FileText, Video, HelpCircle, Loader2 } from "lucide-react"
+import { BookOpen, ChevronRight, FileText, Video, HelpCircle, Loader2, Lock } from "lucide-react"
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -22,6 +22,7 @@ type Page = {
   title: string
   contentType: "ARTICLE" | "VIDEO" | "QUIZ"
   order: number
+  isLocked?: boolean
 }
 
 type Course = {
@@ -135,9 +136,12 @@ export function NavCourseTree() {
                                 className="w-full text-left px-3 py-2 rounded-lg text-[13px] hover:bg-primary/10 transition-all flex items-center gap-2.5 group active:scale-[0.98]"
                               >
                                 <span className="text-muted-foreground group-hover:text-primary transition-colors shrink-0">
-                                  {getIcon(page.contentType)}
+                                  {page.isLocked ? <Lock className="h-3.5 w-3.5" /> : getIcon(page.contentType)}
                                 </span>
-                                <span className="truncate flex-1 font-medium group-hover:text-foreground transition-colors">
+                                <span className={cn(
+                                  "truncate flex-1 font-medium group-hover:text-foreground transition-colors",
+                                  page.isLocked && "text-muted-foreground/60"
+                                )}>
                                   {page.title}
                                 </span>
                                 <ChevronRight className="h-3 w-3 opacity-0 group-hover:opacity-40 -translate-x-2 group-hover:translate-x-0 transition-all" />

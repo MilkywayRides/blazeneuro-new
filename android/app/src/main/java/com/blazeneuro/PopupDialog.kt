@@ -53,7 +53,7 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
             android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
         )
         spannableTitle.setSpan(
-            ForegroundColorSpan(Color.parseColor("#EBFFFFFF")),
+            ForegroundColorSpan(context.getColor(R.color.foreground)),
             1, spannableTitle.length,
             android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
         )
@@ -153,7 +153,7 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
                 val tv = TextView(context)
                 tv.text = comp.getString("content")
                 tv.textSize = 16f
-                tv.setTextColor(Color.parseColor("#EBFFFFFF"))
+                tv.setTextColor(context.getColor(R.color.foreground))
                 tv.setTypeface(null, android.graphics.Typeface.BOLD)
                 tv.setPadding(0, 0, 0, 12)
                 container.addView(tv)
@@ -162,7 +162,7 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
                 val tv = TextView(context)
                 tv.text = comp.getString("content")
                 tv.textSize = 13f
-                tv.setTextColor(Color.parseColor("#61FFFFFF"))
+                tv.setTextColor(context.getColor(R.color.muted_foreground))
                 tv.setPadding(0, 0, 0, 12)
                 container.addView(tv)
             }
@@ -180,7 +180,7 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
                 val tv = TextView(context)
                 tv.text = comp.getString("content")
                 tv.textSize = 15f
-                tv.setTextColor(Color.parseColor("#EBFFFFFF"))
+                tv.setTextColor(context.getColor(R.color.foreground))
                 tv.setTypeface(null, android.graphics.Typeface.BOLD)
                 tv.setPadding(0, 0, 0, 10)
                 container.addView(tv)
@@ -190,7 +190,7 @@ class PopupDialog(private val context: Context, private val popupData: JSONObjec
                 for (j in 0 until options.length()) {
                     val rb = RadioButton(context)
                     rb.text = options.getString(j)
-                    rb.setTextColor(Color.parseColor("#EBFFFFFF"))
+                    rb.setTextColor(context.getColor(R.color.foreground))
                     rb.setPadding(16, 10, 16, 10)
                     radioGroup.addView(rb)
                 }

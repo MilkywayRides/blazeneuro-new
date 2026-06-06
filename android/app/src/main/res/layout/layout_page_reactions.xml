@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
@@ -9,54 +10,91 @@
     <LinearLayout
         android:id="@+id/btnLike"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="36dp"
         android:orientation="horizontal"
         android:background="@drawable/feedback_glass_btn"
-        android:padding="12dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
         android:clickable="true"
         android:focusable="true"
-        android:layout_marginEnd="12dp"
+        android:layout_marginEnd="8dp"
         android:gravity="center">
 
         <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@drawable/ic_thumbs_up" />
+            android:id="@+id/ivLike"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/ic_thumbs_up"
+            app:tint="@color/foreground" />
 
         <TextView
             android:id="@+id/tvLikeCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0"
-            android:textColor="#ffffff"
-            android:textSize="14sp"
-            android:layout_marginStart="8dp" />
+            android:textColor="@color/foreground"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:layout_marginStart="6dp" />
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/btnDislike"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="36dp"
         android:orientation="horizontal"
         android:background="@drawable/feedback_glass_btn"
-        android:padding="12dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
         android:clickable="true"
         android:focusable="true"
+        android:layout_marginEnd="8dp"
         android:gravity="center">
 
         <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@drawable/ic_thumbs_down" />
+            android:id="@+id/ivDislike"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/ic_thumbs_down"
+            app:tint="@color/foreground" />
 
         <TextView
             android:id="@+id/tvDislikeCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0"
-            android:textColor="#ffffff"
-            android:textSize="14sp"
-            android:layout_marginStart="8dp" />
+            android:textColor="@color/foreground"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:layout_marginStart="6dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/btnShare"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:orientation="horizontal"
+        android:background="@drawable/feedback_glass_btn"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center">
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/ic_share"
+            app:tint="@color/foreground" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Share"
+            android:textColor="@color/foreground"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:layout_marginStart="6dp" />
     </LinearLayout>
 
 </LinearLayout>

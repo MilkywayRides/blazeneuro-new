@@ -9,7 +9,7 @@
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingTop="40dp"
+        android:paddingTop="51dp"
         android:clipToPadding="false">
 
         <LinearLayout
@@ -76,15 +76,11 @@
                 android:layout_marginTop="@dimen/space_md"
                 android:layout_marginBottom="@dimen/space_md" />
 
-            <TextView
+            <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/tvContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Blog content..."
-                android:textColor="@color/foreground"
-                android:textSize="@dimen/text_base"
-                android:lineSpacingExtra="4dp"
-                android:textIsSelectable="true" />
+                android:nestedScrollingEnabled="false" />
 
             <View
                 android:layout_width="match_parent"
@@ -118,7 +114,7 @@
     <eightbitlab.com.blurview.BlurView
         android:id="@+id/feedbackCard"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="68dp"
         android:layout_gravity="bottom"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
@@ -207,12 +203,13 @@
     <View
         android:id="@+id/headerBlur"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="45dp"
         android:background="@drawable/gradient_header" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="40dp"
+        android:layout_marginTop="21dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingStart="@dimen/space_sm"

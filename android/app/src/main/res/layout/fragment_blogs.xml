@@ -9,7 +9,10 @@
         android:id="@+id/rvBlogs"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="@dimen/space_lg"
+        android:paddingStart="@dimen/space_lg"
+        android:paddingEnd="@dimen/space_lg"
+        android:paddingTop="32dp"
+        android:paddingBottom="@dimen/space_lg"
         android:clipToPadding="false" />
 
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

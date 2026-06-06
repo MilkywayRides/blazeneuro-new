@@ -5,7 +5,7 @@
     android:orientation="horizontal"
     android:gravity="center_vertical"
     android:padding="16dp"
-    android:background="#1a1a1a">
+    android:background="@color/background">
 
     <TextView
         android:id="@+id/tvPublisherAvatar"
@@ -14,7 +14,7 @@
         android:background="@drawable/avatar_circle"
         android:gravity="center"
         android:text="A"
-        android:textColor="#3b82f6"
+        android:textColor="@color/primary"
         android:textSize="18sp"
         android:textStyle="bold" />
 
@@ -30,7 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Publisher Name"
-            android:textColor="#ffffff"
+            android:textColor="@color/foreground"
             android:textSize="14sp"
             android:textStyle="bold" />
 
@@ -38,7 +38,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Course Creator"
-            android:textColor="#9ca3af"
+            android:textColor="@color/muted_foreground"
             android:textSize="12sp" />
     </LinearLayout>
 

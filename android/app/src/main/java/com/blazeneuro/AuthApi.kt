@@ -94,7 +94,8 @@ object AuthApi {
         val id: String,
         val title: String,
         val type: String,
-        val pageCount: Int
+        val pageCount: Int,
+        val coverImage: String? = null
     )
 
     data class CoursePage(
@@ -810,7 +811,8 @@ object AuthApi {
                     id = obj.getString("id"),
                     title = obj.getString("title"),
                     type = obj.getString("type"),
-                    pageCount = obj.getInt("pageCount")
+                    pageCount = obj.getInt("pageCount"),
+                    coverImage = obj.optString("coverImage").takeIf { it.isNotEmpty() }
                 ))
             }
             courses

@@ -25,7 +25,7 @@ import {
   SidebarGroupContent,
 } from "@/components/ui/sidebar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { LayoutDashboardIcon, UsersIcon, Settings2Icon, CircleHelpIcon, SearchIcon, ShieldIcon, ActivityIcon, DatabaseIcon, FileTextIcon, MessageSquareIcon, BellIcon, BookOpenIcon } from "lucide-react"
+import { LayoutDashboardIcon, UsersIcon, Settings2Icon, CircleHelpIcon, SearchIcon, ShieldIcon, ActivityIcon, DatabaseIcon, FileTextIcon, MessageSquareIcon, BellIcon, BookOpenIcon, UserIcon, GitGraphIcon } from "lucide-react"
 
 const adminData = {
   navMain: [
@@ -41,6 +41,13 @@ const adminData = {
       url: "/admin/courses",
       icon: (
         <BookOpenIcon className="size-4 shrink-0" />
+      ),
+    },
+    {
+      title: "Workflows",
+      url: "/admin/workflow",
+      icon: (
+        <GitGraphIcon className="size-4 shrink-0" />
       ),
     },
     {
@@ -143,6 +150,13 @@ const adminData = {
       url: "/admin/search",
       icon: (
         <SearchIcon className="size-4 shrink-0" />
+      ),
+    },
+    {
+      title: "Profile",
+      url: "/admin/profile",
+      icon: (
+        <UserIcon className="size-4 shrink-0" />
       ),
     },
   ],

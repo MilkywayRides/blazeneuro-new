@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="8dp"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp">
+
+    <HorizontalScrollView
+        android:id="@+id/code_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/code_block_bg"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/code_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:textSize="14sp"
+            android:textColor="@color/foreground" />
+
+    </HorizontalScrollView>
+
+    <LinearLayout
+        android:id="@+id/btn_copy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_margin="8dp"
+        android:background="@drawable/code_block_bg"
+        android:backgroundTint="#44FFFFFF"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="6dp"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <ImageView
+            android:id="@+id/img_copy"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/ic_copy"
+            android:contentDescription="Copy code"
+            app:tint="@color/foreground" />
+    </LinearLayout>
+
+</FrameLayout>

@@ -10,7 +10,7 @@ import { Quiz } from "@/components/quiz"
 import { PageReactions } from "@/components/page-reactions"
 import { VideoInfo } from "@/components/video-info"
 import { MarkdownRenderer } from "@/components/markdown-renderer"
-import { ChevronLeft, ChevronRight, Play, Flag } from "lucide-react"
+import { ChevronLeft, ChevronRight, Play, Flag, Lock } from "lucide-react"
 
 type Page = {
   id: string
@@ -23,6 +23,7 @@ type Page = {
   likeCount?: number
   dislikeCount?: number
   completed?: boolean
+  isLocked?: boolean
 }
 
 type Publisher = {
@@ -34,6 +35,9 @@ type Publisher = {
 type Course = {
   id: string
   title: string
+  type: "FREE" | "PAID"
+  price?: number
+  isPurchased?: boolean
   publisher?: Publisher
   isFollowing?: boolean
   pages: Page[]
@@ -147,6 +151,28 @@ export default function CourseViewerPage() {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground p-6">
         Select a course and page from the sidebar
+      </div>
+    )
+  }
+
+  if (page.isLocked) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-6 text-center space-y-6">
+        <div className="size-20 rounded-full bg-primary/10 flex items-center justify-center">
+          <Lock className="size-10 text-primary" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-3xl font-bold">This module is locked</h2>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            Purchase this course to get full access to all modules and materials.
+          </p>
+        </div>
+        <Card className="max-w-sm w-full">
+          <CardContent className="pt-6 text-center space-y-4">
+            <div className="text-4xl font-bold">${((course?.price || 0) / 100).toFixed(2)}</div>
+            <Button className="w-full" size="lg">Buy Course Now</Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }

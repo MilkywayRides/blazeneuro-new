@@ -22,21 +22,10 @@ class SignupActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         
         window.decorView.systemUiVisibility = (
-            android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            or android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
         )
         window.statusBarColor = android.graphics.Color.TRANSPARENT
-        
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            val nightMode = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
-            if (nightMode == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
-                window.decorView.systemUiVisibility = (
-                    android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    or android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                )
-            }
-        }
         
         setContentView(R.layout.activity_signup)
         

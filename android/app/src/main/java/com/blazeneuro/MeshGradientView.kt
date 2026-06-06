@@ -20,18 +20,25 @@ class MeshGradientView @JvmOverloads constructor(
         0xFF3B82F6.toInt()
     )
 
+    private var gradient: RadialGradient? = null
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        val wf = w.toFloat()
+        val hf = h.toFloat()
+        gradient = RadialGradient(
+            wf * 0.5f, hf * 0.5f, wf * 0.8f,
+            colors,
+            floatArrayOf(0f, 0.3f, 0.6f, 1f),
+            Shader.TileMode.CLAMP
+        )
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         
         val w = width.toFloat()
         val h = height.toFloat()
-
-        val gradient = RadialGradient(
-            w * 0.5f, h * 0.5f, w * 0.8f,
-            colors,
-            floatArrayOf(0f, 0.3f, 0.6f, 1f),
-            Shader.TileMode.CLAMP
-        )
 
         paint.shader = gradient
         paint.alpha = 30

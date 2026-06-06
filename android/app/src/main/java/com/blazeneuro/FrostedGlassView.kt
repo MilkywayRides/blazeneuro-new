@@ -23,12 +23,21 @@ class FrostedGlassView @JvmOverloads constructor(
         invalidate()
     }
 
+    private val clipPath = Path()
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        clipPath.reset()
+        val rect = RectF(0f, 0f, w.toFloat(), h.toFloat())
+        clipPath.addRoundRect(rect, cornerRadius, cornerRadius, Path.Direction.CW)
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         blurredBitmap?.let {
             val rect = RectF(0f, 0f, width.toFloat(), height.toFloat())
             canvas.save()
-            canvas.clipPath(Path().apply { addRoundRect(rect, cornerRadius, cornerRadius, Path.Direction.CW) })
+            canvas.clipPath(clipPath)
             canvas.drawBitmap(it, null, rect, bitmapPaint)
             canvas.drawRoundRect(rect, cornerRadius, cornerRadius, overlayPaint)
             canvas.restore()

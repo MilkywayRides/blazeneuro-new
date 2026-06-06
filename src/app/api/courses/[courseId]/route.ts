@@ -42,9 +42,35 @@ export async function GET(
     console.log("No publisherId on course")
   }
 
-  // Get user progress if authenticated
+  // Get user progress and purchase status if authenticated
   const session = await auth.api.getSession({
     headers: await headers()
+  })
+
+  let isPurchased = course.type === "FREE"
+  if (session?.user && course.type === "PAID") {
+    const purchase = await db.query.coursePurchases.findFirst({
+      where: (cp, { and, eq }) => and(
+        eq(cp.userId, session.user.id),
+        eq(cp.courseId, courseId)
+      )
+    })
+    isPurchased = !!purchase
+  }
+
+  // Restrict pages if not purchased
+  const restrictedPages = pages.map((page, index) => {
+    if (isPurchased || index === 0) {
+      return page
+    }
+    // Hide content for restricted pages
+    return {
+      ...page,
+      body: null,
+      videoUrl: null,
+      quizData: null,
+      isLocked: true
+    }
   })
 
   if (session?.user && course.publisherId) {
@@ -57,7 +83,7 @@ export async function GET(
     })
     isFollowing = !!followRecord
 
-    // Auto-enroll user if not already enrolled (only on first access)
+    // Auto-enroll user if not already enrolled (only on first access or free course)
     try {
       const existing = await db.query.courseEnrollments.findFirst({
         where: (ce, { and, eq }) => and(
@@ -66,11 +92,11 @@ export async function GET(
         )
       })
 
-      if (!existing) {
+      if (!existing && (course.type === "FREE" || isPurchased)) {
         await db.insert(courseEnrollments).values({
           userId: session.user.id,
           courseId
-        }).catch(() => {}) // Silently fail if table doesn't exist
+        }).catch(() => {}) 
       }
     } catch (error) {
       // Ignore enrollment errors
@@ -87,7 +113,7 @@ export async function GET(
         .from(coursePageReactions)
         .where(eq(coursePageReactions.userId, session.user.id))
 
-      const pagesWithProgress = pages.map(page => {
+      const pagesWithProgress = restrictedPages.map(page => {
         const progress = progressRecords.find(p => p.pageId === page.id)
         const reaction = reactionRecords.find(r => r.pageId === page.id)
         return { 
@@ -103,16 +129,17 @@ export async function GET(
         ...course, 
         publisher,
         isFollowing,
+        isPurchased,
         pages: pagesWithProgress 
       })
     } catch (error) {
       console.error("Progress fetch error:", error)
-      // If table doesn't exist yet, return pages without progress
       return NextResponse.json({ 
         ...course, 
         publisher,
         isFollowing,
-        pages: pages.map(p => ({ ...p, completed: false, userReaction: null, likeCount: p.likeCount || 0, dislikeCount: p.dislikeCount || 0 })) 
+        isPurchased,
+        pages: restrictedPages.map(p => ({ ...p, completed: false, userReaction: null, likeCount: p.likeCount || 0, dislikeCount: p.dislikeCount || 0 })) 
       })
     }
   }
@@ -121,6 +148,7 @@ export async function GET(
     ...course, 
     publisher,
     isFollowing,
-    pages: pages.map(p => ({ ...p, completed: false, userReaction: null, likeCount: p.likeCount || 0, dislikeCount: p.dislikeCount || 0 })) 
+    isPurchased,
+    pages: restrictedPages.map(p => ({ ...p, completed: false, userReaction: null, likeCount: p.likeCount || 0, dislikeCount: p.dislikeCount || 0 })) 
   })
 }

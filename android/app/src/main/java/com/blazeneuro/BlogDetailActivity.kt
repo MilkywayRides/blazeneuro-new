@@ -1,14 +1,31 @@
 package com.blazeneuro
 
 import android.os.Bundle
+import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import io.noties.markwon.Markwon
+import io.noties.markwon.ext.tables.TablePlugin
 import io.noties.markwon.html.HtmlPlugin
 import io.noties.markwon.image.glide.GlideImagesPlugin
+import io.noties.markwon.recycler.MarkwonAdapter
+import io.noties.markwon.recycler.SimpleEntry
+import io.noties.markwon.syntax.SyntaxHighlightPlugin
+import io.noties.prism4j.Prism4j
+import io.noties.prism4j.GrammarLocator
+import io.noties.markwon.syntax.Prism4jThemeDarkula
+import io.noties.markwon.syntax.Prism4jThemeDefault
+import org.commonmark.node.FencedCodeBlock
+import org.commonmark.node.IndentedCodeBlock
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.res.ColorStateList
+import android.graphics.Color
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
@@ -21,17 +38,15 @@ class BlogDetailActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        window.decorView.systemUiVisibility = (
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        )
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
+        
         setContentView(R.layout.activity_blog_detail)
         AuthApi.init(this)
-        
-        // Set status bar appearance based on theme
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            val nightMode = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
-            if (nightMode == android.content.res.Configuration.UI_MODE_NIGHT_NO) {
-                // Light mode - dark status bar icons
-                window.decorView.systemUiVisibility = android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-            }
-        }
         
         // Show loading spinner
         findViewById<android.view.View>(R.id.loadingSpinner).visibility = android.view.View.VISIBLE
@@ -63,9 +78,24 @@ class BlogDetailActivity : AppCompatActivity() {
         }
         feedbackBlurView.clipToOutline = true
 
+        val isDarkMode = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+        val prism4j = Prism4j(MyPrismGrammarLocator())
+        val prismTheme = if (isDarkMode) Prism4jThemeDarkula.create() else Prism4jThemeDefault.create()
+
         markwon = Markwon.builder(this)
             .usePlugin(HtmlPlugin.create())
+            .usePlugin(TablePlugin.create(this))
             .usePlugin(GlideImagesPlugin.create(this))
+            .usePlugin(SyntaxHighlightPlugin.create(prism4j, prismTheme))
+            .usePlugin(object : io.noties.markwon.AbstractMarkwonPlugin() {
+                override fun configureTheme(builder: io.noties.markwon.core.MarkwonTheme.Builder) {
+                    val codeBg = if (isDarkMode) Color.parseColor("#1e1e1e") else Color.parseColor("#f0f0f0")
+                    builder
+                        .codeBlockBackgroundColor(codeBg)
+                        .codeBackgroundColor(codeBg)
+                        .codeBlockTextColor(if (isDarkMode) Color.WHITE else Color.BLACK)
+                }
+            })
             .build()
 
         // Handle deep link
@@ -139,18 +169,59 @@ class BlogDetailActivity : AppCompatActivity() {
             findViewById<TextView>(R.id.tvLikeCount).text = formatCount(blog.likeCount)
             findViewById<TextView>(R.id.tvDislikeCount).text = formatCount(blog.dislikeCount)
             
-            val contentView = findViewById<TextView>(R.id.tvContent)
-            contentView.setTextIsSelectable(true)
-            markwon.setMarkdown(contentView, blog.content)
+            val contentView = findViewById<RecyclerView>(R.id.tvContent)
+            contentView.layoutManager = LinearLayoutManager(this)
             
-            // Long click to copy
-            contentView.setOnLongClickListener {
-                val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                val clip = android.content.ClipData.newPlainText("blog_content", blog.content)
-                clipboard.setPrimaryClip(clip)
-                Toast.makeText(this, "Content copied", Toast.LENGTH_SHORT).show()
-                true
-            }
+            val adapter = MarkwonAdapter.builder(R.layout.adapter_markdown_text, R.id.text)
+                .include(FencedCodeBlock::class.java, object : SimpleEntry(R.layout.adapter_markdown_code_block, R.id.code_text) {
+                    override fun bindHolder(markwon: Markwon, holder: SimpleEntry.Holder, node: org.commonmark.node.Node) {
+                        super.bindHolder(markwon, holder, node)
+                        val isDarkMode = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+                        val codeBg = if (isDarkMode) Color.parseColor("#1e1e1e") else Color.parseColor("#f0f0f0")
+                        val textColor = if (isDarkMode) Color.WHITE else Color.BLACK
+                        
+                        val container = holder.itemView.findViewById<android.view.View>(R.id.code_container)
+                        container.backgroundTintList = ColorStateList.valueOf(codeBg)
+                        
+                        val codeText = holder.itemView.findViewById<TextView>(R.id.code_text)
+                        codeText.setTextColor(textColor)
+                        
+                        val btnCopy = holder.itemView.findViewById<android.view.View>(R.id.btn_copy)
+                        btnCopy.setOnClickListener {
+                            val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                            val clip = android.content.ClipData.newPlainText("code", codeText.text)
+                            clipboard.setPrimaryClip(clip)
+                            Toast.makeText(this@BlogDetailActivity, "Code copied", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                })
+                .include(IndentedCodeBlock::class.java, object : SimpleEntry(R.layout.adapter_markdown_code_block, R.id.code_text) {
+                    override fun bindHolder(markwon: Markwon, holder: SimpleEntry.Holder, node: org.commonmark.node.Node) {
+                        super.bindHolder(markwon, holder, node)
+                        val isDarkMode = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+                        val codeBg = if (isDarkMode) Color.parseColor("#1e1e1e") else Color.parseColor("#f0f0f0")
+                        val textColor = if (isDarkMode) Color.WHITE else Color.BLACK
+                        
+                        val container = holder.itemView.findViewById<android.view.View>(R.id.code_container)
+                        container.backgroundTintList = ColorStateList.valueOf(codeBg)
+                        
+                        val codeText = holder.itemView.findViewById<TextView>(R.id.code_text)
+                        codeText.setTextColor(textColor)
+                        
+                        val btnCopy = holder.itemView.findViewById<android.view.View>(R.id.btn_copy)
+                        btnCopy.setOnClickListener {
+                            val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                            val clip = android.content.ClipData.newPlainText("code", codeText.text)
+                            clipboard.setPrimaryClip(clip)
+                            Toast.makeText(this@BlogDetailActivity, "Code copied", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                })
+                .build()
+            
+            contentView.adapter = adapter
+            adapter.setMarkdown(markwon, blog.content)
+            adapter.notifyDataSetChanged()
         } else {
             findViewById<TextView>(R.id.tvContent).text = "Failed to load blog content"
         }
@@ -215,8 +286,12 @@ class BlogDetailActivity : AppCompatActivity() {
                         .into(avatarView)
                 }
                 
-                val contentView = findViewById<TextView>(R.id.tvContent)
-                markwon.setMarkdown(contentView, blogContent)
+                val contentView = findViewById<RecyclerView>(R.id.tvContent)
+                contentView.layoutManager = LinearLayoutManager(this)
+                val adapter = MarkwonAdapter.builder(R.layout.adapter_markdown_text, R.id.text).build()
+                contentView.adapter = adapter
+                adapter.setMarkdown(markwon, blogContent)
+                adapter.notifyDataSetChanged()
                 
                 // Hide feedback card for offline
                 findViewById<eightbitlab.com.blurview.BlurView>(R.id.feedbackCard).visibility = android.view.View.GONE

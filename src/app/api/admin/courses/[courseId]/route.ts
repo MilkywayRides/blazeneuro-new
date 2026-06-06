@@ -73,7 +73,13 @@ export async function PUT(
 
     const [course] = await db
       .update(courses)
-      .set({ title, type, price, coverImage })
+      .set({ 
+        title, 
+        type, 
+        price: price !== undefined ? price : undefined,
+        coverImage,
+        updatedAt: new Date()
+      })
       .where(eq(courses.id, courseId))
       .returning()
 
