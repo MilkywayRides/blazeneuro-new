@@ -4,13 +4,37 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { BookOpen, Calendar, User } from "lucide-react"
+import { BookOpen, Calendar, User as UserIcon } from "lucide-react"
+import { db } from "@/lib/db"
 
 async function getProfile(username: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'
-  const res = await fetch(`${baseUrl}/api/profiles/${username}`, { cache: 'no-store' })
-  if (!res.ok) return null
-  return res.json()
+  try {
+    const userRecord = await db.query.user.findFirst({
+      where: (u, { eq }) => eq(u.username, username),
+      columns: {
+        id: true,
+        name: true,
+        username: true,
+        bio: true,
+        image: true,
+        createdAt: true
+      }
+    })
+
+    if (!userRecord) return null
+
+    const userCourses = await db.query.courses.findMany({
+      where: (c, { eq }) => eq(c.publisherId, userRecord.id)
+    })
+
+    return {
+      ...userRecord,
+      courses: userCourses
+    }
+  } catch (error) {
+    console.error("Error fetching profile:", error)
+    return null
+  }
 }
 
 export default async function PublicProfilePage({ params }: { params: Promise<{ username: string }> }) {
@@ -36,7 +60,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
                   {profile.image ? (
                     <img src={profile.image} alt={profile.name} className="size-full object-cover" />
                   ) : (
-                    <User className="size-16 text-muted-foreground" />
+                    <UserIcon className="size-16 text-muted-foreground" />
                   )}
                 </div>
                 <div>
@@ -107,3 +131,4 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
     </div>
   )
 }
+
