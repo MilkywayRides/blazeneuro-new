@@ -69,11 +69,11 @@ export async function PUT(
     }
 
     const { courseId } = await params
-    const { title, type, coverImage } = await req.json()
+    const { title, type, price, coverImage } = await req.json()
 
     const [course] = await db
       .update(courses)
-      .set({ title, type, coverImage })
+      .set({ title, type, price, coverImage })
       .where(eq(courses.id, courseId))
       .returning()
 

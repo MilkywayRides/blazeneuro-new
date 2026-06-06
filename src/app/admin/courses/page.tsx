@@ -17,6 +17,7 @@ type Course = {
   id: string
   title: string
   type: "FREE" | "PAID"
+  price?: number
   coverImage?: string
   createdAt: string
   pageCount: number
@@ -30,6 +31,7 @@ export default function AdminCoursesPage() {
   const [editingCourse, setEditingCourse] = useState<Course | null>(null)
   const [title, setTitle] = useState("")
   const [type, setType] = useState<"FREE" | "PAID">("FREE")
+  const [price, setPrice] = useState<string>("0")
   const [coverImage, setCoverImage] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -63,25 +65,28 @@ export default function AdminCoursesPage() {
 
   const handleCreate = async () => {
     setLoading(true)
+    const priceInCents = type === "PAID" ? Math.round(parseFloat(price) * 100) : 0
+    
     if (editingCourse) {
       await fetch(`/api/admin/courses/${editingCourse.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ title, type, coverImage })
+        body: JSON.stringify({ title, type, price: priceInCents, coverImage })
       })
     } else {
       await fetch("/api/admin/courses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ title, type, coverImage })
+        body: JSON.stringify({ title, type, price: priceInCents, coverImage })
       })
     }
     setLoading(false)
     setDialogOpen(false)
     setTitle("")
     setType("FREE")
+    setPrice("0")
     setCoverImage("")
     setEditingCourse(null)
     fetchCourses()
@@ -91,6 +96,7 @@ export default function AdminCoursesPage() {
     setEditingCourse(course)
     setTitle(course.title)
     setType(course.type)
+    setPrice(((course.price || 0) / 100).toString())
     setCoverImage(course.coverImage || "")
     setDialogOpen(true)
   }
@@ -157,6 +163,7 @@ export default function AdminCoursesPage() {
                 <TableRow>
                   <TableHead>Title</TableHead>
                   <TableHead>Type</TableHead>
+                  <TableHead>Price</TableHead>
                   <TableHead>Pages</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Actions</TableHead>
@@ -170,6 +177,9 @@ export default function AdminCoursesPage() {
                       <Badge variant={course.type === "FREE" ? "default" : "destructive"}>
                         {course.type}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {course.type === "PAID" ? `$${((course.price || 0) / 100).toFixed(2)}` : "Free"}
                     </TableCell>
                     <TableCell>{course.pageCount}</TableCell>
                     <TableCell>{new Date(course.createdAt).toLocaleDateString()}</TableCell>
@@ -200,6 +210,7 @@ export default function AdminCoursesPage() {
           setEditingCourse(null)
           setTitle("")
           setType("FREE")
+          setPrice("0")
           setCoverImage("")
         }
       }}>
@@ -229,6 +240,20 @@ export default function AdminCoursesPage() {
                 </SelectContent>
               </Select>
             </div>
+            {type === "PAID" && (
+              <div>
+                <Label htmlFor="price">Price ($)</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="9.99"
+                />
+              </div>
+            )}
             <div>
               <Label htmlFor="coverImage">Cover Image URL</Label>
               <Input
@@ -241,7 +266,7 @@ export default function AdminCoursesPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleCreate} disabled={loading || !title}>Create</Button>
+            <Button onClick={handleCreate} disabled={loading || !title}>{editingCourse ? "Update" : "Create"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

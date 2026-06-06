@@ -9,12 +9,13 @@ export async function GET() {
       id: courses.id,
       title: courses.title,
       type: courses.type,
+      price: courses.price,
       coverImage: courses.coverImage,
       pageCount: sql<number>`count(${coursePages.id})::int`
     })
     .from(courses)
     .leftJoin(coursePages, eq(courses.id, coursePages.courseId))
-    .groupBy(courses.id, courses.title, courses.type, courses.coverImage)
+    .groupBy(courses.id, courses.title, courses.type, courses.price, courses.coverImage)
 
   return NextResponse.json(result)
 }

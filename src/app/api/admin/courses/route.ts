@@ -24,11 +24,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
     
-    const { title, type, coverImage } = await req.json()
+    const { title, type, price, coverImage } = await req.json()
 
     const [course] = await db.insert(courses).values({
       title,
       type: type || "FREE",
+      price: price || 0,
       coverImage: coverImage || null
     }).returning()
 
@@ -75,13 +76,14 @@ export async function GET(req: NextRequest) {
         id: courses.id,
         title: courses.title,
         type: courses.type,
+        price: courses.price,
         coverImage: courses.coverImage,
         createdAt: courses.createdAt,
         pageCount: sql<number>`count(${coursePages.id})::int`
       })
       .from(courses)
       .leftJoin(coursePages, eq(courses.id, coursePages.courseId))
-      .groupBy(courses.id, courses.title, courses.type, courses.coverImage, courses.createdAt)
+      .groupBy(courses.id, courses.title, courses.type, courses.price, courses.coverImage, courses.createdAt)
 
     return NextResponse.json(result)
   } catch (error: any) {

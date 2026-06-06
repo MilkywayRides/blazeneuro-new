@@ -10,6 +10,7 @@ type Course = {
   id: string
   title: string
   type: "FREE" | "PAID"
+  price?: number
   coverImage?: string
   pageCount: number
 }
@@ -107,7 +108,7 @@ export default function CourseCatalogPage() {
                 <div className="flex items-start justify-between gap-2">
                   <CardTitle className="text-xl line-clamp-2">{course.title}</CardTitle>
                   <Badge variant={course.type === "FREE" ? "secondary" : "default"} className="shrink-0">
-                    {course.type}
+                    {course.type === "PAID" ? `$${((course.price || 0) / 100).toFixed(2)}` : "Free"}
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground flex items-center gap-1">

@@ -299,6 +299,7 @@ export const courses = pgTable("courses", {
   coverImage: text("cover_image"),
   publisherId: text("publisher_id").references(() => user.id),
   type: text("type", { enum: ["FREE", "PAID"] }).notNull().default("FREE"),
+  price: integer("price").default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 })
@@ -367,6 +368,17 @@ export const adminDashboardLayout = pgTable("admin_dashboard_layout", {
   updatedAt: timestamp("updatedAt").notNull().defaultNow()
 })
 
+export const workflow = pgTable("workflow", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  nodes: jsonb("nodes").notNull().default([]),
+  edges: jsonb("edges").notNull().default([]),
+  userId: text("userId").notNull().references(() => user.id),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow()
+})
+
 export const schema = {
   user,
   session,
@@ -401,6 +413,7 @@ export const schema = {
   courseEnrollments,
   coursePageReactions,
   courseFollows,
-  adminDashboardLayout
+  adminDashboardLayout,
+  workflow
 }
 
