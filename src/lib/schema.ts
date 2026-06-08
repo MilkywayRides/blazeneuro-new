@@ -11,10 +11,13 @@ export const user = pgTable("user", {
   bio: text("bio"),
   phone: text("phone"),
   phoneVerified: boolean("phoneVerified").notNull().default(false),
+  credits: integer("credits").notNull().default(10),
+  instagramAccountId: text("instagramAccountId"),
+  instagramAccessToken: text("instagramAccessToken"),
+  geminiApiKey: text("geminiApiKey"),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow()
 })
-
 export const session = pgTable("session", {
   id: text("id").primaryKey(),
   expiresAt: timestamp("expiresAt").notNull(),
@@ -381,6 +384,26 @@ export const workflow = pgTable("workflow", {
   updatedAt: timestamp("updatedAt").notNull().defaultNow()
 })
 
+export const uploadedFiles = pgTable("uploaded_files", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").notNull().references(() => user.id),
+  s3Key: text("s3_key").notNull(),
+  displayName: text("display_name").notNull(),
+  status: text("status").notNull().default("uploaded"),
+  uploaded: boolean("uploaded").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+})
+
+export const clips = pgTable("clips", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  s3Key: text("s3_key").notNull(),
+  uploadedFileId: uuid("uploaded_file_id").notNull().references(() => uploadedFiles.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => user.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+})
+
 export const schema = {
   user,
   session,
@@ -416,6 +439,8 @@ export const schema = {
   coursePageReactions,
   courseFollows,
   adminDashboardLayout,
-  workflow
+  workflow,
+  uploadedFiles,
+  clips
 }
 

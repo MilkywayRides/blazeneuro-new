@@ -25,7 +25,7 @@ import {
   SidebarGroupContent,
 } from "@/components/ui/sidebar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { LayoutDashboardIcon, UsersIcon, Settings2Icon, CircleHelpIcon, SearchIcon, ShieldIcon, ActivityIcon, DatabaseIcon, FileTextIcon, MessageSquareIcon, BellIcon, BookOpenIcon, UserIcon, GitGraphIcon } from "lucide-react"
+import { LayoutDashboardIcon, UsersIcon, Settings2Icon, CircleHelpIcon, SearchIcon, ShieldIcon, ActivityIcon, DatabaseIcon, FileTextIcon, MessageSquareIcon, BellIcon, BookOpenIcon, UserIcon, GitGraphIcon, Video } from "lucide-react"
 
 const adminData = {
   navMain: [
@@ -48,6 +48,13 @@ const adminData = {
       url: "/admin/workflow",
       icon: (
         <GitGraphIcon className="size-4 shrink-0" />
+      ),
+    },
+    {
+      title: "Auto Video",
+      url: "/admin/auto-video",
+      icon: (
+        <Video className="size-4 shrink-0" />
       ),
     },
     {

@@ -127,6 +127,13 @@
       "when": 1779951667176,
       "tag": "0017_thin_bloodstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1780900340218,
+      "tag": "0018_flowery_bloodscream",
+      "breakpoints": true
     }
   ]
 }
