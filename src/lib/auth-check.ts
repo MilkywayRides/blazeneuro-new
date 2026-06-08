@@ -95,7 +95,7 @@ export async function requireAdmin() {
     
     if (!dbUser || dbUser.length === 0) {
       console.log("[Auth] User not found in database");
-      throw new Error("Unauthorized: Admin access required");
+      redirect("/");
     }
     
     const userRole = dbUser[0].role;
@@ -103,7 +103,7 @@ export async function requireAdmin() {
     
     if (userRole !== "admin" && userRole !== "superAdmin") {
       console.log("[Auth] User does not have admin role");
-      throw new Error("Unauthorized: Admin access required");
+      redirect("/");
     }
 
     console.log("[Auth] Admin access granted");
