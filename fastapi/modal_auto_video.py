@@ -15,6 +15,17 @@ import modal
 import numpy as np
 from pydantic import BaseModel
 import os
+import torchaudio
+
+# Monkey patch torchaudio to bypass pyannote.audio compatibility issues on PyTorch 2.4+
+if not hasattr(torchaudio, 'AudioMetaData'):
+    class AudioMetaData:
+        pass
+    torchaudio.AudioMetaData = AudioMetaData
+
+if not hasattr(torchaudio, 'list_audio_backends'):
+    torchaudio.list_audio_backends = lambda: ["ffmpeg"]
+
 from google import genai
 
 import pysubs2
