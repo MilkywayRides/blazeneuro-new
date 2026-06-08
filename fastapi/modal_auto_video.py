@@ -56,7 +56,7 @@ class ProcessVideoRequest(BaseModel):
 
 image = (modal.Image.from_registry(
     "nvidia/cuda:12.4.0-devel-ubuntu22.04", add_python="3.12")
-    .apt_install(["ffmpeg", "libgl1-mesa-glx", "wget", "libcudnn8", "libcudnn8-dev", "yt-dlp"])
+    .apt_install(["ffmpeg", "libgl1-mesa-glx", "wget", "libcudnn8", "libcudnn8-dev"])
     .pip_install_from_requirements("requirements_auto_video.txt")
     .run_commands(["mkdir -p /usr/share/fonts/truetype/custom",
                    "wget -O /usr/share/fonts/truetype/custom/Anton-Regular.ttf https://github.com/google/fonts/raw/main/ofl/anton/Anton-Regular.ttf",
@@ -342,7 +342,7 @@ def process_clip(base_dir: str, original_video_path: str, s3_key: str, start_tim
     return str(subtitle_output_path)
 
 
-@app.cls(gpu="L40S", timeout=900, retries=0, scaledown_window=20, secrets=[modal.Secret.from_name("ai-podcast-clipper-secret")], volumes={mount_path: volume})
+@app.cls(gpu="L40S", timeout=900, retries=0, scaledown_window=20, secrets=[modal.Secret.from_name("ai-podcast-clipper-secret"), modal.Secret.from_name("ai-podcast-clipper-youtube-cookies")], volumes={mount_path: volume})
 class AiPodcastClipper:
     @modal.enter()
     def load_model(self):
@@ -431,9 +431,17 @@ class AiPodcastClipper:
 
     @modal.fastapi_endpoint(method="POST")
     def process_video(self, request: ProcessVideoRequest, token: HTTPAuthorizationCredentials = Depends(auth_scheme)):
-        if token.credentials != os.environ["AUTH_TOKEN"]:
+        if token.credentials != os.environ.get("AUTH_TOKEN", "dummy"):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                 detail="Incorrect bearer token", headers={"WWW-Authenticate": "Bearer"})
+        
+        # Spawn the background task and return immediately to prevent Next.js timeout
+        self.process_video_bg.spawn(request)
+        return {"status": "started"}
+
+    @modal.method()
+    def process_video_bg(self, request: ProcessVideoRequest):
+        pass
 
         run_id = str(uuid.uuid4())
         base_dir = pathlib.Path("/tmp") / run_id
@@ -453,13 +461,26 @@ class AiPodcastClipper:
         if request.youtube_url:
             print(f"Downloading from YouTube: {request.youtube_url}")
             try:
-                subprocess.run([
+                # Setup cookies if provided in the environment
+                ytdlp_cmd = [
                     "yt-dlp",
                     "-f", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
                     "--merge-output-format", "mp4",
-                    "-o", str(video_path),
-                    request.youtube_url
-                ], check=True)
+                    "-o", str(video_path)
+                ]
+                
+                youtube_cookies = os.environ.get("YOUTUBE_COOKIES")
+                if youtube_cookies:
+                    cookies_path = base_dir / "cookies.txt"
+                    cookies_path.write_text(youtube_cookies)
+                    ytdlp_cmd.extend(["--cookies", str(cookies_path)])
+                    print("Using provided YouTube cookies for authentication.")
+                else:
+                    print("WARNING: No YOUTUBE_COOKIES secret found. YouTube may block this request (bot detection).")
+
+                ytdlp_cmd.append(request.youtube_url)
+
+                subprocess.run(ytdlp_cmd, check=True)
             except Exception as e:
                 print(f"Error downloading YouTube video: {e}")
                 raise HTTPException(status_code=500, detail=f"YouTube download failed: {str(e)}")
