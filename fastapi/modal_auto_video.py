@@ -18,13 +18,8 @@ import os
 import torchaudio
 import torch
 
-# Monkey patch torch.load to default weights_only=False to bypass PyTorch 2.6+ unpickling errors for whisperx/pyannote
-_original_torch_load = torch.load
-def _patched_torch_load(*args, **kwargs):
-    if 'weights_only' not in kwargs:
-        kwargs['weights_only'] = False
-    return _original_torch_load(*args, **kwargs)
-torch.load = _patched_torch_load
+# Bypass PyTorch 2.6+ unpickling errors for whisperx/pyannote
+os.environ["TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD"] = "1"
 
 # Monkey patch torchaudio to bypass pyannote.audio compatibility issues on PyTorch 2.4+
 if not hasattr(torchaudio, 'AudioMetaData'):
