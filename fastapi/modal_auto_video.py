@@ -16,6 +16,15 @@ import numpy as np
 from pydantic import BaseModel
 import os
 import torchaudio
+import torch
+
+# Monkey patch torch.load to default weights_only=False to bypass PyTorch 2.6+ unpickling errors for whisperx/pyannote
+_original_torch_load = torch.load
+def _patched_torch_load(*args, **kwargs):
+    if 'weights_only' not in kwargs:
+        kwargs['weights_only'] = False
+    return _original_torch_load(*args, **kwargs)
+torch.load = _patched_torch_load
 
 # Monkey patch torchaudio to bypass pyannote.audio compatibility issues on PyTorch 2.4+
 if not hasattr(torchaudio, 'AudioMetaData'):
