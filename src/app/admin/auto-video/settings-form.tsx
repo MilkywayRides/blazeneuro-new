@@ -21,6 +21,16 @@ export function AutoVideoSettings({ initialData }: { initialData: any }) {
     geminiApiKey: initialData?.geminiApiKey || "",
   });
 
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        instagramAccountId: initialData.instagramAccountId || "",
+        instagramAccessToken: initialData.instagramAccessToken || "",
+        geminiApiKey: initialData.geminiApiKey || "",
+      });
+    }
+  }, [initialData]);
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
